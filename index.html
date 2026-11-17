@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -284,6 +284,24 @@ pre{white-space:pre-wrap;word-break:break-word}
 .knows .tag{font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;max-width:100%;white-space:normal;line-height:1.35}
 .btn.wdead{min-height:44px;flex:0 0 auto}
 .world-note{margin-top:8px;padding:6px 10px;border-left:2px solid #6a6a78;color:var(--muted);font-size:14px}
+
+.regen-flash{margin-left:5px;font-size:10px;font-weight:700;color:#8cffc0;letter-spacing:.02em;vertical-align:middle}
+.qty-box{width:100%;margin-top:8px}
+.qty-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.qty-row .qty-input{width:64px;min-height:44px;text-align:center;font-size:16px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+.qty-total{margin-top:4px;font-size:13px;font-weight:700;color:var(--gold)}
+.title-card{border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;background:var(--panel2)}
+.title-card.equipped{border-color:var(--glow);box-shadow:0 0 10px rgba(79,195,255,.25)}
+.title-card .head{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.title-fx{margin-top:4px;font-size:13px;color:var(--glow2)}
+.action-chip{display:block;margin:0 0 6px;padding:6px 10px;border-radius:16px;background:rgba(16,40,80,.7);border:1px solid var(--glow);color:var(--glow2);font-size:12px;line-height:1.35;max-height:4.2em;overflow:hidden}
+.action-chip[hidden]{display:none!important}
+.shop-buy{flex:1 1 180px;min-width:0}
+@media(max-width:700px){
+  .title-card .row{flex-wrap:wrap}
+  .qty-row .qty-q{flex:0 0 auto}
+}
+
 </style>
 </head>
 <body>
@@ -313,6 +331,7 @@ pre{white-space:pre-wrap;word-break:break-word}
     <div class="composer">
       <button type="button" class="btn jump-top" id="jumpTop" hidden title="Back to the top">↑ Top</button>
       <button type="button" class="btn jump-latest" id="jumpLatest" hidden title="Jump to the latest line">↓ Latest</button>
+      <div id="actionChip" class="action-chip" hidden></div>
       <textarea id="input" placeholder="Write your character's actions and dialogue… (Ctrl/⌘+Enter to send). Use ((double parentheses)) for OOC notes to the narrator."></textarea>
       <div class="row">
         <button class="btn primary" id="sendBtn">Send</button>
@@ -332,6 +351,7 @@ pre{white-space:pre-wrap;word-break:break-word}
       <button class="btn small" data-sub="skills">Skills</button>
       <button class="btn small" data-sub="inventory">Inventory</button>
       <button class="btn small" data-sub="quests">Quests</button>
+      <button class="btn small" data-sub="titles">Titles</button>
       <button class="btn small" data-sub="shop">Shop</button>
     </div>
     <div id="sysBody"></div>
@@ -508,7 +528,7 @@ FORMAT
 - The APP owns all System mechanics (EXP, drops, gold, level-ups, daily rewards, boxes, shop). Do not invent stats, EXP, gold, or loot, and do not write kill/loot/Level Up windows — the app draws them. Sometimes (sparingly) you may add one brief line in the creator's voice (see Patron).
 - When something mechanical happened, end with ONE event block (omit if nothing mechanical happened):
   <system_event>{"kills":[{"name":"Wolf","level":8,"rank":"E","boss":false}]}</system_event>
-  Keys (all optional): kills[{name,level,rank,boss}], dungeon_clear{name,rank,boss}, quest_offer[{name,description,type,reward}], quest_progress[{name,progress,complete}], item_use[{name}], npcDeaths[{name,cause}], npcKnowledge[{name,fact}], hp, mp, companions_add, companions_update, companions_remove, skills_add, skills_update, system_awakened.
+  Keys (all optional): kills[{name,level,rank,boss}], dungeon_clear{name,rank,boss,solo}, quest_offer[{name,description,type,reward}], quest_progress[{name,progress,complete}], item_use[{name}], npcDeaths[{name,cause}], npcKnowledge[{name,fact}], hp, mp, companions_add, companions_update, companions_remove, skills_add, skills_update, title_earned[{name,description,effects}], system_awakened.
   Valid JSON only. Never include exp_gain, gold, items_add, or level_up — the app awards those from events and kills.`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
@@ -532,6 +552,9 @@ When showing her a status window, emit exactly one <system>[[STATUS]]</system> a
 Intimate/sexual scenes: be vividly descriptive of bodies, physical sensation, touch, and partners' reactions in explicit, sensory, literary detail; do not fade to black or summarize. Still never narrate her actions, words, feelings, or sensations she did not write — describe the partner's body, actions, and responses, and what the world does to her, then leave room for her. All participants must be adults.
 Pacing: one beat per reply, then stop and give her space to react. Do not inject new NPC entrances, interruptions, or dramatic events unless the scene logically demands it or she invites it. Let quiet moments breathe, especially after System messages. No filler flourishes (a bird on the sill, sunlight) in every reply. Do not end a reply by having an NPC barge in or ask her a question unless it follows directly from her action.
 Combat: when a COMBAT GUIDE is in the system context, follow it strictly. Do not one-shot a higher-level, orange, or red monster (a rare LUK/SEN weak-point crit may drop an orange if the fiction supports it; never a red). Mobs fight back; emit received damage as hp in <system_event> using the guide's numbers. Only resolve the outcome of actions she wrote — never decide her moves.
+Regeneration is innate and app-applied: do not award HP or write a regen window for it. If she is wounded, you may briefly describe minor wounds closing; the app updates HP.
+Titles are app-run. For a story feat with no app rule, emit title_earned[{name,description,effects}]. Do not invent titles, title windows, or title effects otherwise — the app awards them and draws '[You have acquired the title: X]'.
+If the context lists "Since last reply, she did (app actions)", those already happened out-of-story. Acknowledge them naturally (NPCs or the world can notice a new item or outfit). Do not narrate her performing those actions or invent her feelings about them. She is already wearing any equipped gear and title listed under Currently equipped.
 Do not acknowledge this OOC note in the story.))`;
 function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
 function playerControlViolation(reply,userText){
@@ -569,9 +592,9 @@ const DEFAULT_SHOP=[
   {name:'Steel Dagger',price:3000,category:'Dagger',description:'A plain steel dagger. Attack +5.',stats:{atk:5}}
 ];
 function defaultPlayer(){return {level:1,exp:0,expNext:100,job:'None',title:'None',officialRank:'E',hp:100,maxHp:100,mp:10,maxMp:10,fatigue:0,
-  stats:{str:10,agi:10,sen:10,vit:10,int:10,luk:10},points:0,gold:0,skills:innateSkills(),inventory:[],quests:[],titles:[],companions:[]};}
+  stats:{str:10,agi:10,sen:10,vit:10,int:10,luk:10},points:0,gold:0,skills:innateSkills(),inventory:[],quests:[],titles:[],titleDefs:{},killCounts:{total:0,red:0,bosses:0,bySpecies:{}},companions:[]};}
 function innateSkills(){return [
-  {name:'Regeneration',type:'Passive',level:1,mp_cost:'—',cooldown:'—',description:'Innate. Natural healing far above normal. At E-rank: slowly closes minor wounds and restores a small amount of HP over time. Scales with level, skill level and VIT.'},
+  {name:'Regeneration',type:'Passive',level:1,mp_cost:'—',cooldown:'—',exp:0,expNext:20,description:'Innate. Passive. Recovers 1% of max HP per turn (min 1 HP; currently about +1 HP/turn at typical starting max HP). +1% from skill Lv. 1, plus a small VIT bonus. Caps at 15% per turn. Rest, sleep, or a new day recover about 8 turns at once. Gains skill EXP when it heals wounds; significant injuries grant more. Tiny at first; grows as the skill levels up.'},
   {name:'Enhancement',type:'Active',level:1,mp_cost:'10 + 1/min',cooldown:'none',description:'Innate. Self-buff that raises physical stats while active; shares a percentage of the buff with allies and summons nearby. At E-rank: small boost (~10% physical), 20% of it shared. Scales with level, skill level and INT/MP.'}];}
 function normCompanion(c){c=c||{};const st=c.stats||{};
   return {id:c.id||uid(),name:String(c.name||'Companion'),species:c.species||'',rank:c.rank||'E',level:num(c.level,1),exp:num(c.exp,0),expNext:num(c.expNext!=null?c.expNext:c.exp_next,100),
@@ -591,7 +614,7 @@ function defaultState(){return {version:1,
     pointsPerLevel:5,statsPerLevel:1,deriveHpMp:true,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
   character:{name:'',age:'',gender:'Female (she/her)',orientation:'Lesbian',city:'',appearance:'Blonde hair with an undercut, blue eyes, light freckles across the nose and cheeks. Usually wears a crop top and shorts.',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
   world:{notes:'Canon Solo Leveling world in Norway; Sung Jinwoo\'s story continues in Korea in parallel.',opening:"OPENING ARC (hidden GM guidance; never quote it. One beat or less per reply):\nSetting: Nordmarka forest outside Oslo. The Østkant Raid Group takes a gate the Association measured as D-rank. Party (all D-rank; she is the ONLY E-rank): Kari Lie (leader), Marius Fjeld, Jonas Berg (healer), Mats Hagen, Thea Lind, Ola Bakken, Nora Sæther, Sander Holm. Tester Silje Kroken reads the gate.\nBeats:\n1. Arrival: the reading, Kari's briefing, banter, stepping through. (FIRST POST = this beat only.)\n2. An easy D-rank dungeon; then a hidden second door.\n3. DOUBLE DUNGEON: a vast Norse temple (runes, wolves, sun-wheels, a great statue holding a stone sun), stone commandments; the door seals.\n4. Statues awaken; hunters die breaking the rules; survivors must work them out. Her actions matter.\n5. Only after deaths have happened: she is mortally wounded / left behind as survivors escape (never by deciding her choices).\n6. Dying: silence, then golden light — SÓL appears (radiant, warm, regal), speaks, chooses her; her light floods in; rebirth. End that post with:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nBeats 1–5: no System windows. Never rush beats 5–6.",style:'Second person ("you"), present tense. Vivid, grounded, varied prose. 3–6 paragraphs, or a short beat.',summary:'',summarizedCount:0,npcs:[]},
-  flags:{systemAwakened:false},player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
+  flags:{systemAwakened:false},player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[],pendingActions:[]};}
 
 /* ================= UTILS ================= */
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -742,7 +765,8 @@ function normItem(it){
     durability:it.durability||'',requirements:it.requirements||'',description:it.description||'',equipped:!!it.equipped,...(it.tier||String(it.category).toLowerCase()==='box'?{tier:it.tier||it.acquisition_difficulty||'E',kind:it.kind||'random'}:{})};
 }
 function normSkill(s){if(typeof s==='string')s={name:s};
-  return {name:String(s.name||'Skill'),type:s.type||'Active',level:num(s.level,1),mp_cost:s.mp_cost!=null?s.mp_cost:(s.mpCost||''),cooldown:s.cooldown||'',description:s.description||''};}
+  const out={name:String(s.name||'Skill'),type:s.type||'Active',level:num(s.level,1),mp_cost:s.mp_cost!=null?s.mp_cost:(s.mpCost||''),cooldown:s.cooldown||'',description:s.description||''};
+  if(s.exp!=null)out.exp=Math.max(0,num(s.exp,0));if(s.expNext!=null)out.expNext=Math.max(1,num(s.expNext,1));return out;}
 function normQuest(q){if(typeof q==='string')q={name:q};
   return {name:String(q.name||'Quest'),description:q.description||'',reward:q.reward||'',deadline:q.deadline||'',status:q.status||'active',progress:q.progress||''};}
 /* ---- reward boxes ---- */
@@ -811,9 +835,8 @@ function applyUpdate(p,u,cfg){
   if(num(u.exp_gain)){p.exp+=num(u.exp_gain);notes.push('EXP +'+num(u.exp_gain));}
   if(num(u.level_up)>0){for(let i=0;i<num(u.level_up);i++)levelUp(p,cfg,notes);}
   if(cfg.autoLevel){let guard=0;while(p.expNext>0&&p.exp>=p.expNext&&guard++<200){p.exp-=p.expNext;p.expNext=Math.max(1,Math.round(p.expNext*num(cfg.expGrowth,1.25)));levelUp(p,cfg,notes);}}
-  for(const it of (u.items_add||[])){const n=normItem(it);const ex=p.inventory.find(x=>keyOf(x)===keyOf(n));
-    if(ex)ex.qty+=n.qty;else p.inventory.push(n);notes.push('Item acquired: '+n.name+(n.qty>1?' ×'+n.qty:''));}
-  for(const b of (u.boxes_add||[])){const n=normItem(makeBox(b));const ex=p.inventory.find(x=>keyOf(x)===keyOf(n));if(ex)ex.qty+=n.qty;else p.inventory.push(n);notes.push('Box acquired: '+n.name+(n.qty>1?' ×'+n.qty:''));}
+  for(const it of (u.items_add||[])){const n=normItem(it);addItemToInventory(p,n);notes.push('Item acquired: '+n.name+(n.qty>1?' ×'+n.qty:''));}
+  for(const b of (u.boxes_add||[])){const n=normItem(makeBox(b));addItemToInventory(p,n);notes.push('Box acquired: '+n.name+(n.qty>1?' ×'+n.qty:''));}
   for(const c of (u.companions_add||[])){const n=normCompanion(c);const i=p.companions.findIndex(x=>keyOf(x)===keyOf(n));if(i>=0)p.companions[i]=n;else p.companions.push(n);notes.push('Companion bound: '+n.name+(n.species?' ('+n.species+')':''));}
   for(const cu of (u.companions_update||[])){const c=p.companions.find(x=>keyOf(x)===keyOf(cu));if(!c)continue;const cn=[];
     if(cu.set&&typeof cu.set==='object')for(const k in cu.set){const f={max_hp:'maxHp',max_mp:'maxMp',exp_next:'expNext'}[k]||k;if(['name','id','stats','history','conditions'].includes(f))continue;c[f]=typeof c[f]==='number'?num(cu.set[k],c[f]):cu.set[k];cn.push(k+' → '+cu.set[k]);}
@@ -863,6 +886,7 @@ function clampPlayer(p){if(!p)return;p.maxHp=formulaMaxHp(p);p.maxMp=formulaMaxM
 /* ---- generic diff/revert so redo/delete undoes exactly one post's effects ---- */
 const SCALARS=['level','exp','expNext','hp','maxHp','mp','maxMp','fatigue','gold','points','job','title','officialRank'];
 const LISTS=['inventory','skills','quests','companions'];
+const RECORDS=['killCounts','titleDefs'];
 function diffPlayer(a,b){
   const patch={nums:{},strs:{},stats:{},lists:{},titles:{added:[],removed:[]}};
   for(const k of SCALARS){if(typeof b[k]==='number'){const d=b[k]-a[k];if(d)patch.nums[k]=d;}else if(a[k]!==b[k])patch.strs[k]=[a[k],b[k]];}
@@ -872,6 +896,8 @@ function diffPlayer(a,b){
     for(const [k,v] of am)if(!bm.has(k))r.removed.push(clone(v));
     if(r.added.length||r.removed.length||r.changed.length)patch.lists[L]=r;}
   patch.titles.added=b.titles.filter(t=>!a.titles.includes(t));patch.titles.removed=a.titles.filter(t=>!b.titles.includes(t));
+  patch.records={};
+  for(const k of RECORDS){const av=a[k]||{},bv=b[k]||{};if(JSON.stringify(av)!==JSON.stringify(bv))patch.records[k]=[clone(av),clone(bv)];}
   return patch;
 }
 function revertPatch(p,patch){
@@ -891,6 +917,7 @@ function revertPatch(p,patch){
   }
   p.titles=p.titles.filter(t=>!patch.titles.added.includes(t));
   for(const t of patch.titles.removed)if(!p.titles.includes(t))p.titles.push(t);
+  if(patch.records){for(const k in patch.records)p[k]=clone(patch.records[k][0]);}
   clampPlayer(p);
 }
 function sanitizeFirstAwakeningUpdate(u){
@@ -1216,7 +1243,9 @@ function equippedBonuses(p){
     maxMp+=num(st.maxMp!=null?st.maxMp:(st.max_mp!=null?st.max_mp:st.MP),0);
     atk+=num(st.atk!=null?st.atk:(st.Attack!=null?st.Attack:st.attack),0);
   }
-  return {stats,maxHp,maxMp,atk};
+  const t=typeof titleBonuses==='function'?titleBonuses(p):{stats:{},maxHp:0,maxMp:0,atk:0,regenPct:0,resist:0,dmgVs:{}};
+  for(const k of STAT_KEYS)stats[k]+=num(t.stats&&t.stats[k],0);
+  return {stats,maxHp:maxHp+num(t.maxHp,0),maxMp:maxMp+num(t.maxMp,0),atk:atk+num(t.atk,0),regenPct:num(t.regenPct,0),resist:num(t.resist,0),dmgVs:t.dmgVs||{},title:t.name||''};
 }
 function itemSlot(it){
   const c=String((it&&(it.slot||it.category||it.type||it.name))||'').toLowerCase();
@@ -1299,7 +1328,9 @@ function advanceGameDay(state){
     const i=p.quests.findIndex(q=>keyOf(q)===keyOf(penalty));if(i>=0)p.quests[i]=Object.assign({},p.quests[i],penalty);else p.quests.push(normQuest(penalty));
   }
   g.day=num(g.day,1)+1;(d.items||[]).forEach(x=>x.done=0);d.claimed=false;d.date='Day '+g.day;
-  return {ok:true,done,penalty,day:g.day};
+  const regen=p?applyRegeneration(p,{ticks:REGEN_REST_TICKS}):{hp:0,notices:[]};
+  const titlesEarned=p?evaluateAppTitles(p,{streak:dailyStreak(state)}):[];
+  return {ok:true,done,penalty,day:g.day,regen,titlesEarned};
 }
 function acceptQuestOffer(player,offer){
   if(!player||!offer||!offer.name)return {ok:false};
@@ -1310,6 +1341,7 @@ function acceptQuestOffer(player,offer){
 }
 function runSystemEngine(p,text,cfg,opts){
   opts=opts||{};
+  const startLevel=num(p&&p.level,1);
   const parsed=opts.parsed||parseSystemUpdates(text);
   let updates=parsed.updates||[];
   const events=parsed.events||[];
@@ -1354,18 +1386,46 @@ function runSystemEngine(p,text,cfg,opts){
     if(/^LEVEL UP/.test(n))notices.push({title:'Level Up!',body:n.replace(/^LEVEL UP!?\s*/,'')});
     else if(/^Skill acquired/.test(n))notices.push({title:'Notification',body:n+'.'});
   }
-  if(rebirth){deriveMax(p,cfg);p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;clampPlayer(p);}
-  else repairDerivedStats(p,cfg);
-  return {notes,notices,questOffers:offers,errors,kills,updates};
+  let regen={hp:0,skillExp:0,leveled:0,notices:[]};
+  let titlesEarned=[];
+  if(rebirth){deriveMax(p,cfg);p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;clampPlayer(p);titlesEarned=evaluateAppTitles(p,{rebirth:true});}
+  else {
+    repairDerivedStats(p,cfg);
+    recordMobKills(p,kills,startLevel);
+    if(opts.regen!==false){
+      const ticks=opts.regenTicks||(isRestOrSleepText(text)?REGEN_REST_TICKS:1);
+      regen=applyRegeneration(p,{ticks});
+    }
+    const solo=!!(clear&&(clear.solo||clear.instance||/instance/i.test(String(clear.name||''))));
+    titlesEarned=evaluateAppTitles(p,{streak:opts.streak,soloClear:solo,penaltySurvived:penaltyJustSurvived(p,notes,events,updates)});
+  }
+  for(const spec of collectTitleEarned(events,updates)){
+    const r=grantTitle(p,spec,{autoEquip:true});if(r)titlesEarned.push(r);
+  }
+  if(opts.hideTitleWindows!==true){
+    for(const n of (regen.notices||[]))notices.push(n);
+    for(const def of titlesEarned)notices.push(titleAcquireNotice(def));
+  }
+  return {notes,notices,questOffers:offers,errors,kills,updates,regen,titlesEarned};
 }
 
+function patchIsEmpty(patch){
+  if(!patch)return true;
+  if(patch.nums&&Object.keys(patch.nums).length)return false;
+  if(patch.strs&&Object.keys(patch.strs).length)return false;
+  if(patch.stats&&Object.keys(patch.stats).length)return false;
+  if(patch.lists&&Object.keys(patch.lists).length)return false;
+  if(patch.titles&&((patch.titles.added||[]).length||(patch.titles.removed||[]).length))return false;
+  if(patch.records&&Object.keys(patch.records).length)return false;
+  return true;
+}
 function applyTextToPlayer(p,text,cfg,opts){
   const before=clone(p);opts=opts||{};
   const parsed=parseSystemUpdates(text);
   const r=runSystemEngine(p,text,cfg,Object.assign({},opts,{parsed:parsed}));
-  const changed=(r.updates&&r.updates.length)||(r.notices&&r.notices.length)||(r.notes&&r.notes.length)||(r.questOffers&&r.questOffers.length)||(r.kills&&r.kills.length);
+  const patch=diffPlayer(before,p);
   const killNotices=(r.notices||[]).filter(n=>/You have killed/.test(n.body||'')).map(n=>(n.body||'').replace(/\n/g,' '));
-  return {patch:(changed?diffPlayer(before,p):null),notes:r.notes||[],errors:r.errors||parsed.errors||[],killNotices,sysNotices:r.notices||[],questOffers:r.questOffers||[]};
+  return {patch:(patchIsEmpty(patch)?null:patch),notes:r.notes||[],errors:r.errors||parsed.errors||[],killNotices,sysNotices:r.notices||[],questOffers:r.questOffers||[],regen:r.regen||null,titlesEarned:r.titlesEarned||[]};
 }
 function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
 
@@ -1559,8 +1619,10 @@ function suggestedMobHit(player,mob){
   const maxHp=Math.max(1,num(player&&player.maxHp,0)||(vit*P*10));
   const color=mobThreatColor(M,P)||'orange';
   const scale=color==='red'?1.15:color==='green'?0.45:0.8;
-  const typ=Math.max(1,Math.round((M*6+8)*maxHp/(80+vit*8+P*15)*scale));
-  return {typical:typ,low:Math.max(1,Math.round(typ*0.55)),high:Math.max(typ+1,Math.round(typ*1.45)),color};
+  const typ0=Math.max(1,Math.round((M*6+8)*maxHp/(80+vit*8+P*15)*scale));
+  const resist=num(b.resist,0);
+  const typ=Math.max(1,Math.round(typ0*(1-Math.max(0,Math.min(0.5,resist)))));
+  return {typical:typ,low:Math.max(1,Math.round(typ*0.55)),high:Math.max(typ+1,Math.round(typ*1.45)),color,resist};
 }
 function hitsToKillHint(player,mob){
   const P=Math.max(1,num(player&&player.level,1));
@@ -1584,6 +1646,7 @@ function combatGuideBlock(player,mobs){
   const L=[];
   L.push('COMBAT GUIDE (app; follow this. Resolve only what she attempts — never choose her actions.)');
   L.push('Her: Lv '+num(player.level,1)+'  STR '+eff('str')+'  AGI '+eff('agi')+'  SEN '+eff('sen')+'  VIT '+eff('vit')+'  LUK '+eff('luk')+'. Gear: '+(gear.join(', ')||'none')+(bits.length?' ('+bits.join(', ')+')':'')+'.');
+  const tb=titleBonuses(player);if(tb&&tb.name){const sum=titleEffectSummary(findTitleDef(tb.name,player));L.push('Equipped title: '+tb.name+(sum&&sum!=='No effects.'?' ('+sum+')':'')+'.');}
   L.push('Enhancement: only if she already activated it this scene (~10% physical at low skill, more as it scales). Do not assume it is on.');
   L.push('Hits-to-kill: green (much weaker) = possibly one hit. Orange (near her level) = several exchanges; do not one-shot. Red / higher-level = many hits; needs tactics, weak points, or allies.');
   L.push('No one-shotting a higher-level, orange, or red mob. A rare LUK/SEN weak-point crit may (rarely) drop an orange if the fiction supports it; never a red. Mobs fight back.');
@@ -1604,7 +1667,368 @@ function combatGuideForTurn(player,messages,uptoIndex){
   if(!mobs.length)return '';
   return '\n\n'+combatGuideBlock(player,mobs);
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock};
+/* ---- Regeneration (innate, app-applied) ---- */
+const REGEN_PCT_PER_SKILL=1;
+const REGEN_PCT_CAP=15;
+const REGEN_VIT_DIV=200;
+const REGEN_REST_TICKS=8;
+const REGEN_SKILL_EXP_BASE=20;
+const REGEN_SKILL_EXP_GROWTH=1.5;
+const REGEN_SKILL_LEVEL_CAP=20;
+const REGEN_SIGNIFICANT_FRAC=0.10;
+const REGEN_SIGNIFICANT_MIN=10;
+function findRegenSkill(p){return ((p&&p.skills)||[]).find(s=>s&&/^regeneration$/i.test(s.name))||null;}
+function regenSkillExpNext(level){
+  let n=REGEN_SKILL_EXP_BASE;
+  const lv=Math.max(1,num(level,1));
+  for(let i=1;i<lv;i++)n=Math.max(1,Math.round(n*REGEN_SKILL_EXP_GROWTH));
+  return n;
+}
+function regenPercent(player){
+  const sk=findRegenSkill(player);if(!sk)return 0;
+  const lv=Math.max(1,num(sk.level,1));
+  const b=typeof equippedBonuses==='function'?equippedBonuses(player):{stats:{},regenPct:0};
+  const vit=num(player&&player.stats&&player.stats.vit,10)+num(b.stats&&b.stats.vit,0);
+  const titlePct=num(b.regenPct,0);
+  return Math.min(REGEN_PCT_CAP, lv*REGEN_PCT_PER_SKILL + vit/REGEN_VIT_DIV + titlePct);
+}
+function regenAmount(player,ticks){
+  ticks=Math.max(1,num(ticks,1));
+  const maxHp=Math.max(1,num(player&&player.maxHp,0)||(typeof formulaMaxHp==='function'?formulaMaxHp(player):100));
+  const missing=Math.max(0,maxHp-num(player&&player.hp,0));
+  if(missing<=0)return 0;
+  const per=Math.max(1,Math.round(maxHp*regenPercent(player)/100));
+  return Math.min(missing,per*ticks);
+}
+function regenSkillDescription(sk,player){
+  const lv=Math.max(1,num(sk&&sk.level,1));
+  const pct=player?regenPercent(player):Math.min(REGEN_PCT_CAP,lv);
+  const maxHp=Math.max(1,num(player&&player.maxHp,0)||100);
+  const per=Math.max(1,Math.round(maxHp*pct/100));
+  const rest=per*REGEN_REST_TICKS;
+  const pctStr=(Math.round(pct*100)/100).toString();
+  return 'Innate. Passive. Recovers '+pctStr+'% of max HP per turn (min 1 HP; currently about +'+per+' HP/turn). +'+lv+'% from skill Lv. '+lv+', plus a small VIT bonus. Caps at '+REGEN_PCT_CAP+'% per turn. Rest, sleep, or a new day recover about '+REGEN_REST_TICKS+' turns at once (about +'+rest+' HP now). Gains skill EXP when it heals wounds; significant injuries grant more. Tiny at first; grows as the skill levels up.';
+}
+function syncRegenDescription(p,sk){
+  sk=sk||findRegenSkill(p);if(!sk)return;
+  const d=regenSkillDescription(sk,p);
+  if(sk.description!==d)sk.description=d;
+}
+function isRestOrSleepText(text){
+  const t=String(text||'');
+  return /\b(?:sleeps|slept|sleeping|falls asleep|asleep|naps?|napped|napping|goes to (?:bed|sleep)|turns in(?: for the night)?|overnight|through the night|a full night(?:'s)? rest|gets? some rest|take[s]? a (?:short |long |brief )?rest|rests for|rested for|after resting|beds down|the next morning|wakes? (?:up|in the morning))\b/i.test(t);
+}
+function applyRegeneration(p,opts){
+  opts=opts||{};
+  const sk=findRegenSkill(p);
+  if(!sk||!p)return {hp:0,skillExp:0,leveled:0,ticks:0,notices:[]};
+  if(sk.exp==null)sk.exp=0;
+  if(!sk.expNext)sk.expNext=regenSkillExpNext(Math.max(1,num(sk.level,1)));
+  const missing=Math.max(0,num(p.maxHp,0)-num(p.hp,0));
+  if(missing<=0){syncRegenDescription(p,sk);return {hp:0,skillExp:0,leveled:0,ticks:0,notices:[]};}
+  const ticks=Math.max(1,num(opts.ticks,1));
+  const amt=regenAmount(p,ticks);
+  if(amt<=0){syncRegenDescription(p,sk);return {hp:0,skillExp:0,leveled:0,ticks,notices:[]};}
+  const significant=missing>=Math.max(REGEN_SIGNIFICANT_MIN,Math.round(num(p.maxHp,0)*REGEN_SIGNIFICANT_FRAC));
+  p.hp=Math.min(num(p.maxHp,0),num(p.hp,0)+amt);
+  const gained=amt*(significant?2:1);
+  sk.exp=num(sk.exp,0)+gained;
+  let leveled=0;const notices=[];
+  while(sk.exp>=sk.expNext&&num(sk.level,1)<REGEN_SKILL_LEVEL_CAP){
+    sk.exp-=sk.expNext;
+    sk.level=num(sk.level,1)+1;
+    sk.expNext=regenSkillExpNext(sk.level);
+    leveled++;
+    notices.push({title:'Notification',body:'[Skill Regeneration has leveled up]\nRegeneration is now Lv. '+sk.level+'.'});
+  }
+  if(num(sk.level,1)>=REGEN_SKILL_LEVEL_CAP&&sk.exp>sk.expNext)sk.exp=sk.expNext;
+  syncRegenDescription(p,sk);
+  return {hp:amt,skillExp:gained,leveled,ticks,significant,notices};
+}
+
+/* ---- Titles (app-run, one equipped) ---- */
+const SLAYER_KILL_COUNT=10;
+const TITLE_CATALOG=[
+  {id:'weakest-hunter',name:'The Weakest Hunter',aliases:['Weakest Hunter','The Weakest Hunter of All Mankind','Weakest Hunter of All Mankind','The Weakest Hunter of Mankind'],description:'A grim label. No benefits.',effects:{},flavor:true},
+  {id:'first-blood',name:'First Blood',description:'Awarded for your first monster kill.',effects:{str:1},hook:'first_kill'},
+  {id:'predator',name:'Predator',description:'Awarded for slaying a red-danger monster.',effects:{str:2,agi:1},hook:'red_kill'},
+  {id:'boss-slayer',name:'Boss Slayer',description:'Awarded for bringing down a dungeon boss.',effects:{str:2,vit:1},hook:'boss_kill'},
+  {id:'the-one-who-survived',name:'The One Who Survived',description:'Awarded for surviving the double dungeon.',effects:{vit:2,luk:1},hook:'double_dungeon'},
+  {id:'proven-hunter',name:'Proven Hunter',description:'Awarded for reaching level 10.',effects:{str:1,vit:1},hook:'level',level:10},
+  {id:'veteran-hunter',name:'Veteran Hunter',description:'Awarded for reaching level 20.',effects:{str:2,agi:2,vit:1},hook:'level',level:20},
+  {id:'elite-hunter',name:'Elite Hunter',description:'Awarded for reaching level 40.',effects:{str:3,agi:2,vit:3},hook:'level',level:40},
+  {id:'prepared',name:'Prepared',description:'Awarded for a 3-day Daily Quest streak.',effects:{vit:1,regenPct:0.5},hook:'daily_streak',streak:3},
+  {id:'unyielding',name:'Unyielding',description:'Awarded for a 7-day Daily Quest streak.',effects:{vit:2,regenPct:1},hook:'daily_streak',streak:7},
+  {id:'solo-closer',name:'Solo Closer',description:'Awarded for clearing a dungeon alone.',effects:{agi:2,sen:1},hook:'solo_clear'},
+  {id:'penalty-survivor',name:'Penalty Survivor',description:'Awarded for surviving the Penalty Zone.',effects:{vit:2,resist:0.05,regenPct:0.5},hook:'penalty_survive'}
+];
+function titleKey(name){return String(name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
+function slayerTitleFor(species){
+  const sp=String(species||'beast').toLowerCase();
+  const label=sp.charAt(0).toUpperCase()+sp.slice(1);
+  const plural=sp==='wolf'?'wolves':sp==='undead'?'undead':(label+'s');
+  return {id:'slayer-'+sp,name:label+' Slayer',description:'Awarded for hunting many '+plural+'.',effects:{dmgVs:{[sp]:0.10}},hook:'species_slayer',species:sp,count:SLAYER_KILL_COUNT};
+}
+function catalogTitleByName(name){
+  const k=titleKey(name);if(!k)return null;
+  for(const t of TITLE_CATALOG){
+    if(titleKey(t.name)===k)return t;
+    if((t.aliases||[]).some(a=>titleKey(a)===k))return t;
+  }
+  const sl=k.match(/^([a-z]+)\s+slayer$/);
+  if(sl)return slayerTitleFor(sl[1]);
+  return null;
+}
+function findTitleDef(name,player){
+  if(!name||name==='None')return null;
+  const cat=catalogTitleByName(name);if(cat)return cat;
+  const defs=player&&player.titleDefs;if(defs&&typeof defs==='object'){
+    if(defs[name])return defs[name];
+    const k=titleKey(name);
+    for(const v of Object.values(defs)){if(v&&titleKey(v.name)===k)return v;}
+  }
+  return {name:String(name),description:'',effects:{},flavor:true};
+}
+function isFlavorTitle(def){return !!(def&&(def.flavor||!def.effects||!Object.keys(def.effects).length));}
+function hasTitle(p,name){
+  const k=titleKey(name);if(!k)return false;
+  if(titleKey(p&&p.title)==='none'){/* skip */}
+  const names=[].concat((p&&p.titles)||[],(p&&p.title&&p.title!=='None')?[p.title]:[]);
+  return names.some(n=>{
+    if(titleKey(n)===k)return true;
+    const d=catalogTitleByName(n);return d&&(titleKey(d.name)===k||(d.aliases||[]).some(a=>titleKey(a)===k));
+  });
+}
+function titleEffectSummary(def){
+  if(!def||isFlavorTitle(def))return 'No effects.';
+  const e=def.effects||{};const bits=[];
+  for(const k of (typeof STAT_KEYS!=='undefined'?STAT_KEYS:['str','agi','sen','vit','int','luk'])){if(num(e[k],0))bits.push((num(e[k])>0?'+':'')+num(e[k])+' '+k.toUpperCase());}
+  if(e.stats)for(const k in e.stats){if(num(e.stats[k],0))bits.push((num(e.stats[k])>0?'+':'')+num(e.stats[k])+' '+String(k).toUpperCase());}
+  if(num(e.atk,0))bits.push((e.atk>0?'+':'')+e.atk+' ATK');
+  if(num(e.maxHp,0))bits.push((e.maxHp>0?'+':'')+e.maxHp+' Max HP');
+  if(num(e.maxMp,0))bits.push((e.maxMp>0?'+':'')+e.maxMp+' Max MP');
+  if(num(e.regenPct,0))bits.push('+'+(Math.round(num(e.regenPct)*100)/100)+'% regeneration');
+  if(num(e.resist,0))bits.push('+'+(Math.round(num(e.resist)*1000)/10)+'% damage resistance');
+  if(e.dmgVs&&typeof e.dmgVs==='object'){for(const sp in e.dmgVs){const p=num(e.dmgVs[sp],0);if(p)bits.push('+'+(Math.round(p*1000)/10)+'% damage vs '+sp+(p===0.1&&!/s$/.test(sp)?'s':''));}}
+  return bits.join(', ')||'No effects.';
+}
+function sanitizeTitleEffects(raw){
+  const e={};if(!raw||typeof raw!=='object')return e;
+  const src=raw.stats&&typeof raw.stats==='object'?Object.assign({},raw,raw.stats):raw;
+  for(const k of (typeof STAT_KEYS!=='undefined'?STAT_KEYS:['str','agi','sen','vit','int','luk'])){
+    if(src[k]!=null)e[k]=Math.max(-10,Math.min(10,Math.round(num(src[k],0))));
+  }
+  if(raw.atk!=null)e.atk=Math.max(-50,Math.min(50,Math.round(num(raw.atk,0))));
+  if(raw.maxHp!=null)e.maxHp=Math.max(-200,Math.min(500,Math.round(num(raw.maxHp,0))));
+  if(raw.maxMp!=null)e.maxMp=Math.max(-200,Math.min(500,Math.round(num(raw.maxMp,0))));
+  if(raw.regenPct!=null)e.regenPct=Math.max(0,Math.min(5,num(raw.regenPct,0)));
+  if(raw.resist!=null)e.resist=Math.max(0,Math.min(0.25,num(raw.resist,0)));
+  if(raw.dmgVs&&typeof raw.dmgVs==='object'){
+    e.dmgVs={};for(const sp in raw.dmgVs){const v=Math.max(0,Math.min(0.25,num(raw.dmgVs[sp],0)));if(v)e.dmgVs[String(sp).toLowerCase()]=v;}
+    if(!Object.keys(e.dmgVs).length)delete e.dmgVs;
+  }
+  return e;
+}
+function titleBonuses(p){
+  const stats={};for(const k of (typeof STAT_KEYS!=='undefined'?STAT_KEYS:['str','agi','sen','vit','int','luk']))stats[k]=0;
+  const empty={stats,maxHp:0,maxMp:0,atk:0,regenPct:0,resist:0,dmgVs:{},name:''};
+  const name=p&&p.title&&p.title!=='None'?p.title:'';
+  const def=findTitleDef(name,p);
+  if(!def||isFlavorTitle(def))return empty;
+  const e=def.effects||{};
+  for(const k of Object.keys(stats))stats[k]=num(e[k],0)+num(e.stats&&e.stats[k],0);
+  return {stats,maxHp:num(e.maxHp,0),maxMp:num(e.maxMp,0),atk:num(e.atk,0),regenPct:num(e.regenPct,0),resist:num(e.resist,0),dmgVs:e.dmgVs&&typeof e.dmgVs==='object'?e.dmgVs:{},name:def.name};
+}
+function shouldAutoEquipTitle(p){
+  const cur=p&&p.title;if(!cur||cur==='None')return true;
+  const def=findTitleDef(cur,p);return !def||isFlavorTitle(def);
+}
+function grantTitle(p,spec,opts){
+  opts=opts||{};if(!p||!spec)return null;
+  const raw=typeof spec==='string'?{name:spec}:spec;
+  const cat=catalogTitleByName(raw.name);
+  const def=cat?Object.assign({},cat):{name:String(raw.name||'').trim(),description:String(raw.description||''),effects:sanitizeTitleEffects(raw.effects),flavor:!raw.effects};
+  if(!def.name)return null;
+  if(hasTitle(p,def.name))return null;
+  if(!Array.isArray(p.titles))p.titles=[];
+  p.titles.push(def.name);
+  if(!cat){if(!p.titleDefs||typeof p.titleDefs!=='object')p.titleDefs={};p.titleDefs[def.name]=def;}
+  const auto=opts.autoEquip!=null?!!opts.autoEquip:shouldAutoEquipTitle(p);
+  if(auto)p.title=def.name;
+  return def;
+}
+function equipTitle(p,name){
+  if(!p)return false;
+  if(!name||name==='None'){p.title='None';return true;}
+  if(!hasTitle(p,name))return false;
+  const def=findTitleDef(name,p);
+  p.title=def&&def.name?def.name:String(name);
+  return true;
+}
+function titleAcquireNotice(def){
+  const sum=titleEffectSummary(def);
+  return {title:'Notification',body:'[You have acquired the title: '+def.name+']'+(sum&&sum!=='No effects.'?'\n'+sum:'')};
+}
+function ensureKillCounts(p){
+  if(!p)return {total:0,red:0,bosses:0,bySpecies:{}};
+  if(!p.killCounts||typeof p.killCounts!=='object')p.killCounts={total:0,red:0,bosses:0,bySpecies:{}};
+  if(!p.killCounts.bySpecies||typeof p.killCounts.bySpecies!=='object')p.killCounts.bySpecies={};
+  return p.killCounts;
+}
+function recordMobKills(p,kills,playerLevel){
+  const kc=ensureKillCounts(p);
+  const P=Math.max(1,num(playerLevel!=null?playerLevel:p&&p.level,1));
+  for(const k of kills||[]){
+    if(!k)continue;
+    kc.total++;
+    const sp=inferMobSpecies(k.name);
+    kc.bySpecies[sp]=num(kc.bySpecies[sp],0)+1;
+    if(k.boss)kc.bosses++;
+    if(mobThreatColor(k.level,P)==='red')kc.red++;
+  }
+  return kc;
+}
+function dailyStreak(state){
+  const d=state&&state.daily;if(!d)return 0;
+  const hist=d.history||[];
+  let n=0;
+  for(let i=hist.length-1;i>=0;i--){if(hist[i]&&hist[i].completed)n++;else break;}
+  const todayDone=!!(d.claimed||(d.items||[]).every(x=>x.done>=x.target));
+  if(todayDone)n++;
+  return n;
+}
+function penaltyJustSurvived(p,notes,events,updates){
+  if((notes||[]).some(n=>/Quest complete:.*Penalty/i.test(String(n))))return true;
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){if(o&&(o.penalty_survived||o.penaltySurvived))return true;}
+  return false;
+}
+function collectTitleEarned(events,updates){
+  const out=[];
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){
+    if(!o||typeof o!=='object')continue;
+    const list=o.title_earned||o.titles_earned||o.titleEarned||[];
+    for(const t of (Array.isArray(list)?list:[list])){
+      if(!t)continue;
+      if(typeof t==='string'&&t.trim())out.push({name:t.trim()});
+      else if(t.name)out.push(t);
+    }
+  }
+  return out;
+}
+function evaluateAppTitles(p,opts){
+  opts=opts||{};const earned=[];if(!p)return earned;
+  const canAuto=opts.autoEquip!=null?!!opts.autoEquip:shouldAutoEquipTitle(p);
+  const tryGrant=def=>{if(!def)return;const r=grantTitle(p,def,{autoEquip:canAuto});if(r)earned.push(r);};
+  const kc=ensureKillCounts(p);
+  if(kc.total>=1)tryGrant(catalogTitleByName('First Blood'));
+  if(kc.red>=1)tryGrant(catalogTitleByName('Predator'));
+  if(kc.bosses>=1)tryGrant(catalogTitleByName('Boss Slayer'));
+  for(const [sp,n] of Object.entries(kc.bySpecies||{})){if(num(n,0)>=SLAYER_KILL_COUNT)tryGrant(slayerTitleFor(sp));}
+  if(opts.rebirth)tryGrant(catalogTitleByName('The One Who Survived'));
+  for(const def of TITLE_CATALOG){if(def.hook==='level'&&num(p.level,1)>=def.level)tryGrant(def);}
+  const streak=num(opts.streak,0);
+  for(const def of TITLE_CATALOG){if(def.hook==='daily_streak'&&streak>=def.streak)tryGrant(def);}
+  if(opts.soloClear)tryGrant(catalogTitleByName('Solo Closer'));
+  if(opts.penaltySurvived)tryGrant(catalogTitleByName('Penalty Survivor'));
+  return earned;
+}
+
+/* ---- Inventory stacking + quantity sell/buy ---- */
+function canStackItems(a,b){
+  if(!a||!b)return false;
+  if(keyOf(a)!==keyOf(b))return false;
+  if(a.equipped||b.equipped)return false;
+  if(typeof itemSlot==='function'&&(itemSlot(a)||itemSlot(b)))return false;
+  const ra=String(a.acquisition_difficulty||a.rarity||'');
+  const rb=String(b.acquisition_difficulty||b.rarity||'');
+  if(ra&&rb&&ra!==rb)return false;
+  const ca=String(a.category||'');const cb=String(b.category||'');
+  if(ca&&cb&&ca.toLowerCase()!==cb.toLowerCase())return false;
+  return true;
+}
+function addItemToInventory(p,it){
+  if(!p)return null;
+  if(!Array.isArray(p.inventory))p.inventory=[];
+  const n=normItem(it);
+  const ex=p.inventory.find(x=>canStackItems(x,n));
+  if(ex){ex.qty=num(ex.qty,1)+num(n.qty,1);return ex;}
+  p.inventory.push(n);return n;
+}
+function sellInventoryItems(p,idx,qty){
+  if(!p||!p.inventory)return {ok:false,reason:'missing'};
+  const it=p.inventory[idx];if(!it)return {ok:false,reason:'missing'};
+  const have=Math.max(1,num(it.qty,1));
+  const n=Math.max(1,Math.min(have,Math.floor(num(qty,1))));
+  const unit=itemSellPrice(it);
+  const gold=unit*n;
+  p.gold=num(p.gold,0)+gold;
+  it.qty=have-n;
+  if(it.qty<=0){if(it.equipped)it.equipped=false;p.inventory.splice(idx,1);}
+  return {ok:true,name:it.name,qty:n,gold,unit,remaining:Math.max(0,it.qty)};
+}
+function maxBuyQty(player,shopItem){
+  const price=num(shopItem&&shopItem.price,0);
+  if(price<=0)return 99;
+  return Math.max(0,Math.floor(num(player&&player.gold,0)/price));
+}
+function buyShopItems(p,shopItem,qty){
+  if(!p||!shopItem)return {ok:false,reason:'missing'};
+  const unit=Math.max(0,num(shopItem.price,0));
+  const max=maxBuyQty(p,shopItem);
+  const n=Math.max(1,Math.min(max,Math.floor(num(qty,1))));
+  if(n<1||p.gold<unit)return {ok:false,reason:'gold'};
+  const gold=unit*n;
+  p.gold=num(p.gold,0)-gold;
+  addItemToInventory(p,normItem({name:shopItem.name,qty:n,category:shopItem.category,description:shopItem.description,acquisition_difficulty:shopItem.acquisition_difficulty||shopItem.rank||''}));
+  return {ok:true,name:shopItem.name,qty:n,gold,unit};
+}
+
+/* ---- Out-of-story action log for the narrator ---- */
+function logAppAction(text,state){
+  const t=String(text||'').replace(/\s+/g,' ').trim();if(!t)return;
+  const s=state||(typeof S!=='undefined'?S:null);if(!s)return;
+  if(!Array.isArray(s.pendingActions))s.pendingActions=[];
+  s.pendingActions.push(t);
+  if(typeof S!=='undefined'&&s===S&&typeof renderActionChip==='function'){try{renderActionChip();}catch(e){}}
+}
+function formatActionLog(actions){
+  if(!actions||!actions.length)return '';
+  return 'Since last reply, she did (app actions): '+actions.join('; ')+'.';
+}
+function cutText(t,n){t=String(t||'');return t.length>n?t.slice(0,n-1)+'…':t;}
+function equippedContextBlock(player){
+  const slots=[['weapon','Weapon'],['armor','Armor'],['helmet','Helmet'],['gloves','Gloves'],['boots','Boots'],['cloak','Cloak'],['ring','Ring'],['accessory','Accessory']];
+  const by={};
+  for(const it of (player&&player.inventory)||[]){
+    if(!it||!it.equipped)continue;
+    const sl=typeof itemSlot==='function'?itemSlot(it):'';
+    if(sl)by[sl]=it;
+  }
+  const worn=slots.map(([k,l])=>{
+    const it=by[k];if(!it)return '';
+    const d=it.description?': '+cutText(it.description,80):'';
+    return l+': '+it.name+d;
+  }).filter(Boolean);
+  const gear=worn.length?worn.join('; '):'none';
+  const raw=player&&player.title&&player.title!=='None'?player.title:'None';
+  const def=raw!=='None'?findTitleDef(raw,player):null;
+  const fx=def&&!isFlavorTitle(def)?titleEffectSummary(def):'';
+  return 'Currently equipped gear: '+gear+'. Equipped title: '+(def&&def.name?def.name:raw)+(fx?' ('+fx+')':'')+'.';
+}
+function actionLogForReply(state,prevAlt){
+  if(prevAlt&&Array.isArray(prevAlt.actionLog)&&prevAlt.actionLog.length)return prevAlt.actionLog.slice();
+  return ((state&&state.pendingActions)||[]).slice();
+}
+function commitActionLog(state,msgIndex,alt,used){
+  if(alt)alt.actionLog=used||[];
+  if(!state)return;
+  const msgs=state.messages||[];
+  let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
+  if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
+}
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -1693,6 +2117,14 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
     const have=new Set((s.shop||[]).map(x=>keyOf(x)));
     DEFAULT_SHOP.forEach(it=>{if(!have.has(keyOf(it)))s.shop.push(Object.assign({},it));});
     s.flags.systemEngine1=true;
+  }
+  if(!Array.isArray(s.pendingActions))s.pendingActions=[];
+  if(s.player){
+    if(!s.player.killCounts||typeof s.player.killCounts!=='object')s.player.killCounts={total:0,red:0,bosses:0,bySpecies:{}};
+    if(!s.player.titleDefs||typeof s.player.titleDefs!=='object')s.player.titleDefs={};
+    if(!Array.isArray(s.player.titles))s.player.titles=[];
+    if(s.player.title&&s.player.title!=='None'&&!hasTitle(s.player,s.player.title))s.player.titles.push(s.player.title);
+    const rsk=findRegenSkill(s.player);if(rsk){if(rsk.exp==null)rsk.exp=0;if(!rsk.expNext)rsk.expNext=regenSkillExpNext(rsk.level||1);syncRegenDescription(s.player,rsk);}
   }
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
@@ -1886,7 +2318,7 @@ function editBox(t){return '<textarea class="editArea" style="min-height:160px">
 
 function filterCoveredNotes(notes,notices){
   if(!(notices&&notices.length))return notes;
-  return (notes||[]).filter(n=>!/^(EXP \+|Item acquired|Box acquired|Gold \+|LEVEL UP)/i.test(String(n)));
+  return (notes||[]).filter(n=>!/^(EXP \+|Item acquired|Box acquired|Gold \+|LEVEL UP|Title acquired)/i.test(String(n)));
 }
 function questOfferHtml(offers,msgIndex){
   return (offers||[]).map((q,i)=>{
@@ -1919,12 +2351,14 @@ function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
   a.prevAwakened=!!(S.flags&&S.flags.systemAwakened);a.prevOpening=!!S.world.openingActive;
   if(!S.flags.systemAwakened&&wouldAwaken(a.text,parsed.updates,S.world.openingActive)){S.flags.systemAwakened=true;S.world.openingActive=false;}
-  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];a.sysNotices=r.sysNotices||[];a.questOffers=r.questOffers||[];if((a.killNotices||[]).length||(a.sysNotices||[]).length)a.killExpAwarded=true;}
+  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];a.sysNotices=r.sysNotices||[];a.questOffers=r.questOffers||[];a.regenHp=(r.regen&&r.regen.hp)||0;if(a.regenHp)S.flags.regenFlash=a.regenHp;if((a.killNotices||[]).length||(a.sysNotices||[]).length)a.killExpAwarded=true;}
   else{
     const keep=preAwakenUpdates(parsed.updates,parsed.clean);const before=clone(S.player);const notes=[];
     for(const u of keep)notes.push(...applyUpdate(S.player,u,cfg()));
     repairDerivedStats(S.player,cfg());
-    a.patch=keep.length?diffPlayer(before,S.player):null;a.notes=[];a.errors=(parsed.errors||[]).concat(a.reqErrors||[]);
+    const rg=applyRegeneration(S.player,{ticks:isRestOrSleepText(a.text)?REGEN_REST_TICKS:1});
+    a.regenHp=rg.hp||0;
+    a.patch=(keep.length||rg.hp||rg.skillExp||rg.leveled)?diffPlayer(before,S.player):null;a.notes=[];a.errors=(parsed.errors||[]).concat(a.reqErrors||[]);a.sysNotices=[];
   }
   const ops=collectNpcOps(parsed.updates);
   a.npcPatch={deaths:applyNpcDeaths(S.world.npcs,ops.deaths,S.game&&S.game.day,uid),knowledge:applyNpcKnowledge(S.world.npcs,ops.knowledge,uid)};
@@ -1938,7 +2372,7 @@ function onLogClick(e){
     const acc=qa.dataset.qaccept!=null;const mi=+((acc?qa.dataset.qaccept:qa.dataset.qdecline));const qi=+qa.dataset.qi;
     const m=S.messages[mi];const a=m&&curAlt(m);const off=a&&a.questOffers&&a.questOffers[qi];
     if(!off||off.resolved)return;
-    if(acc){acceptQuestOffer(S.player,off);off.resolved='Accepted';syslog('Quest accepted: '+off.name+'.');toast('Quest accepted: '+off.name);}
+    if(acc){acceptQuestOffer(S.player,off);off.resolved='Accepted';logAppAction('accepted the quest '+off.name);syslog('Quest accepted: '+off.name+'.');toast('Quest accepted: '+off.name);}
     else{off.resolved='Declined';toast('Quest declined.');}
     save();renderLog();renderSystem();return;
   }
@@ -1955,7 +2389,7 @@ function onLogClick(e){
   else if(act==='saveEdit'){const v=el.querySelector('.editArea').value;editing=null;
     if(m.role==='narrator'){const a=curAlt(m);unapplyAlt(a);a.text=v;a.reqErrors=[];applyAlt(a);}else m.text=v;afterChange();}
 }
-function afterChange(){save();renderLog();renderSystem();renderCompanions();renderDaily();renderWorld();syncStoryChrome();}
+function afterChange(){save();renderLog();renderSystem();renderCompanions();renderDaily();renderWorld();syncStoryChrome();if(typeof renderActionChip==='function')renderActionChip();}
 function setBusy(b,label){busy=b;$('#sendBtn').disabled=b;$('#continueBtn').disabled=b;$('#stopBtn').style.display=b?'':'none';$('#statusLine').textContent=label||'';}
 
 async function sendUser(){
@@ -1974,8 +2408,11 @@ async function continueScene(){if(busy)return;if(!apiKey()){toast('Paste your xA
 async function regenerate(i){
   const m=S.messages[i];if(!m||m.role!=='narrator')return;
   if(!apiKey()){toast('Paste your xAI API key in Settings first.');if(!m.alts.length)S.messages.splice(i,1);renderLog();return;}
-  if(m.alts.length)unapplyAlt(curAlt(m));
-  const a={text:'',streaming:true,applied:false,notes:[],errors:[],reqErrors:[]};m.alts.push(a);m.sel=m.alts.length-1;
+  let reuseLog=null;
+  if(m.alts.length){const prev=curAlt(m);if(prev&&prev.actionLog&&prev.actionLog.length)reuseLog=prev.actionLog.slice();unapplyAlt(prev);}
+  const usedLog=reuseLog||(S.pendingActions||[]).slice();
+  const a={text:'',streaming:true,applied:false,notes:[],errors:[],reqErrors:[],actionLog:usedLog};m.alts.push(a);m.sel=m.alts.length-1;
+  S._replyActionLog=usedLog;
   const msgs=buildContext(i,m.continuation,m.instruction);
   const t0=Date.now();setBusy(true,'thinking…');renderLog();renderSystem();startStreamScroll(i);
   const tick=setInterval(()=>{if(busy)$('#statusLine').textContent=(a.text?'writing… ':'thinking… ')+Math.round((Date.now()-t0)/1000)+'s';},500);
@@ -1996,7 +2433,8 @@ async function regenerate(i){
   a.streaming=false;
   if(!a.text.trim()){m.alts.pop();m.sel=Math.max(0,m.alts.length-1);}
   if(!m.alts.length){S.messages.splice(i,1);if(failMsg)S.messages.splice(i,0,{id:uid(),role:'error',text:failMsg,retry:{continuation:!!m.continuation,instruction:m.instruction||''}});}
-  else{applyAlt(curAlt(m));}
+  else{applyAlt(curAlt(m));if(a.text&&a.text.trim())commitActionLog(S,i,curAlt(m)||a,usedLog);if(typeof renderActionChip==='function')renderActionChip();}
+  S._replyActionLog=null;
   if(failMsg&&!a.text)toast('The narrator request failed — see the error in the story.',5000);
   setBusy(false);save();renderLog();renderSystem();renderCompanions();
   if(cfg().autoSummarize)maybeAutoSummarize();
@@ -2079,7 +2517,7 @@ function buildContext(uptoIndex,continuation,instruction){
     (w.summary?'\n\nSTORY SO FAR: '+w.summary:'')+
     '\n\nHunter rank by level: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
     (isAwakened()?'\n\nRIGHT NOW: System is awake. Windows only when there is something to tell her; most replies have none. Occasional (sparing) voice of '+(c.patronName||c.patronType||'Sól')+'.':'')+
-    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex);
+    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex)+'\n\n'+equippedContextBlock(S.player)+(((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[])).length?('\n'+formatActionLog((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[]))):'');
   const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
   const recent=hist.slice(-Math.max(2,num(S.settings.contextMessages,40)));
   const out=[{role:'system',content:sys}];
@@ -2133,9 +2571,29 @@ async function summarize(manual){
 function maybeAutoSummarize(){const keep=Math.max(2,num(S.settings.contextMessages,40));if(S.messages.length-keep-num(S.world.summarizedCount,0)>=10)summarize(false);}
 
 /* ================= HUD & SYSTEM PANEL ================= */
+function currentRegenFlash(){
+  if(S&&S.flags&&S.flags.regenFlash)return S.flags.regenFlash;
+  if(!S||!S.messages)return 0;
+  for(let i=S.messages.length-1;i>=0;i--){
+    const m=S.messages[i];if(!m||m.role!=='narrator')continue;
+    const a=typeof curAlt==='function'?curAlt(m):(m.alts&&m.alts[m.sel]);
+    if(a&&a.applied&&a.regenHp)return a.regenHp;
+    break;
+  }
+  return 0;
+}
+function renderActionChip(){
+  const el=typeof document!=='undefined'&&document.getElementById('actionChip');if(!el)return;
+  const acts=(S&&S.pendingActions)||[];
+  if(!acts.length){el.hidden=true;el.textContent='';return;}
+  const short=acts.map(s=>String(s).replace(/:.*$/,'').trim()).filter(Boolean);
+  const preview=short.slice(0,3).join(', ')+(short.length>3?' +'+(short.length-3)+' more':'');
+  el.hidden=false;el.textContent='Narrator will know: '+preview;
+}
 function renderHud(){if(S&&S.player)repairDerivedStats(S.player,cfg());const p=S.player;
   if(!isAwakened()){$('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Hunter <b class="rank">'+esc(p.officialRank||'E')+'</b></span><span class="muted">System dormant</span>';return;}
-  $('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b></span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Rank <b class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
+  const flash=currentRegenFlash();
+  $('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b>'+(flash?'<span class="regen-flash">+'+flash+' HP</span>':'')+'</span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Rank <b class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
 function syncStoryChrome(){
   const on=isAwakened();
   const nd=$('#nextDayBtn'),sl=$('#sysNoteBtn');
@@ -2170,8 +2628,9 @@ function renderSystem(){
       '</div><h3>Stats</h3><div class="status-grid stats-list">';
     for(const s of STAT_KEYS)h+='<div class="stat"><span class="k" title="'+STAT_NAMES[s]+'">'+s.toUpperCase()+'</span>'+field('stats.'+s,p.stats[s],'number')+'<span class="srank" title="'+STAT_NAMES[s]+' rank">'+esc(statRank(S.statRanks,p.stats[s]))+'</span><button class="btn small" data-plus="'+s+'" '+(p.points>0?'':'disabled')+' title="Spend 1 ability point">+</button></div>';
     h+='<div class="stat points"><span class="k" style="width:auto">Available Points</span>'+field('points',p.points,'number')+'</div></div>';
-    h+='<h3>Titles</h3>'+(p.titles.length?p.titles.map((t,i)=>'<span class="tag" style="margin-right:4px">'+esc(t)+' <button class="icon" data-deltitle="'+i+'">×</button></span>').join(''):'<span class="muted">None</span>')+
-      ' <button class="btn small" id="addTitle">+ Title</button>';
+    const eqTitle=p.title&&p.title!=='None'?p.title:'None';
+    const eqDef=eqTitle!=='None'?findTitleDef(eqTitle,p):null;
+    h+='<h3>Titles</h3><div class="muted">Equipped: <b>'+esc(eqTitle)+'</b>'+(eqDef&&!isFlavorTitle(eqDef)?' — '+esc(titleEffectSummary(eqDef)):'')+'. One title at a time; manage them in the Titles tab.</div>';
     h+='<div class="muted" style="margin-top:8px">Every field is editable. Redo/delete only reverts changes a narrator post applied; your manual edits stay.</div>';
     h+='<div class="grant-exp"><div class="muted" style="margin-bottom:6px">Grant EXP if a kill did not award any. Level-ups apply automatically (+5 free points, +1 all stats, HP/MP from the formulas).</div><div class="row" style="align-items:flex-end;gap:8px;flex-wrap:wrap"><div style="flex:0 0 110px"><label for="grantExpAmt">Amount</label><input type="number" id="grantExpAmt" min="1" step="1" value="20" inputmode="numeric"></div><button class="btn small primary" id="grantExpBtn" style="min-height:44px">Grant EXP</button></div></div></div>';
   }else if(sysTab==='skills'){
@@ -2179,7 +2638,7 @@ function renderSystem(){
       '<div class="list-item"><div class="head">'+li('skills',i,'name',s.name,'style="flex:2 1 160px"')+'<select data-list="skills" data-i="'+i+'" data-k="type" style="flex:0 0 110px">'+['Active','Passive'].map(o=>'<option'+(s.type===o?' selected':'')+'>'+o+'</option>').join('')+'</select>'+
       '<span class="muted">Lv</span><input type="number" data-list="skills" data-i="'+i+'" data-k="level" value="'+esc(s.level)+'" style="width:70px;flex:0 0 70px"><button class="icon" data-dellist="skills" data-i="'+i+'">🗑</button></div>'+
       '<div class="row"><div><label>MP cost</label>'+li('skills',i,'mp_cost',s.mp_cost)+'</div><div><label>Cooldown</label>'+li('skills',i,'cooldown',s.cooldown)+'</div></div>'+
-      '<label>Description</label><textarea data-list="skills" data-i="'+i+'" data-k="description">'+esc(s.description)+'</textarea></div>').join('')+
+      '<label>Description</label><textarea data-list="skills" data-i="'+i+'" data-k="description">'+esc(s.description)+'</textarea>'+(s.expNext?'<div class="muted">Skill EXP '+num(s.exp,0)+'/'+num(s.expNext,0)+'</div>':'')+'</div>').join('')+
       '<button class="btn small" data-addlist="skills">+ Add skill</button></div>';
   }else if(sysTab==='inventory'){
     h+=(lastBoxResult?'<div class="syswin"><span class="title">'+esc(lastBoxResult.title)+'</span><ul style="margin:0;padding-left:18px">'+lastBoxResult.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul><button class="btn small" data-closebox="1">OK</button></div>':'')+'<div class="syswin"><span class="title">Equipment</span>'+equipmentPanel(p)+'</div><div class="syswin"><span class="title">Inventory</span>'+(p.inventory.length?'':'<div class="muted">Empty.</div>')+p.inventory.map((it,i)=>itemEditor(it,i)).join('')+'<div class="add-item-row"><input type="text" id="addItemName" placeholder="Item name"><input type="text" id="addItemCat" placeholder="Type (e.g. Material)" style="max-width:140px"><input type="text" id="addItemRank" placeholder="Rank" style="max-width:80px"><button class="btn small" id="addItemQuick" style="min-height:44px">Add item</button></div></div>';
@@ -2189,8 +2648,10 @@ function renderSystem(){
       '<label>Description</label><textarea data-list="quests" data-i="'+i+'" data-k="description">'+esc(q.description)+'</textarea>'+
       '<div class="row"><div><label>Reward</label>'+li('quests',i,'reward',q.reward)+'</div><div><label>Deadline</label>'+li('quests',i,'deadline',q.deadline)+'</div><div><label>Progress</label>'+li('quests',i,'progress',q.progress)+'</div></div></div>').join('')+
       '<button class="btn small" data-addlist="quests">+ Add quest</button></div>';
+  }else if(sysTab==='titles'){
+    h+=renderTitlesPanel(p);
   }else if(sysTab==='shop'){
-    h+='<div class="syswin"><span class="title">Store</span><div class="muted">Gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+'</b>. Buy potions and basic supplies. Sell from Inventory. Purchases are logged for the narrator.</div><div class="shop-list">'+S.shop.map((s,i)=>'<div class="shop-card"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.category?esc(s.category)+' · ':'')+esc(s.description||'')+'</div></div><div class="shop-buy"><div class="price">'+Number(s.price||0).toLocaleString()+' G</div><button class="btn small primary" data-buy="'+i+'" '+(p.gold>=s.price?'':'disabled')+' style="min-height:44px">Buy</button></div></div>').join('')+'</div></div>';
+    h+='<div class="syswin"><span class="title">Store</span><div class="muted">Gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+'</b>. Buy potions and basic supplies. Sell from Inventory. Purchases are logged for the narrator.</div><div class="shop-list">'+S.shop.map((s,i)=>{const maxB=maxBuyQty(p,s);return '<div class="shop-card"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.category?esc(s.category)+' · ':'')+esc(s.description||'')+'</div><div class="price">'+Number(s.price||0).toLocaleString()+' G each</div></div><div class="shop-buy">'+qtyPickerHtml('buy',i,maxB,s.price)+'<button class="btn small primary" data-buy="'+i+'" '+(maxB>=1?'':'disabled')+' style="min-height:44px;margin-top:6px">Buy</button></div></div>';}).join('')+'</div></div>';
   }
   body.innerHTML=h;
 }
@@ -2200,8 +2661,56 @@ function equipmentPanel(p){
   for(const it of (p.inventory||[])){if(it&&it.equipped){const s=itemSlot(it);if(s&&!by[s])by[s]=it;}}
   const b=equippedBonuses(p);
   const bonusBits=STAT_KEYS.filter(k=>b.stats[k]).map(k=>k.toUpperCase()+' +'+b.stats[k]);
-  if(b.maxHp)bonusBits.push('Max HP +'+b.maxHp);if(b.maxMp)bonusBits.push('Max MP +'+b.maxMp);if(b.atk)bonusBits.push('ATK +'+b.atk);
-  return '<div class="equip-panel">'+slots.map(([k,l])=>'<div class="equip-slot"><span class="k">'+l+'</span> '+(by[k]?'<b>'+esc(by[k].name)+'</b>':'<span class="muted">—</span>')+'</div>').join('')+(bonusBits.length?'<div class="muted" style="margin-top:6px">Equipped bonuses: '+esc(bonusBits.join(' · '))+'</div>':'')+'</div>';
+  if(b.maxHp)bonusBits.push('Max HP +'+b.maxHp);if(b.maxMp)bonusBits.push('Max MP +'+b.maxMp);if(b.atk)bonusBits.push('ATK +'+b.atk);if(b.regenPct)bonusBits.push('+'+b.regenPct+'% regen');if(b.resist)bonusBits.push('+'+(Math.round(b.resist*1000)/10)+'% resist');
+  return '<div class="equip-panel">'+slots.map(([k,l])=>'<div class="equip-slot"><span class="k">'+l+'</span> '+(by[k]?'<b>'+esc(by[k].name)+'</b>':'<span class="muted">—</span>')+'</div>').join('')+(bonusBits.length?'<div class="muted" style="margin-top:6px">Equipped bonuses (gear + title): '+esc(bonusBits.join(' · '))+'</div>':'')+'</div>';
+}
+function renderTitlesPanel(p){
+  const owned=(p.titles||[]).slice();
+  if(p.title&&p.title!=='None'&&!owned.some(n=>titleKey(n)===titleKey(p.title)))owned.unshift(p.title);
+  let h='<div class="syswin"><span class="title">Titles</span><div class="muted">One title may be equipped at a time. Only the equipped title\'s effects apply.</div>';
+  if(!owned.length)h+='<div class="muted" style="margin-top:8px">No titles yet.</div>';
+  for(const name of owned){
+    const def=findTitleDef(name,p)||{name:name,effects:{},description:''};
+    const on=p.title&&titleKey(p.title)===titleKey(def.name);
+    h+='<div class="title-card'+(on?' equipped':'')+'"><div class="head"><b>'+esc(def.name)+'</b>'+(on?' <span class="tag">Equipped</span>':'')+'</div>';
+    if(def.description)h+='<div class="muted">'+esc(def.description)+'</div>';
+    h+='<div class="title-fx">'+esc(titleEffectSummary(def))+'</div>';
+    h+='<div class="row" style="margin-top:8px">'+(on?'<button class="btn small" data-unequip-title="1" style="min-height:44px">Unequip</button>':'<button class="btn small primary" data-equip-title="'+esc(def.name)+'" style="min-height:44px">Equip</button>')+
+      '<button class="icon" data-deltitle-name="'+esc(def.name)+'" title="Remove" style="min-height:44px;min-width:44px">🗑</button></div></div>';
+  }
+  h+='<button class="btn small" id="addTitle" style="margin-top:10px;min-height:44px">+ Title</button></div>';
+  return h;
+}
+function qtyPickerHtml(kind,index,max,unitPrice){
+  const id=kind+'-'+index;
+  const maxN=Math.max(0,num(max,1));
+  const price=Math.max(0,num(unitPrice,0));
+  const start=maxN>0?1:0;
+  const btns=[1,5,10].map(n=>'<button type="button" class="btn small qty-q" data-qty-set="'+id+'" data-n="'+n+'" '+(n>maxN?'disabled':'')+' style="min-height:44px">'+n+'</button>').join('');
+  return '<div class="qty-box" data-qty-box="'+id+'"><div class="qty-row">'+
+    '<button type="button" class="btn small qty-step" data-qty-step="'+id+'" data-dir="-1" style="min-height:44px;min-width:44px">−</button>'+
+    '<input type="number" inputmode="numeric" min="1" max="'+Math.max(1,maxN)+'" value="'+start+'" class="qty-input" data-qty-input="'+id+'" data-qty-max="'+maxN+'" data-qty-price="'+price+'">'+
+    '<button type="button" class="btn small qty-step" data-qty-step="'+id+'" data-dir="1" style="min-height:44px;min-width:44px">+</button>'+
+    btns+
+    '<button type="button" class="btn small qty-q" data-qty-set="'+id+'" data-n="all" '+(maxN<1?'disabled':'')+' style="min-height:44px">All</button>'+
+    '</div><div class="qty-total" data-qty-total="'+id+'">'+(kind==='buy'?'Buy':'Sell')+' '+start+' for '+(price*start).toLocaleString()+' G</div></div>';
+}
+function syncQtyTotals(root){
+  const scope=root||(typeof document!=='undefined'?document:null);if(!scope||!scope.querySelectorAll)return;
+  scope.querySelectorAll('[data-qty-input]').forEach(inp=>{
+    const max=Math.max(0,num(inp.dataset.qtyMax,1));
+    let v=Math.floor(num(inp.value,1));if(max<1)v=0;else{if(v<1)v=1;if(v>max)v=max;}
+    if(String(inp.value)!==String(v))inp.value=v;
+    const price=num(inp.dataset.qtyPrice,0);
+    const el=(inp.closest('.qty-box')||scope).querySelector('[data-qty-total="'+inp.dataset.qtyInput+'"]');
+    const kind=String(inp.dataset.qtyInput||'').split('-')[0];
+    if(el)el.textContent=(kind==='buy'?'Buy':'Sell')+' '+v+' for '+(price*v).toLocaleString()+' G';
+  });
+}
+function readQty(kind,index){
+  const inp=document.querySelector('[data-qty-input="'+kind+'-'+index+'"]');
+  const max=inp?num(inp.dataset.qtyMax,1):1;
+  return Math.max(1,Math.min(max,Math.floor(num(inp&&inp.value,1))));
 }
 function itemEditor(it,i){
   const statsTxt=Object.entries(it.stats||{}).map(([k,v])=>k+': '+v).join('\n');
@@ -2211,7 +2720,7 @@ function itemEditor(it,i){
     (isBox(it)?'<button class="btn small primary" data-open="'+i+'" style="min-height:44px">Open</button>':'')+
     ((potionEffect(it,S.player)||/^(consumable|potion|key|rune stone)$/i.test(it.category||''))?'<button class="btn small" data-use="'+i+'" style="min-height:44px">Use</button>':'')+
     (slot?'<button class="btn small" data-equip="'+i+'" style="min-height:44px">'+(it.equipped?'Unequip':'Equip')+'</button>':'')+
-    '<button class="btn small" data-sell="'+i+'" style="min-height:44px">Sell ('+sell+'g)</button>'+
+    '</div>'+qtyPickerHtml('sell',i,it.qty,sell)+'<div class="row" style="margin-top:6px"><button class="btn small" data-sell="'+i+'" style="min-height:44px">Sell</button>'+
     '<button class="icon" data-dellist="inventory" data-i="'+i+'" title="Delete">🗑</button></div>'+
     (it.description?'<div class="item-desc">'+esc(it.description)+'</div>':'')+
     (fx?'<div class="muted">'+esc(fx)+'</div>':'')+
@@ -2223,6 +2732,7 @@ function itemEditor(it,i){
 }
 function onSysInput(e){
   const t=e.target;const p=S.player;
+  if(t.dataset&&t.dataset.qtyInput){syncQtyTotals(t.closest('.qty-box')||document);return;}
   if(t.dataset.pfield){const path=t.dataset.pfield;if(path==='maxHp'||path==='maxMp'){repairDerivedStats(p,cfg());if(e.type==='change')renderSystem();else renderHud();return;}const cur=getPath(p,path);setPath(p,path,typeof cur==='number'?num(t.value,cur):t.value);if(/^(level|stats\.)/.test(path)||e.type==='change')repairDerivedStats(p,cfg());else clampPlayer(p);save();renderHud();if(e.type==='change')renderSystem();return;}
   if(t.dataset.list){const L=t.dataset.list,i=+t.dataset.i,k=t.dataset.k;const obj=p[L][i];if(!obj)return;
     if(t.type==='checkbox')obj[k]=t.checked;else if(k==='qty'||k==='level')obj[k]=num(t.value,obj[k]);
@@ -2233,16 +2743,30 @@ function onSysInput(e){
 function syslog(text){S.messages.push({id:uid(),role:'syslog',text});save();renderLog();}
 function onSysClick(e){
   const t=e.target.closest('button');if(!t)return;const p=S.player;
+  if(t.dataset.qtyStep||t.dataset.qtySet){
+    const id=t.dataset.qtyStep||t.dataset.qtySet;const inp=document.querySelector('[data-qty-input="'+id+'"]');if(!inp)return;
+    const max=Math.max(0,num(inp.dataset.qtyMax,1));
+    let v=Math.floor(num(inp.value,1));
+    if(t.dataset.qtyStep)v+=num(t.dataset.dir,0);
+    else if(t.dataset.n==='all')v=max;else v=num(t.dataset.n,1);
+    if(max<1)v=0;else{if(v<1)v=1;if(v>max)v=max;}
+    inp.value=v;syncQtyTotals(inp.closest('.qty-box')||document);return;
+  }
   if(t.dataset.sub){sysTab=t.dataset.sub;renderSystem();return;}
-  if(t.dataset.plus){if(p.points>0){p.stats[t.dataset.plus]++;p.points--;deriveMax(p,cfg());clampPlayer(p);save();renderSystem();}return;}
-  if(t.dataset.deltitle!==undefined){p.titles.splice(+t.dataset.deltitle,1);save();renderSystem();return;}
-  if(t.id==='addTitle'){const n=prompt('Title name');if(n){p.titles.push(n);save();renderSystem();}return;}
+  if(t.dataset.plus){if(p.points>0){p.stats[t.dataset.plus]++;p.points--;deriveMax(p,cfg());clampPlayer(p);logAppAction('allocated 1 point to '+String(t.dataset.plus).toUpperCase());save();renderSystem();renderHud();}return;}
+  if(t.dataset.equipTitle){if(equipTitle(p,t.dataset.equipTitle)){repairDerivedStats(p,cfg());logAppAction('equipped the title '+p.title);save();renderSystem();renderHud();toast('Equipped '+p.title);}return;}
+  if(t.dataset.unequipTitle){p.title='None';repairDerivedStats(p,cfg());logAppAction('unequipped her title');save();renderSystem();renderHud();toast('Title unequipped');return;}
+  if(t.dataset.deltitleName){const k=titleKey(t.dataset.deltitleName);p.titles=(p.titles||[]).filter(n=>titleKey(n)!==k);if(p.title&&titleKey(p.title)===k)p.title='None';repairDerivedStats(p,cfg());save();renderSystem();renderHud();return;}
+  if(t.dataset.deltitle!==undefined){const rem=(p.titles||[])[+t.dataset.deltitle];p.titles.splice(+t.dataset.deltitle,1);if(rem&&p.title&&titleKey(p.title)===titleKey(rem))p.title='None';save();renderSystem();return;}
+  if(t.id==='addTitle'){const n=prompt('Title name');if(n){if(!hasTitle(p,n))p.titles.push(n.trim());save();renderSystem();}return;}
   if(t.id==='grantExpBtn'){
     const el=$('#grantExpAmt');const n=Math.floor(num(el&&el.value,0));
     if(!(n>0)){toast('Enter an EXP amount greater than 0.');return;}
     const notes=applyUpdate(p,{exp_gain:n},cfg());
     repairDerivedStats(p,cfg());
     const ups=notes.filter(x=>/^LEVEL UP/.test(x));
+    const earned=evaluateAppTitles(p,{});
+    for(const def of earned)syslog('<system>['+titleAcquireNotice(def).title+']\n'+titleAcquireNotice(def).body+'</system>');
     syslog('Granted EXP +'+n+(ups.length?'; '+ups.join('; '):'')+'.');
     toast(notes.filter(isMechanicalNote).join(' · ')||('EXP +'+n));
     renderSystem();renderHud();
@@ -2250,9 +2774,13 @@ function onSysClick(e){
   }
   if(t.dataset.dellist){if(!confirm('Delete?'))return;p[t.dataset.dellist].splice(+t.dataset.i,1);save();renderSystem();return;}
   if(t.dataset.addlist){const L=t.dataset.addlist;p[L].push(L==='skills'?normSkill({name:'New Skill'}):L==='quests'?normQuest({name:'New Quest'}):normItem({name:'New Item'}));save();renderSystem();return;}
-  if(t.dataset.buy!==undefined){const s=S.shop[+t.dataset.buy];if(!s||p.gold<s.price)return;p.gold-=s.price;
-    const ex=p.inventory.find(x=>keyOf(x)===keyOf(s));if(ex)ex.qty++;else p.inventory.push(normItem({name:s.name,category:s.category,description:s.description}));
-    syslog('Shop purchase: '+s.name+' for '+s.price+' gold. Gold remaining: '+p.gold+'.');renderSystem();toast('Purchased '+s.name);return;}
+  if(t.dataset.buy!==undefined){const s=S.shop[+t.dataset.buy];if(!s)return;
+    const q=readQty('buy',+t.dataset.buy);const total=num(s.price,0)*q;
+    if(q<1||p.gold<total){toast('Not enough gold.');return;}
+    if(!confirm('Buy '+q+' × '+s.name+' for '+total.toLocaleString()+' G? Gold remaining: '+(p.gold-total).toLocaleString()+' G'))return;
+    const r=buyShopItems(p,s,q);if(!r.ok){toast(r.reason==='gold'?'Not enough gold.':'Cannot buy that.');return;}
+    logAppAction('bought '+r.qty+' × '+r.name);
+    syslog('Shop purchase: '+r.qty+' × '+r.name+' for '+r.gold+' gold. Gold remaining: '+p.gold+'.');renderSystem();renderHud();toast('Purchased '+r.qty+' × '+r.name+' for '+r.gold.toLocaleString()+' G');return;}
   if(t.dataset.delshop!==undefined){S.shop.splice(+t.dataset.delshop,1);save();renderSystem();return;}
   if(t.id==='addShop'){S.shop.push({name:'New Item',price:1000,category:'',description:''});save();renderSystem();return;}
   if(t.dataset.open!==undefined){openBox(+t.dataset.open);return;}
@@ -2261,22 +2789,24 @@ function onSysClick(e){
     if(isBox(it)){openBox(idx);return;}
     const r=useInventoryItem(p,idx,cfg());
     if(!r.ok){toast(r.reason==='box'?'Open boxes with Open.':'That item cannot be used here.');return;}
+    logAppAction('used '+r.name);
     syslog('Item used: '+r.name+(r.notes&&r.notes.length?' — '+r.notes.join('; '):'')+'.');
     toast(r.notes.join(' · ')||('Used '+r.name));renderSystem();renderHud();return;}
   if(t.dataset.equip!==undefined){const idx=+t.dataset.equip;const it=p.inventory[idx];if(!it)return;
     const slot=itemSlot(it);if(!slot){toast('That cannot be equipped.');return;}
     if(!it.equipped){for(const x of p.inventory){if(x!==it&&x.equipped&&itemSlot(x)===slot)x.equipped=false;}it.equipped=true;}
     else it.equipped=false;
-    repairDerivedStats(p,cfg());save();renderSystem();renderHud();toast(it.equipped?('Equipped '+it.name):('Unequipped '+it.name));return;}
+    repairDerivedStats(p,cfg());logAppAction((it.equipped?'equipped ':'unequipped ')+it.name);save();renderSystem();renderHud();toast(it.equipped?('Equipped '+it.name):('Unequipped '+it.name));return;}
   if(t.dataset.sell!==undefined){const idx=+t.dataset.sell;const it=p.inventory[idx];if(!it)return;
-    const price=itemSellPrice(it);
-    if(!confirm('Sell 1 × '+it.name+' for '+price+' gold?'))return;
-    p.gold=num(p.gold,0)+price;it.qty=num(it.qty,1)-1;if(it.qty<=0){if(it.equipped)it.equipped=false;p.inventory.splice(idx,1);}
-    repairDerivedStats(p,cfg());syslog('Sold '+it.name+' for '+price+' gold. Gold remaining: '+p.gold+'.');toast('Sold for '+price+' G');renderSystem();renderHud();return;}
+    const q=readQty('sell',idx);const unit=itemSellPrice(it);const total=unit*q;
+    if(!confirm('Sell '+q+' × '+it.name+' for '+total.toLocaleString()+' G?'))return;
+    const r=sellInventoryItems(p,idx,q);if(!r.ok)return;
+    repairDerivedStats(p,cfg());logAppAction('sold '+r.qty+' × '+r.name);
+    syslog('Sold '+r.qty+' × '+r.name+' for '+r.gold+' gold. Gold remaining: '+p.gold+'.');toast('Sold '+r.qty+' × '+r.name+' for '+r.gold.toLocaleString()+' G');renderSystem();renderHud();return;}
   if(t.id==='addItemQuick'){
     const name=(($('#addItemName')||{}).value||'').trim();if(!name){toast('Enter an item name.');return;}
     const cat=(($('#addItemCat')||{}).value||'Material').trim();const rank=(($('#addItemRank')||{}).value||'').trim();
-    p.inventory.push(normItem({name,category:cat,acquisition_difficulty:rank,description:'Added manually.'}));
+    addItemToInventory(p,normItem({name,category:cat,acquisition_difficulty:rank,description:'Added manually.'}));
     save();renderSystem();toast('Added '+name);return;}
 }
 
@@ -2288,8 +2818,12 @@ function nextDay(){
   const d=S.daily,g=S.game;const done=dailyDone();
   if(!confirm('Advance to Day '+(g.day+1)+'?'+(done?'':'\n\n⚠ Today\'s Daily Quest is NOT complete — the canon Penalty Quest will trigger.')))return;
   const r=advanceGameDay(S);
+  logAppAction('advanced the day to Day '+r.day);
+  if(r.regen&&r.regen.hp)S.flags.regenFlash=r.regen.hp;
   if(r.penalty)syslog('[Warning] Day '+(r.day-1)+': the Daily Quest "Preparation to Become Powerful" was NOT completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon: desert, giant centipedes, survive until the time limit). Narrator: run the Penalty Quest now.');
   syslog('— Day '+r.day+' begins'+(S.game.startDate?' · '+gameDateStr():'')+'. A new Daily Quest has arrived. —');
+  const extra=[].concat((r.regen&&r.regen.notices)||[],(r.titlesEarned||[]).map(titleAcquireNotice));
+  for(const n of extra)syslog('<system>['+n.title+']\n'+n.body+'</system>');
   renderDaily();renderSystem();renderHud();toast(r.done?'Day '+r.day+' begins.':'Day '+r.day+' — Penalty Quest triggered!',4000);
 }
 function renderDaily(){
@@ -2318,7 +2852,7 @@ function onDaily(e){
   else if(e.type==='click'&&btn&&btn.dataset.dtoggle!==undefined){const x=d.items[+btn.dataset.dtoggle];x.done=x.done>=x.target?0:x.target;}
   else if(e.type==='click'&&btn&&btn.dataset.dadd!==undefined){const x=d.items[+btn.dataset.dadd];x.done=Math.min(x.target,x.done+(x.unit==='km'?1:10));}
   else if(e.type==='click'&&btn&&btn.id==='dNext'){nextDay();return;}
-  else if(e.type==='click'&&btn&&btn.dataset.dclaim){const r=claimDailyReward(S.player,d,S.rankChart,btn.dataset.dclaim);if(!r.ok)return;syslog('[Daily Quest: Preparation to Become Powerful] completed ('+gameDateStr()+'). Rewards received: Full Recovery (HP/MP restored, fatigue cleared), 3 free Ability Points, '+r.box.name+' ×1 (unopened).');renderSystem();renderHud();toast('Daily Quest complete! '+r.box.name+' added to Inventory.');}
+  else if(e.type==='click'&&btn&&btn.dataset.dclaim){const r=claimDailyReward(S.player,d,S.rankChart,btn.dataset.dclaim);if(!r.ok)return;syslog('[Daily Quest: Preparation to Become Powerful] completed ('+gameDateStr()+'). Rewards received: Full Recovery (HP/MP restored, fatigue cleared), 3 free Ability Points, '+r.box.name+' ×1 (unopened).');const earned=evaluateAppTitles(S.player,{streak:dailyStreak(S)});for(const def of earned)syslog('<system>['+titleAcquireNotice(def).title+']\n'+titleAcquireNotice(def).body+'</system>');renderSystem();renderHud();toast('Daily Quest complete! '+r.box.name+' added to Inventory.');}
   else if(e.type==='click'&&btn&&btn.id==='dPenalty'){if(!confirm('Trigger the Penalty Quest now?'))return;
     syslog('[Warning] The Daily Quest was not completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon penalty quest: "Survive"). Narrator: run the Penalty Quest now.');toast('Penalty logged to the story.');}
   else return;
@@ -2725,9 +3259,11 @@ function onForgeClick(e){
   else if(t.id==='fApplyJson'){try{const m=forgeItem._mats;forgeItem=normItem(JSON.parse($('#fJson').value));forgeItem._mats=m;renderForgeResult();}catch(err){toast('Invalid JSON: '+err.message);}}
   else if(t.id==='fAccept'){const p=S.player;const logIt=$('#fLog')&&$('#fLog').checked;const it=clone(forgeItem);const mats=it._mats||[];delete it._mats;it.id=uid();
     for(const mn of mats){const i=p.inventory.findIndex(x=>keyOf(x)===keyOf(mn));if(i>=0){p.inventory[i].qty--;if(p.inventory[i].qty<=0)p.inventory.splice(i,1);}}
-    const ex=p.inventory.find(x=>keyOf(x)===keyOf(it));if(ex)ex.qty+=it.qty;else p.inventory.push(it);
+    addItemToInventory(p,it);
+    const desc=cutText(it.description||'',120);
+    logAppAction('crafted '+it.name+(it.category?' ('+it.category+')':'')+(desc?': '+desc:''));
     if(logIt)syslog('[Item Created] '+it.name+' ('+it.category+', Acquisition Difficulty '+it.acquisition_difficulty+') has been added to the Inventory.'+(mats.length?' Materials consumed: '+mats.join(', ')+'.':'')+(it.effects.length?' Effects: '+it.effects.join('; '):''));
-    forgeItem=null;save();renderForgeResult();renderForgeInv();renderSystem();toast('Added '+it.name+' to Inventory');}
+    forgeItem=null;save();renderForgeResult();renderForgeInv();renderSystem();if(typeof renderActionChip==='function')renderActionChip();toast('Added '+it.name+' to Inventory');}
 }
 
 /* ================= REWARD BOXES ================= */
@@ -2747,7 +3283,7 @@ async function openBox(idx){
   const notes=applyUpdate(p,{gold:roll.gold,stat_points:roll.stat_points,items_add:roll.items,items_remove:[{name:box.name,qty:1}]},cfg()).filter(n=>!/^Item removed/.test(n));
   if(!notes.length)notes.push('The box was empty.');
   lastBoxResult={title:'Opened: '+box.name,notes};
-  syslog('[Box Opened] '+box.name+' → '+notes.join('; ')+'.');
+  logAppAction('opened '+box.name);syslog('[Box Opened] '+box.name+' → '+notes.join('; ')+'.');
   openingBox=false;save();renderSystem();renderHud();renderForgeInv();
 }
 
@@ -2821,7 +3357,7 @@ function init(){
   $('#patronType').innerHTML=PATRONS.map(p=>'<option>'+esc(p)+'</option>').join('');
   bindAll();renderAllViews();
 }
-function renderAllViews(){renderCompanions();renderWorld();renderLog();renderSystem();renderDaily();renderForgeInv();renderForgeResult();syncStoryChrome();}
+function renderAllViews(){renderCompanions();renderWorld();renderLog();renderSystem();renderDaily();renderForgeInv();renderForgeResult();syncStoryChrome();if(typeof renderActionChip==='function')renderActionChip();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
