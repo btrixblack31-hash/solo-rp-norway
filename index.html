@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ARISE — Solo Leveling RP (Norway)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070d; --bg2:#0a0f1c; --panel:#0c1426; --panel2:#101b33; --line:#1d3a66;
+  --glow:#4fc3ff; --glow2:#7fd8ff; --glowdim:#2a6fa8; --text:#d9e6f7; --muted:#8aa0bf;
+  --red:#ff4f6d; --gold:#ffd166; --green:#5dffb0; --purple:#b48cff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:radial-gradient(ellipse at top,#0b1530 0%,var(--bg) 60%) fixed;color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;font-size:15px;line-height:1.55}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--glow)}
+header{position:sticky;top:0;z-index:20;background:rgba(5,8,16,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 12px;max-width:1100px;margin:0 auto}
+.logo{font-weight:800;letter-spacing:.25em;color:var(--glow);text-shadow:0 0 10px var(--glow);font-size:18px}
+.hud{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.hud b{color:var(--text)}
+nav.tabs{scrollbar-width:none;display:flex;gap:2px;max-width:1100px;margin:0 auto;padding:0 8px;overflow-x:auto}
+nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;padding:8px 12px;color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.05em}
+nav.tabs button.active{color:var(--glow);border-color:var(--glow);text-shadow:0 0 8px var(--glowdim)}
+main{max-width:1100px;margin:0 auto;padding:12px}
+.tab{display:none}.tab.active{display:block}
+/* System window */
+.syswin{position:relative;background:linear-gradient(180deg,rgba(16,40,80,.55),rgba(8,18,40,.75));border:1px solid var(--glow);
+  border-radius:6px;box-shadow:0 0 12px rgba(79,195,255,.35),inset 0 0 18px rgba(79,195,255,.12);padding:12px 14px;margin:10px 0}
+.syswin .title{display:block;text-align:center;font-weight:700;letter-spacing:.2em;color:var(--glow2);text-shadow:0 0 8px var(--glow);
+  border-bottom:1px solid rgba(79,195,255,.35);padding-bottom:6px;margin-bottom:8px;text-transform:uppercase;font-size:13px}
+.syswin.warn{border-color:var(--red);box-shadow:0 0 12px rgba(255,79,109,.35),inset 0 0 18px rgba(255,79,109,.12)}
+.syswin.warn .title{color:#ff8fa3;text-shadow:0 0 8px var(--red)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0}
+h2{font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--glow2);margin:6px 0 10px}
+h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.btn{background:linear-gradient(180deg,#123060,#0b1d3d);border:1px solid var(--glowdim);color:var(--text);padding:6px 12px;border-radius:5px;cursor:pointer}
+.btn:hover{border-color:var(--glow);box-shadow:0 0 8px rgba(79,195,255,.4)}
+.btn.primary{border-color:var(--glow);color:#fff;box-shadow:0 0 8px rgba(79,195,255,.3)}
+.btn.danger{border-color:#7a2335;background:linear-gradient(180deg,#3a0f1a,#24070f)}
+.btn.small{padding:2px 8px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.icon{background:none;border:1px solid transparent;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:4px;font-size:13px}
+.icon:hover{color:var(--glow);border-color:var(--line)}
+input[type=text],input[type=number],input[type=password],select,textarea{background:#070d1b;border:1px solid var(--line);border-radius:5px;padding:6px 8px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--glow);box-shadow:0 0 6px rgba(79,195,255,.35)}
+textarea{resize:vertical;min-height:70px}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px;letter-spacing:.04em}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 160px}
+.muted{color:var(--muted);font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+/* Story */
+#log{display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
+.msg{border-radius:8px;padding:10px 12px;border:1px solid var(--line);position:relative}
+.msg.user{background:#0d1a30;border-color:#24426f;margin-left:8%}
+.msg.narrator{background:rgba(10,16,30,.85)}
+.msg.syslog{background:rgba(16,40,80,.3);border-style:dashed;font-size:13px;color:var(--glow2)}
+.msg .who{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.msg .who .tools{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap}
+.msg .body p{margin:.45em 0}
+.msg .body em{color:#c7d6ee}
+.swipe{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.composer{position:sticky;bottom:0;background:rgba(5,8,16,.95);border-top:1px solid var(--line);padding:8px 0 10px;margin-top:6px}
+.composer textarea{min-height:64px}
+.composer .row{margin-top:6px;align-items:center}
+.composer .row>*{flex:0 0 auto}
+.typing::after{content:"▍";animation:blink 1s infinite;color:var(--glow)}
+@keyframes blink{50%{opacity:0}}
+.changes{font-size:13px}
+.changes li{margin:2px 0}
+.err{color:#ff8fa3;font-size:12px}
+/* Status */
+.status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.kv{display:flex;align-items:center;gap:6px}
+.kv span.k{min-width:70px;color:var(--glow2);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.kv input{padding:3px 6px}
+.bar{height:8px;background:#0a1222;border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-top:3px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#1e7bd6,var(--glow));box-shadow:0 0 8px var(--glow)}
+.bar.hp>i{background:linear-gradient(90deg,#a5122e,var(--red))}
+.bar.mp>i{background:linear-gradient(90deg,#2338a8,#6f8cff)}
+.bar.fat>i{background:linear-gradient(90deg,#6b5a10,var(--gold))}
+.stat{display:flex;align-items:center;gap:6px;padding:4px 0}
+.stat .k{width:44px;font-weight:700;color:var(--glow2);letter-spacing:.1em}
+.stat input{width:80px}
+.list-item{border:1px solid var(--line);border-radius:6px;padding:8px;margin:6px 0;background:var(--panel2)}
+.list-item .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.list-item .head b{color:#fff}
+.tag{font-size:11px;padding:1px 6px;border-radius:10px;border:1px solid var(--glowdim);color:var(--glow2)}
+.tag.done{border-color:#1f7a52;color:var(--green)}.tag.failed{border-color:#7a2335;color:#ff8fa3}
+.rank{font-weight:800;color:var(--gold);text-shadow:0 0 6px rgba(255,209,102,.5)}
+table{width:100%;border-collapse:collapse}
+td,th{border-bottom:1px solid var(--line);padding:4px;text-align:left;font-size:13px}
+.itemcard .itemname{font-size:16px;font-weight:700;color:#fff;text-align:center}
+.itemcard .meta{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px;margin:8px 0}
+.itemcard .meta span:nth-child(odd){color:var(--glow2)}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.subtabs button.active{border-color:var(--glow);color:var(--glow)}
+.daily .q{display:flex;align-items:center;gap:8px;padding:5px 0;flex-wrap:wrap}
+.daily .q .name{flex:1 1 150px}
+.daily .q input[type=number]{width:80px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0c1a33;border:1px solid var(--glow);padding:8px 14px;border-radius:6px;box-shadow:0 0 12px rgba(79,195,255,.4);z-index:99;display:none;max-width:90%}
+details summary{cursor:pointer;color:var(--glow2)}
+
+/* ===== Nordic layer: runes, knotwork, frost & aurora ===== */
+:root{--frost:#cfefff;--aurora1:#36f1cd;--aurora2:#7b5cff;--knot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'%3E%3Cg fill='none' stroke='%234fc3ff' stroke-width='1.6' stroke-opacity='.75'%3E%3Cpath d='M0 7 C10 -3 10 17 20 7 S30 -3 40 7'/%3E%3Cpath d='M0 7 C10 17 10 -3 20 7 S30 17 40 7'/%3E%3C/g%3E%3C/svg%3E")}
+body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:55vh;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 20% 30%,rgba(54,241,205,.16),transparent 55%),radial-gradient(ellipse at 70% 20%,rgba(123,92,255,.16),transparent 55%),radial-gradient(ellipse at 50% 60%,rgba(79,195,255,.10),transparent 60%);
+  filter:blur(18px);animation:aurora 18s ease-in-out infinite alternate}
+@keyframes aurora{0%{transform:translateX(-4%) skewX(-6deg)}100%{transform:translateX(4%) skewX(6deg)}}
+.logo,h2,.syswin .title,nav.tabs button{font-family:"Cinzel","Pirata One",Georgia,serif}
+.logo{font-family:"Pirata One","Cinzel",Georgia,serif;font-size:24px;letter-spacing:.18em}
+.logo small,.syswin .title::before,.syswin .title::after,h2::before{font-family:'Noto Sans Runic','Segoe UI Historic','Segoe UI Symbol',sans-serif}
+.logo small{font-size:12px;letter-spacing:.35em;color:var(--frost);opacity:.7;margin-left:6px}
+header::after{content:"";display:block;height:14px;background:var(--knot) repeat-x center/40px 14px;opacity:.55}
+.runes{font-family:'Noto Sans Runic','Segoe UI Historic','Segoe UI Symbol',sans-serif;white-space:nowrap;overflow:hidden;font-size:12px;letter-spacing:.6em;color:var(--glow);opacity:.55;text-align:center;padding:2px 0;text-shadow:0 0 6px var(--glow)}
+.syswin{border-image:none;background:linear-gradient(180deg,rgba(16,40,80,.55),rgba(8,18,40,.78)),radial-gradient(circle at 0 0,rgba(207,239,255,.08),transparent 40%)}
+.syswin::before,.syswin::after{content:"";position:absolute;left:10px;right:10px;height:10px;background:var(--knot) repeat-x center/30px 10px;opacity:.45;pointer-events:none}
+.syswin::before{top:-5px}.syswin::after{bottom:-5px}
+.syswin .title::before{content:"ᛟ  "}.syswin .title::after{content:"  ᛟ"}
+.syswin.warn::before,.syswin.warn::after{filter:hue-rotate(150deg)}
+.card{border-image:linear-gradient(135deg,rgba(207,239,255,.35),rgba(29,58,102,.6),rgba(54,241,205,.3)) 1;box-shadow:inset 0 0 24px rgba(207,239,255,.04)}
+h2::before{content:"ᚱ ";color:var(--aurora1);opacity:.8}
+.btn{text-shadow:0 0 4px rgba(207,239,255,.25)}
+.srank{font-weight:800;font-size:11px;min-width:58px;text-align:center;padding:1px 6px;border-radius:3px;border:1px solid var(--gold);color:var(--gold);background:rgba(255,209,102,.07);font-family:"Cinzel",serif}
+.qbtn{background:#070d1b;border:1px solid var(--glowdim);color:var(--glow);width:30px;height:30px;border-radius:5px;cursor:pointer;font-size:16px}
+.qbtn:hover{box-shadow:0 0 8px var(--glow)}
+.q.ok .name{color:var(--green);text-decoration:line-through;text-decoration-color:rgba(93,255,176,.5)}
+nav.tabs::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="logo">SYSTEM<small>ᚾᛟᚱᛞ</small></div>
+    <div class="hud" id="hud"></div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="story" class="active">Story</button>
+    <button data-tab="system">System</button>
+    <button data-tab="daily">Daily Quest</button>
+    <button data-tab="summons">Summons</button>
+    <button data-tab="forge">Forge</button>
+    <button data-tab="character">Character &amp; World</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+  <div class="runes">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ · ᚺ ᚾ ᛁ ᛃ ᛇ ᛈ ᛉ ᛊ · ᛏ ᛒ ᛖ ᛗ ᛚ ᛜ ᛞ ᛟ</div>
+</header>
+<main>
+  <!-- STORY -->
+  <section class="tab active" id="tab-story">
+    <div id="log"></div>
+    <div class="composer">
+      <textarea id="input" placeholder="Write your character's actions and dialogue… (Ctrl/⌘+Enter to send). Use ((double parentheses)) for OOC notes to the narrator."></textarea>
+      <div class="row">
+        <button class="btn primary" id="sendBtn">Send</button>
+        <button class="btn" id="continueBtn" title="Let the world/NPCs move on without your character acting">Continue scene</button>
+        <button class="btn danger" id="stopBtn" style="display:none">Stop</button>
+        <button class="btn" id="nextDayBtn" title="Advance the in-game day (Daily Quest resets; unfinished quest triggers the Penalty)">Next Day ▸</button>
+        <button class="btn" id="sysNoteBtn" title="Add a System log entry the narrator will see (no AI call)">+ System log</button>
+        <span class="muted" id="statusLine"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SYSTEM -->
+  <section class="tab" id="tab-system">
+    <div class="subtabs" id="sysSub">
+      <button class="btn small active" data-sub="status">Status</button>
+      <button class="btn small" data-sub="skills">Skills</button>
+      <button class="btn small" data-sub="inventory">Inventory</button>
+      <button class="btn small" data-sub="quests">Quests</button>
+      <button class="btn small" data-sub="shop">Shop</button>
+    </div>
+    <div id="sysBody"></div>
+  </section>
+
+  <!-- DAILY -->
+  <section class="tab" id="tab-daily"><div id="dailyBody"></div></section>
+
+  <!-- SUMMONS -->
+  <section class="tab" id="tab-summons"><div id="compBody"></div></section>
+
+  <!-- FORGE -->
+  <section class="tab" id="tab-forge">
+    <div class="syswin"><span class="title">Forge — Item Creation</span>
+      <div class="muted">Describe what you want to make. The System (Grok) will design a canon-style item card. Accept it to add it to your Inventory, reroll for a new version, or edit it yourself.</div>
+      <div class="row">
+        <div><label>Item name (optional)</label><input type="text" id="fName" placeholder="e.g. Fjordfang"></div>
+        <div><label>Category</label><select id="fType">
+          <option>Dagger</option><option>Sword</option><option>Greatsword</option><option>Spear</option><option>Axe</option><option>Bow</option><option>Staff</option><option>Gauntlets</option>
+          <option>Armor</option><option>Helmet</option><option>Boots</option><option>Gloves</option><option>Cloak</option><option>Ring</option><option>Necklace</option><option>Earring</option><option>Bracelet</option>
+          <option>Consumable</option><option>Potion</option><option>Rune Stone</option><option>Key</option><option>Other</option></select></div>
+        <div><label>Target rank (optional)</label><select id="fRank"><option value="">Let the System decide</option><option>E</option><option>D</option><option>C</option><option>B</option><option>A</option><option>S</option></select></div>
+      </div>
+      <label>Materials (free text)</label><textarea id="fMats" placeholder="e.g. Ice bear fang, B-rank mana crystal, Norwegian steel"></textarea>
+      <label>Use materials from Inventory (consumed when you Accept)</label><div id="fInv" class="muted"></div>
+      <label>Intended effects / what you want it to do</label><textarea id="fEffects" placeholder="e.g. Frost damage, bonus to AGI, bleed on crit"></textarea>
+      <label>Extra notes for the System</label><input type="text" id="fNotes" placeholder="look, lore, drawbacks you're okay with…">
+      <div class="row" style="margin-top:10px"><div style="flex:0 0 auto"><button class="btn primary" id="forgeBtn">Forge</button></div><div class="muted" id="forgeStatus" style="align-self:center"></div></div>
+    </div>
+    <div id="forgeResult"></div>
+  </section>
+
+  <!-- CHARACTER -->
+  <section class="tab" id="tab-character">
+    <div class="card"><h2>Your Character</h2>
+      <div class="row">
+        <div><label>Name</label><input type="text" data-bind="character.name"></div>
+        <div><label>Age</label><input type="text" data-bind="character.age"></div>
+        <div><label>Gender / pronouns</label><input type="text" data-bind="character.gender"></div>
+        <div><label>Home city (Norway)</label><input type="text" data-bind="character.city"></div>
+      </div>
+      <label>Appearance</label><textarea data-bind="character.appearance"></textarea>
+      <div class="row"><div><label>Story start date (in-game Day 1, optional, YYYY-MM-DD)</label><input type="text" data-bind="game.startDate" placeholder="e.g. 2026-01-05"></div><div><label>Current in-game day</label><input type="number" data-bind="game.day" data-num></div></div>
+      <label>Combat build (sent to the narrator)</label><input type="text" data-bind="character.build">
+      <div class="row"><div><label>Class name (editable; e.g. your 3-part class title)</label><input type="text" data-bind="character.className" placeholder="e.g. Iron-Fist Warden-Binder"></div></div>
+      <label>Class path plan (3 parts; part 3 = Tamer/Binder Summoner)</label><input type="text" data-bind="character.classPlan">
+      <label>Background (what the world knows / has happened so far)</label><textarea data-bind="character.background"></textarea>
+      <label>Other facts the narrator should know (relationships, guild, job, etc.) — never used to guess your choices</label><textarea data-bind="character.extra"></textarea>
+    </div>
+    <div class="card"><h2>The System's Creator / Patron</h2>
+      <div class="muted">Who (or what) made or grants your System. The narrator uses this to flavor System messages, quests and hidden lore.</div>
+      <div class="row">
+        <div><label>Type</label><select id="patronType" data-bind="character.patronType"></select></div>
+        <div><label>Name</label><input type="text" data-bind="character.patronName" placeholder="e.g. The Architect, Odin, Ashborn, a custom Ruler…"></div>
+      </div>
+      <label>Description (nature, goals, how it relates to you)</label><textarea data-bind="character.patronDesc" placeholder="e.g. The All-Father, who seeks a champion before Ragnarök…"></textarea>
+    </div>
+    <div class="card"><h2>World &amp; Memory</h2>
+      <label>World notes / canon timeline position / NPCs you've met (always sent to the narrator)</label><textarea data-bind="world.notes" style="min-height:120px"></textarea>
+      <label>Narration style</label><input type="text" data-bind="world.style">
+      <label>Rolling summary of older story (auto-updated; you can edit)</label><textarea data-bind="world.summary" style="min-height:140px"></textarea>
+      <div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn" id="summarizeBtn">Summarize older posts now</button></div><div class="muted" id="sumStatus" style="align-self:center"></div></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="tab" id="tab-settings">
+    <div class="card"><h2>Grok Connection</h2>
+      <label>xAI API key (stored only in this browser's localStorage, never exported)</label>
+      <div class="row"><input type="password" id="apiKey" placeholder="xai-..." autocomplete="off" style="flex:4 1 220px"><button class="btn" id="showKey" style="flex:0 0 auto">Show</button></div>
+      <div class="row">
+        <div><label>Model</label><select id="modelSel"></select></div>
+        <div><label>Custom model id (overrides picker if filled)</label><input type="text" data-bind="settings.customModel" placeholder="e.g. grok-4.7-latest"></div>
+      </div>
+      <div class="row">
+        <div><label>Temperature: <span id="tempVal"></span></label><input type="range" min="0" max="2" step="0.05" id="temp" style="width:100%"></div>
+        <div><label>Max output tokens</label><input type="number" data-bind="settings.maxTokens" data-num></div>
+        <div><label>Recent posts sent each turn</label><input type="number" data-bind="settings.contextMessages" data-num></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.stream" data-bool> Stream responses</label>
+        <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.autoSummarize" data-bool> Auto-summarize older posts</label>
+      </div>
+      <div class="row" style="margin-top:8px"><div style="flex:0 0 auto"><button class="btn" id="testBtn">Test connection / load models</button></div><div class="muted" id="testStatus" style="align-self:center"></div></div>
+    </div>
+    <div class="card"><h2>Level → Hunter Rank Chart</h2>
+      <div class="muted">Your Hunter Rank comes from your level (highest row whose min level you've reached). This is the rank mana readers detect. Defaults: E 1–19, D 20–39, C 40–69, B 70–109, A 110–159, S 160–229, National 230–299, Deity 300+.</div>
+      <table id="rankTable"></table>
+      <div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small" id="addRank">+ Add row</button> <button class="btn small" id="resetRanks">Restore defaults</button></div></div>
+    </div>
+    <div class="card"><h2>Stat Rank Thresholds</h2>
+      <div class="muted">Each stat gets its own rank, separate from your Hunter Rank (cap of rank n = 25×n + previous cap). Defaults: E 0–25, D 26–75, C 76–150, B 151–250, A 251–375, S 376–525, National 526–700, Deity 701+.</div>
+      <table id="statRankTable"></table>
+      <div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small" id="addSRank">+ Add row</button> <button class="btn small" id="resetSRanks">Restore defaults</button></div></div>
+    </div>
+    <div class="card"><h2>System Rules</h2>
+      <div class="row">
+        <div><label>Free ability points per level-up</label><input type="number" data-bind="settings.pointsPerLevel" data-num></div>
+        <div><label>Automatic bonus to EVERY stat per level-up</label><input type="number" data-bind="settings.statsPerLevel" data-num></div>
+        <div><label>EXP to next level multiplier per level</label><input type="number" step="0.01" data-bind="settings.expGrowth" data-num></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.autoLevel" data-bool> Auto level-up when EXP reaches the bar</label>
+        <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.levelRestore" data-bool> Level-up fully restores HP/MP and clears fatigue (canon)</label>
+        <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.boxFlavor" data-bool> Ask Grok to name gear / rune stones from opened boxes</label>
+      </div>
+    </div>
+    <div class="card"><h2>Narrator Prompt</h2>
+      <div class="muted">This is the rulebook Grok follows. Edit freely; "Restore default" brings the shipped version back.</div>
+      <textarea data-bind="settings.systemPrompt" style="min-height:320px;font-size:13px"></textarea>
+      <button class="btn small" id="resetPrompt" style="margin-top:6px">Restore default narrator prompt</button>
+      <h3>Forge prompt</h3>
+      <textarea data-bind="settings.craftPrompt" style="min-height:160px;font-size:13px"></textarea>
+      <button class="btn small" id="resetCraft" style="margin-top:6px">Restore default forge prompt</button>
+    </div>
+    <div class="card"><h2>Save Data</h2>
+      <div class="muted">Everything autosaves in this browser. Export regularly to keep a backup (API key is never included).</div>
+      <div class="row" style="margin-top:8px">
+        <div style="flex:0 0 auto"><button class="btn" id="exportBtn">Export save (.json)</button></div>
+        <div style="flex:0 0 auto"><button class="btn" id="importBtn">Import save</button><input type="file" id="importFile" accept=".json,application/json" style="display:none"></div>
+        <div style="flex:0 0 auto"><button class="btn danger" id="clearStory">Clear story only</button></div>
+        <div style="flex:0 0 auto"><button class="btn danger" id="resetAll">Reset everything</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+'use strict';
+/* ================= CONSTANTS & DEFAULTS ================= */
+const LS_KEY='soloRP.save.v1', KEY_KEY='soloRP.apiKey', API='https://api.x.ai/v1';
+const MODELS=['grok-4.7','grok-4.7-latest','grok-4.6','grok-4.5','grok-4.3','grok-4.20-0309-reasoning','grok-4.20-0309-non-reasoning'];
+
+const DEFAULT_SYSTEM_PROMPT=`You are the NARRATOR and GAME MASTER of a mature, interactive Solo Leveling roleplay. You voice the world, every NPC, every monster, and the System itself. The user plays exactly ONE character (described under PLAYER CHARACTER). You never play her.
+
+=== ABSOLUTE RULES (highest priority) ===
+1. NEVER write the player character's dialogue, actions, thoughts, feelings, reactions, or decisions. Do not describe her moving, speaking, deciding, nodding, smiling, wincing, agreeing, or "feeling" anything unless the user already wrote it in her post. You may describe what happens TO her and what she perceives from outside (a blow lands, the cold bites, a window appears in front of her) — but never how she responds.
+2. NEVER assume or guess what she wants or intends. Do not finish her actions for her, do not skip ahead past moments where she would choose, do not fast-forward time unless she asks. Resolve exactly what she wrote, then let the world respond.
+3. End every reply at a point where her character can act — on an open moment, an NPC line, a monster's move, or a System prompt. Do not end with "What do you do?" and do not list options unless the System itself canonically offers a choice.
+4. NO REPETITION. Never reuse sentences, signature phrases, descriptions, or openings from earlier replies. Do not recap what just happened or restate her post back to her. Vary sentence structure, imagery, and pacing every turn.
+5. NPCs are NOT suspicious by default. Hunters, Association staff, guild members, family, and strangers mind their own business, are busy with their own lives, and accept ordinary explanations. They do not interrogate her, probe her secret, stalk her, investigate her growth, or keep asking questions unless the user explicitly invites that kind of plot. Never derail or obstruct what she is trying to do with contrived suspicion, gatekeeping, or nagging.
+6. Mature content: this is 18+ fiction between consenting adults. Violence, gore, profanity, dark themes, romance, and explicit sexual content are allowed when the user steers there. Do not moralize, add disclaimers, fade to black, or refuse in-fiction. Never sexualize minors; all romantic/sexual characters are adults.
+7. Stay in-world. No out-of-character commentary unless the user writes OOC in ((double parentheses)); answer OOC briefly in ((double parentheses)).
+
+=== CANON: SOLO LEVELING (follow precisely) ===
+- Setting: the exact canon Solo Leveling world (web novel / manhwa). About ten years ago gates began appearing worldwide and some humans "awakened" as hunters. Sung Jinwoo is living his canon story in Seoul, Korea, in parallel and on the canon timeline. The player is in NORWAY. Jinwoo and other canon characters only appear or are referenced as canon allows and as the user steers; do not drag the story to Korea.
+- Gates: dimensional portals ranked E, D, C, B, A, S by their measured mana (magic power) reading, taken by Association equipment at the gate. Inside are dungeons with monsters and a boss; killing the boss closes the gate. Gates left uncleared eventually cause a DUNGEON BREAK (monsters pour out). Red gates are anomalous: once entered, the exit closes and the inside becomes an isolated, far more dangerous environment until the cause is resolved. Double dungeons and hidden areas exist. Mana crystals / magic stones from monsters are valuable; monster materials are crafted into gear.
+- Hunters: awakened humans ranked E to S by the Hunter Association when they awaken; national-level hunters exceed S. Classes include Fighter, Mage, Assassin, Tanker, Healer, Ranger, etc. Re-awakening (a second awakening that raises one's rank) is extremely rare but real.
+- IMPORTANT CANON: ordinary hunters DO grow stronger. Their base rank rarely changes, but they improve through training, combat experience, skill mastery, better items, and teamwork (Cha Hae-in, Baek Yoonho, Choi Jong-in, Woo Jinchul, Yoo Jinho all become more capable over the story). Never portray other hunters as frozen or unable to improve. What makes the Player unique is that she grows through the SYSTEM: levels, ability points, quests, rewards — far beyond normal limits.
+- Organizations: each country has its own Hunter Association/Bureau (Norway has its own; invent plausible Norwegian staff and guilds), guilds bid on raids, raid teams use porters, the Association handles gate-break emergencies and rank re-measurement, and there is international hunter politics (Thomas Andre, Liu Zhigang, Goto Ryuji, etc. exist in canon). The Norwegian hunter scene is original but must obey canon rules.
+- The Player and the SYSTEM: she is a "Player" like Jinwoo. The System shows blue holographic windows only she can see: Status, Skills, Inventory, Quest Log, Shop, Notifications, Alerts. Canon mechanics: Level, EXP, HP, MP, Fatigue, stats STR / AGI / SEN (Sense) / VIT / INT / LUK (Luck), Available Ability Points she assigns herself, Titles with effects, Job and a Job Change quest, Skills (Passive/Active, skill levels, MP costs, cooldowns), Gold from kills/quests spent in the Shop, Inventory (items, keys, random boxes), Instance Dungeons via dungeon keys, emergency quests, hidden quests, penalties.
+- DAILY QUEST "Preparation to Become Powerful": 100 push-ups, 100 sit-ups, 100 squats, 10 km run, every day. Completing it rewards Status Recovery, +3 free Ability Points, and a Random Box. Failing it by midnight sends her to the PENALTY ZONE (canon: a desert survival trial against giant centipedes for a set time). The System is impersonal, terse, sometimes ominous; it does not chat.
+- Leveling: the Player's level rises only through the System (EXP from kills/quests). Level-ups canonically restore her condition. HOUSE RULES (the app applies these automatically — do NOT add them yourself in system_update): every level-up grants 5 free Ability Points to allocate AND +1 to every stat (STR, AGI, SEN, VIT, INT, LUK); completing the Daily Quest grants 3 free Ability Points (plus Full Recovery and a reward box of her choice). Only she distributes Ability Points — never spend them for her.
+- HER BUILD & CLASS (given under PLAYER CHARACTER): she is NOT the Shadow Monarch and has no shadow extraction/Necromancer abilities. She is a BRAWLER — unarmed martial arts / taijutsu-style close combat. Her class path is a 3-part class she unlocks over time (e.g. via Job Change quests); its eventual third part is a Tamer/Binder Summoner who binds monsters as companions. Use the class name/plan she has set; never pick the remaining parts for her.
+- INNATE ABILITIES (listed in her Skills): Regeneration (passive natural healing) and Enhancement (active self-buff that also shares a percentage of the buff with her allies and summons). They were weak at E-rank and scale with her level, skill level, and stats (VIT for Regeneration; INT/MP for Enhancement). Portray their strength proportionately.
+- COMPANIONS / SUMMONS: her bound companions are listed in CURRENT STATUS with species, rank, level, stats, skills, bond, and evolution stage. Voice them consistently with their species, personality, and bond; they act on her commands and their own nature but never make her decisions. Companions gain EXP and kill counts in fights and can evolve when their conditions are met (the user triggers evolution in the app; example chain: Goblin → Goblina (female hobgoblin) → Goblin Knight → Goblin Queen). Binding a new companion only happens when she chooses to and has the means.
+- STAT RANKS: each of her stats has its own rank (E, D, C, B, A, S, National, Deity) independent of her Hunter Rank, shown in CURRENT STATUS (e.g. she can be an E-rank hunter with B-rank Vitality). Narrate her physical capability per stat accordingly. Mana readers, Association measuring equipment, and other hunters' senses only ever detect her HUNTER RANK (from her level, given in CURRENT STATUS) — never her stat ranks. Her Hunter Rank changes only as her level crosses the thresholds in the LEVEL → RANK CHART.
+- THE SYSTEM'S CREATOR / PATRON: the entity behind her System is given under PLAYER CHARACTER. Let its nature subtly flavor System messages, quests, and hidden lore, but never have it override canon mechanics or explain itself unprompted.
+- TIME: the story runs on an in-game day counter (given in CURRENT STATUS). The Daily Quest is per in-game day. Do not advance days yourself; the user presses "Next Day".
+- LOOT & REWARD BOXES: monsters and bosses can drop loot like canon — magic stones (mana crystals), Magic Beast cores, monster materials, equipment, Rune Stones / skill books, Instance Dungeon Keys, potions, gold, and reward boxes. Drops should be proportionate to the monster's rank and somewhat rare; bosses drop more and better. Quests may reward boxes. Grant boxes with "boxes_add" (the Player opens them herself from her Inventory; the app rolls the contents, weighted by box tier and her Luck — never describe a box's contents before she opens it). Her LUK stat should subtly favor her in drops and chance events.
+- Keep power scaling consistent with canon: an E-rank is weak, growth is earned, and monsters, gate ranks, and dangers are proportionate.
+
+=== SYSTEM WINDOWS (formatting) ===
+Whenever the System speaks, wrap the window in <system>...</system> tags in canon style, e.g.
+<system>[Notification]
+You have killed an Ice Elf.
+EXP has been acquired.</system>
+Use [Quest Info], [Alert], or [Warning] headers as fits. Keep System text terse and canon-like.
+
+=== STATE TRACKING (machine-readable) ===
+The app tracks her stats. The CURRENT STATUS is given to you each turn; treat it as the truth. Whenever the System changes anything (EXP, level, gold, HP/MP/fatigue damage or recovery, stats, ability points, items gained/lost/used, skills, quests, titles, job, rank), append ONE block at the very end of your reply:
+<system_update>{ JSON }</system_update>
+JSON keys (all optional; numbers are CHANGES/deltas except inside "set"):
+ "exp_gain": number   (EXP gained; the app auto-levels when the bar fills — prefer this over level_up)
+ "level_up": number   (only for direct level gains not caused by EXP)
+ "gold", "hp", "mp", "fatigue", "max_hp", "max_mp": number (+ or -)
+ "stat_points": number (ability points awarded; never spend them)
+ "stats": {"str":0,"agi":0,"sen":0,"vit":0,"int":0,"luk":0} (only System-granted stat changes)
+ "set": {"job":"","title":"","official_rank":"E","hp":100,"level":5} (absolute values)
+ "items_add": [{"name":"","qty":1,"category":"","acquisition_difficulty":"C","stats":{"Attack":"+20"},"effects":[""],"durability":"","description":""}]
+ "items_remove": [{"name":"","qty":1}]
+ "skills_add": [{"name":"","type":"Active","level":1,"mp_cost":"","cooldown":"","description":""}]
+ "skills_update": [{"name":"","level":2}]
+ "quests_add": [{"name":"","description":"","reward":"","deadline":""}]
+ "quests_complete": ["quest name"], "quests_fail": ["quest name"]
+ "titles_add": ["title"]
+ "companions_add": [{"name":"","species":"","rank":"E","level":1,"hp":50,"max_hp":50,"mp":10,"max_mp":10,"stats":{"str":5,"agi":5,"sen":5,"vit":5,"int":5,"luk":5},"skills":[""],"appearance":"","personality":""}]
+ "companions_update": [{"name":"companion name","exp_gain":0,"hp":0,"mp":0,"kills":0,"bond":0,"stats":{},"skills_add":[""],"history":"short event","set":{"rank":"","level":0,"species":""}}]  (numbers are deltas except in "set")
+ "companions_remove": ["name"]
+ "boxes_add": [{"name":"Random Box","tier":"D","kind":"random","qty":1}]  (kind: random | quest | boss | gold | stat; tier E/D/C/B/A/S)
+ "notification": "short note"
+Example: <system_update>{"exp_gain":40,"gold":120,"items_add":[{"name":"Magic Stone (E)","qty":1}]}</system_update>
+Valid JSON only (no comments, no trailing commas). Omit the block if nothing changed. Never award things the canon System would not.`;
+
+const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
+Respond with ONLY a JSON object, no prose, no code fences:
+{"name":"","category":"","acquisition_difficulty":"C","stats":{"Attack":"+40"},"effects":["Effect Name: description"],"durability":"100/100","requirements":"","description":"one or two sentence System description"}`;
+
+const DEFAULT_RANKS=[ // user's chart: E 1-19, D 20-39, C 40-69, B 70-109, A 110-159, S 160-229, National 230-299, Deity 300+
+  {rank:'E',minLevel:1},{rank:'D',minLevel:20},{rank:'C',minLevel:40},{rank:'B',minLevel:70},{rank:'A',minLevel:110},{rank:'S',minLevel:160},{rank:'National',minLevel:230},{rank:'Deity',minLevel:300}
+];
+const DEFAULT_STAT_RANKS=[ // cap(n) = 25*n + previous cap
+  {rank:'E',max:25},{rank:'D',max:75},{rank:'C',max:150},{rank:'B',max:250},{rank:'A',max:375},{rank:'S',max:525},{rank:'National',max:700},{rank:'Deity',max:null}
+];
+const STAT_KEYS=['str','agi','sen','vit','int','luk'];
+const STAT_NAMES={str:'Strength',agi:'Agility',sen:'Sense',vit:'Vitality',int:'Intelligence',luk:'Luck'};
+const PATRONS=['The Architect','A Ruler','A Monarch','A Norse god','Custom'];
+function statKey(s){s=String(s).toLowerCase();if(s.startsWith('luc')||s.startsWith('luk'))return 'luk';return s.slice(0,3);}
+function statRank(table,v){const rows=(table||DEFAULT_STAT_RANKS);for(const r of rows){if(r.max===null||r.max===''||r.max===undefined||v<=num(r.max,Infinity))return r.rank;}return rows.length?rows[rows.length-1].rank:'—';}
+const DEFAULT_SHOP=[
+  {name:'Healing Potion (Low Grade)',price:500,category:'Consumable',description:'Restores a small amount of HP.'},
+  {name:'Healing Potion (Mid Grade)',price:5000,category:'Consumable',description:'Restores a moderate amount of HP.'},
+  {name:'Mana Potion (Low Grade)',price:800,category:'Consumable',description:'Restores a small amount of MP.'},
+  {name:'Fatigue Recovery Potion',price:2000,category:'Consumable',description:'Removes fatigue.'},
+  {name:'Steel Dagger',price:3000,category:'Dagger',description:'A plain steel dagger. Attack +5.'}
+];
+function defaultPlayer(){return {level:1,exp:0,expNext:100,job:'None',title:'None',officialRank:'E',hp:100,maxHp:100,mp:10,maxMp:10,fatigue:0,
+  stats:{str:10,agi:10,sen:10,vit:10,int:10,luk:10},points:0,gold:0,skills:innateSkills(),inventory:[],quests:[],titles:[],companions:[]};}
+function innateSkills(){return [
+  {name:'Regeneration',type:'Passive',level:1,mp_cost:'—',cooldown:'—',description:'Innate. Natural healing far above normal. At E-rank: slowly closes minor wounds and restores a small amount of HP over time. Scales with level, skill level and VIT.'},
+  {name:'Enhancement',type:'Active',level:1,mp_cost:'10 + 1/min',cooldown:'none',description:'Innate. Self-buff that raises physical stats while active; shares a percentage of the buff with allies and summons nearby. At E-rank: small boost (~10% physical), 20% of it shared. Scales with level, skill level and INT/MP.'}];}
+function normCompanion(c){c=c||{};const st=c.stats||{};
+  return {id:c.id||uid(),name:String(c.name||'Companion'),species:c.species||'',rank:c.rank||'E',level:num(c.level,1),exp:num(c.exp,0),expNext:num(c.expNext!=null?c.expNext:c.exp_next,100),
+    hp:num(c.hp,num(c.max_hp!=null?c.max_hp:c.maxHp,50)),maxHp:num(c.max_hp!=null?c.max_hp:c.maxHp,num(c.hp,50)),mp:num(c.mp,num(c.max_mp!=null?c.max_mp:c.maxMp,10)),maxMp:num(c.max_mp!=null?c.max_mp:c.maxMp,num(c.mp,10)),
+    stats:{str:num(st.str,5),agi:num(st.agi,5),sen:num(st.sen,5),vit:num(st.vit,5),int:num(st.int,5),luk:num(st.luk,5)},
+    skills:(Array.isArray(c.skills)?c.skills:[]).map(s=>typeof s==='object'&&s?((s.name||'')+(s.description?': '+s.description:'')):String(s)),
+    bond:num(c.bond,10),stage:num(c.stage,1),kills:num(c.kills,0),coresFed:num(c.coresFed,0),appearance:c.appearance||'',personality:c.personality||'',
+    evolutionPath:c.evolutionPath||c.evolution_path||'',conditions:Array.isArray(c.conditions)?c.conditions.map(x=>typeof x==='object'?{text:String(x.text||''),done:!!x.done}:{text:String(x),done:false}):[],
+    history:Array.isArray(c.history)?c.history.map(String):[]};}
+function companionLevelUp(c,notes){c.level++;STAT_KEYS.forEach(k=>c.stats[k]++);c.maxHp=Math.round(c.maxHp*1.08)+2;c.maxMp=Math.round(c.maxMp*1.05)+1;c.hp=c.maxHp;c.mp=c.maxMp;notes.push(c.name+' reached Lv. '+c.level+' (all stats +1)');}
+function companionGainExp(c,n,cfg,notes){c.exp+=n;let g=0;while(c.expNext>0&&c.exp>=c.expNext&&g++<200){c.exp-=c.expNext;c.expNext=Math.max(1,Math.round(c.expNext*num(cfg&&cfg.expGrowth,1.25)));companionLevelUp(c,notes);}}
+function defaultDaily(){return {date:today(),items:[
+  {key:'pushups',name:'Push-ups',target:100,done:0,unit:''},{key:'situps',name:'Sit-ups',target:100,done:0,unit:''},
+  {key:'squats',name:'Squats',target:100,done:0,unit:''},{key:'run',name:'Running',target:10,done:0,unit:'km'}],claimed:false,history:[]};}
+function defaultState(){return {version:1,
+  settings:{model:'grok-4.7',customModel:'',temperature:0.9,maxTokens:2000,stream:true,contextMessages:40,autoSummarize:true,
+    pointsPerLevel:5,statsPerLevel:1,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
+  character:{name:'',age:'',gender:'Female (she/her)',city:'',appearance:'',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'The Architect',patronName:'',patronDesc:''},
+  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',style:'Third-person, past tense. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0},
+  player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
+
+/* ================= UTILS ================= */
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function num(v,d=0){const n=Number(v);return (v!==''&&v!==null&&isFinite(n))?n:d;}
+function keyOf(x){return String((x&&typeof x==='object')?x.name:(x==null?'':x)).trim().toLowerCase();}
+function deepMerge(base,over){if(Array.isArray(base)||typeof base!=='object'||base===null)return over===undefined?base:over;
+  const out={...base};if(over&&typeof over==='object')for(const k in over){out[k]=(k in base&&base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))?deepMerge(base[k],over[k]):over[k];}return out;}
+
+/* ================= SYSTEM UPDATE PARSER ================= */
+function parseSystemUpdates(text){
+  const re=/<system_update>([\s\S]*?)<\/system_update>/gi;const updates=[],errors=[];let m;
+  while((m=re.exec(text||''))){
+    const raw=m[1].trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+    try{updates.push(JSON.parse(raw));}
+    catch(e){
+      try{const fixed=raw.replace(/^\s*\/\/[^\n]*$/gm,'').replace(/,\s*([}\]])/g,'$1');updates.push(JSON.parse(fixed));}
+      catch(e2){errors.push('Could not parse system_update: '+e.message);}
+    }
+  }
+  let clean=(text||'').replace(re,'');
+  clean=clean.replace(/<system_update>[\s\S]*$/i,''); // hide an unterminated block while streaming
+  return {updates,errors,clean:clean.trim()};
+}
+function normItem(it){
+  if(typeof it==='string')it={name:it};
+  return {id:uid(),name:String(it.name||'Unknown Item'),qty:Math.max(1,num(it.qty!=null?it.qty:it.quantity,1)),category:it.category||it.type||'',
+    acquisition_difficulty:it.acquisition_difficulty||it.rank||'',stats:(it.stats&&typeof it.stats==='object')?it.stats:{},
+    effects:Array.isArray(it.effects)?it.effects.map(x=>typeof x==='object'&&x?((x.name||'')+(x.description?': '+x.description:'')):String(x)):(it.effects?[String(it.effects)]:[]),
+    durability:it.durability||'',requirements:it.requirements||'',description:it.description||'',equipped:!!it.equipped,...(it.tier||String(it.category).toLowerCase()==='box'?{tier:it.tier||it.acquisition_difficulty||'E',kind:it.kind||'random'}:{})};
+}
+function normSkill(s){if(typeof s==='string')s={name:s};
+  return {name:String(s.name||'Skill'),type:s.type||'Active',level:num(s.level,1),mp_cost:s.mp_cost!=null?s.mp_cost:(s.mpCost||''),cooldown:s.cooldown||'',description:s.description||''};}
+function normQuest(q){if(typeof q==='string')q={name:q};
+  return {name:String(q.name||'Quest'),description:q.description||'',reward:q.reward||'',deadline:q.deadline||'',status:q.status||'active',progress:q.progress||''};}
+/* ---- reward boxes ---- */
+const BOX_TIERS=['E','D','C','B','A','S','National'];
+const BOX_KINDS={random:'Random Box',quest:'Quest Reward Box',boss:'Boss Loot Box',gold:'Gold Box',stat:'Stat Point Box'};
+function tierIdx(t){const i=BOX_TIERS.indexOf(String(t||'E').replace(/-?rank/i,'').trim());return i<0?0:i;}
+function isBox(it){return it&&(String(it.category).toLowerCase()==='box'||(/\bbox\b/i.test(it.name)&&!!it.tier));}
+function makeBox(b){b=b||{};const kind=BOX_KINDS[b.kind]?b.kind:'random';const tier=BOX_TIERS[tierIdx(b.tier)];
+  return {name:b.name||(tier+'-Rank '+BOX_KINDS[kind]),qty:Math.max(1,num(b.qty,1)),category:'Box',tier,kind,acquisition_difficulty:tier,
+    description:b.description||('A '+tier+'-rank '+BOX_KINDS[kind].toLowerCase()+'. Open it from your Inventory to receive its contents.')};}
+function pickWeighted(table,rng){const tot=table.reduce((a,x)=>a+x[1],0);let r=rng()*tot;for(const x of table){if((r-=x[1])<0)return x[0];}return table[table.length-1][0];}
+function rollBox(box,luk,rng){
+  rng=rng||Math.random;luk=num(luk,10);const kind=box.kind||'random';let t=tierIdx(box.tier||box.acquisition_difficulty);
+  const lb=Math.min(1,luk/500); // luck bonus 0..1 (LUK 500 = max)
+  const GOLD=[1000,5000,20000,80000,300000,1000000,3000000];
+  const out={gold:0,stat_points:0,items:[],flavor:[]};
+  const goldAmt=ti=>Math.round(GOLD[ti]*(0.5+rng())*(1+lb)/10)*10;
+  if(kind==='gold'){out.gold=goldAmt(t)*2;return out;}
+  if(kind==='stat'){out.stat_points=Math.min(6,1+Math.floor(rng()*(2+t*0.5)*(1+lb)));return out;}
+  let rolls=1+(rng()<0.15+lb*0.5?1:0)+(kind==='boss'?1:0)+(kind==='quest'&&rng()<0.5?1:0);
+  const table=kind==='boss'?[['gold',15],['potion',10],['stone',20],['core',20],['rune',12],['gear',15],['key',5],['points',3]]
+    :[['gold',30],['potion',25],['stone',15],['core',8],['rune',8],['gear',8],['key',4],['points',2]];
+  for(let r=0;r<rolls;r++){
+    const ti=Math.min(BOX_TIERS.length-1,t+(rng()<Math.min(0.45,0.05+lb*0.4)?1:0));const T=BOX_TIERS[ti];
+    const k=pickWeighted(table,rng);
+    if(k==='gold')out.gold+=goldAmt(ti);
+    else if(k==='points')out.stat_points+=1+(rng()<0.3+lb*0.3?1:0);
+    else if(k==='potion'){const g=ti<=1?'Low Grade':ti<=3?'Mid Grade':'High Grade';const pt=pickWeighted([['Healing Potion',50],['Mana Potion',35],['Fatigue Recovery Potion',15]],rng);
+      out.items.push({name:pt+' ('+g+')',qty:1+Math.floor(rng()*2),category:'Consumable',acquisition_difficulty:T,description:'Restores '+(pt.includes('Mana')?'MP':pt.includes('Fatigue')?'fatigue':'HP')+'.'});}
+    else if(k==='stone')out.items.push({name:'Magic Stone ('+T+'-rank)',qty:1+Math.floor(rng()*3),category:'Material',acquisition_difficulty:T,description:'A mana crystal. Sells to the Association or guilds; usable in crafting.'});
+    else if(k==='core')out.items.push({name:'Magic Beast Core ('+T+'-rank)',qty:1,category:'Material',acquisition_difficulty:T,description:'The condensed mana core of a magic beast. Valuable crafting material.'});
+    else if(k==='key')out.items.push({name:'Instance Dungeon Key ('+T+'-rank)',qty:1,category:'Key',acquisition_difficulty:T,description:'Use to enter an instance dungeon only the Player can access.'});
+    else if(k==='rune'){out.items.push({name:'Rune Stone (unidentified, '+T+'-rank)',qty:1,category:'Rune Stone',acquisition_difficulty:T,description:'A rune stone holding a skill. Crush it to learn the skill.',_flavor:'rune'});}
+    else if(k==='gear'){const c=pickWeighted([['Dagger',3],['Sword',2],['Armor',2],['Gloves',1],['Boots',1],['Ring',1],['Necklace',1]],rng);
+      out.items.push({name:'Unidentified '+c+' ('+T+'-rank)',qty:1,category:c,acquisition_difficulty:T,description:'Equipment from a reward box.',_flavor:'gear'});}
+  }
+  return out;
+}
+function levelUp(p,cfg,notes){
+  p.level+=1;p.points+=num(cfg.pointsPerLevel,5);const all=num(cfg.statsPerLevel,1);if(all)for(const k of STAT_KEYS)p.stats[k]=(p.stats[k]||0)+all;
+  if(cfg.levelRestore){p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;}
+  notes.push('LEVEL UP! Lv. '+p.level+' (+'+num(cfg.pointsPerLevel,5)+' free points'+(all?', all stats +'+all:'')+')');
+}
+function applyUpdate(p,u,cfg){
+  const notes=[];if(!u||typeof u!=='object')return notes;
+  const setMap={level:'level',exp:'exp',exp_next:'expNext',expNext:'expNext',job:'job',title:'title',official_rank:'officialRank',rank:'officialRank',
+    hp:'hp',max_hp:'maxHp',mp:'mp',max_mp:'maxMp',fatigue:'fatigue',gold:'gold',stat_points:'points',points:'points'};
+  if(u.set&&typeof u.set==='object'){
+    for(const k in u.set){
+      if(k==='stats'&&typeof u.set.stats==='object'){for(const s in u.set.stats){const sk=statKey(s);if(sk in p.stats){p.stats[sk]=num(u.set.stats[s],p.stats[sk]);notes.push(sk.toUpperCase()+' set to '+p.stats[sk]);}}continue;}
+      const f=setMap[k];if(!f)continue;const v=u.set[k];
+      p[f]=(typeof p[f]==='number')?num(v,p[f]):String(v);
+      notes.push(k.replace(/_/g,' ')+' → '+p[f]);
+    }
+  }
+  const d=(field,key,label)=>{if(u[key]!=null&&num(u[key],0)!==0){const n=num(u[key]);p[field]+=n;notes.push(label+' '+(n>0?'+':'')+n);}};
+  d('maxHp','max_hp','Max HP');d('maxMp','max_mp','Max MP');
+  d('hp','hp','HP');d('mp','mp','MP');d('fatigue','fatigue','Fatigue');d('gold','gold','Gold');d('points','stat_points','Ability Points');
+  if(u.stats&&typeof u.stats==='object'){for(const s in u.stats){const sk=statKey(s);const n=num(u.stats[s]);if(sk in p.stats&&n){p.stats[sk]+=n;notes.push(sk.toUpperCase()+' '+(n>0?'+':'')+n);}}}
+  if(num(u.exp_gain)){p.exp+=num(u.exp_gain);notes.push('EXP +'+num(u.exp_gain));}
+  if(num(u.level_up)>0){for(let i=0;i<num(u.level_up);i++)levelUp(p,cfg,notes);}
+  if(cfg.autoLevel){let guard=0;while(p.expNext>0&&p.exp>=p.expNext&&guard++<200){p.exp-=p.expNext;p.expNext=Math.max(1,Math.round(p.expNext*num(cfg.expGrowth,1.25)));levelUp(p,cfg,notes);}}
+  for(const it of (u.items_add||[])){const n=normItem(it);const ex=p.inventory.find(x=>keyOf(x)===keyOf(n));
+    if(ex)ex.qty+=n.qty;else p.inventory.push(n);notes.push('Item acquired: '+n.name+(n.qty>1?' ×'+n.qty:''));}
+  for(const b of (u.boxes_add||[])){const n=normItem(makeBox(b));const ex=p.inventory.find(x=>keyOf(x)===keyOf(n));if(ex)ex.qty+=n.qty;else p.inventory.push(n);notes.push('Box acquired: '+n.name+(n.qty>1?' ×'+n.qty:''));}
+  for(const c of (u.companions_add||[])){const n=normCompanion(c);const i=p.companions.findIndex(x=>keyOf(x)===keyOf(n));if(i>=0)p.companions[i]=n;else p.companions.push(n);notes.push('Companion bound: '+n.name+(n.species?' ('+n.species+')':''));}
+  for(const cu of (u.companions_update||[])){const c=p.companions.find(x=>keyOf(x)===keyOf(cu));if(!c)continue;const cn=[];
+    if(cu.set&&typeof cu.set==='object')for(const k in cu.set){const f={max_hp:'maxHp',max_mp:'maxMp',exp_next:'expNext'}[k]||k;if(['name','id','stats','history','conditions'].includes(f))continue;c[f]=typeof c[f]==='number'?num(cu.set[k],c[f]):cu.set[k];cn.push(k+' → '+cu.set[k]);}
+    for(const [k,f] of [['hp','hp'],['mp','mp'],['max_hp','maxHp'],['max_mp','maxMp'],['kills','kills'],['bond','bond']])if(num(cu[k])){c[f]+=num(cu[k]);cn.push(k.replace('_',' ')+' '+(num(cu[k])>0?'+':'')+num(cu[k]));}
+    if(cu.stats&&typeof cu.stats==='object')for(const s in cu.stats){const sk=statKey(s);if(sk in c.stats&&num(cu.stats[s])){c.stats[sk]+=num(cu.stats[s]);cn.push(sk.toUpperCase()+' '+(num(cu.stats[s])>0?'+':'')+num(cu.stats[s]));}}
+    for(const s of (cu.skills_add||[])){const t=typeof s==='object'?((s.name||'')+(s.description?': '+s.description:'')):String(s);if(!c.skills.includes(t)){c.skills.push(t);cn.push('skill: '+t.split(':')[0]);}}
+    if(num(cu.exp_gain)){cn.push('EXP +'+num(cu.exp_gain));companionGainExp(c,num(cu.exp_gain),cfg,notes);}
+    for(let i=0;i<num(cu.level_up);i++)companionLevelUp(c,notes);
+    if(cu.history)c.history.push(String(cu.history));
+    for(const t of (cu.conditions_done||[])){const x=c.conditions.find(y=>y.text.toLowerCase()===String(t).toLowerCase());if(x)x.done=true;}
+    c.hp=Math.min(Math.max(0,c.hp),c.maxHp);c.mp=Math.min(Math.max(0,c.mp),c.maxMp);c.bond=Math.max(0,Math.min(100,c.bond));
+    if(cn.length)notes.push(c.name+': '+cn.join(', '));}
+  for(const nm of (u.companions_remove||[])){const i=p.companions.findIndex(x=>keyOf(x)===keyOf(nm));if(i>=0){notes.push('Companion released: '+p.companions[i].name);p.companions.splice(i,1);}}
+  for(const it of (u.items_remove||[])){const k=keyOf(it);const q=Math.max(1,num(typeof it==='object'?it.qty:1,1));const i=p.inventory.findIndex(x=>keyOf(x)===k);
+    if(i>=0){notes.push('Item removed: '+p.inventory[i].name+(q>1?' ×'+q:''));p.inventory[i].qty-=q;if(p.inventory[i].qty<=0)p.inventory.splice(i,1);}}
+  for(const s of (u.skills_add||[])){const n=normSkill(s);const i=p.skills.findIndex(x=>keyOf(x)===keyOf(n));if(i>=0)p.skills[i]=n;else p.skills.push(n);notes.push('Skill acquired: '+n.name);}
+  for(const s of (u.skills_update||[])){const i=p.skills.findIndex(x=>keyOf(x)===keyOf(s));if(i>=0){Object.assign(p.skills[i],s,{name:p.skills[i].name});notes.push('Skill updated: '+p.skills[i].name+(s.level?' (Lv. '+s.level+')':''));}}
+  for(const s of (u.skills_remove||[])){const i=p.skills.findIndex(x=>keyOf(x)===keyOf(s));if(i>=0){notes.push('Skill removed: '+p.skills[i].name);p.skills.splice(i,1);}}
+  for(const q of (u.quests_add||[])){const n=normQuest(q);const i=p.quests.findIndex(x=>keyOf(x)===keyOf(n));if(i>=0)p.quests[i]=n;else p.quests.push(n);notes.push('New quest: '+n.name);}
+  for(const q of (u.quests_update||[])){const i=p.quests.findIndex(x=>keyOf(x)===keyOf(q));if(i>=0){Object.assign(p.quests[i],q,{name:p.quests[i].name});notes.push('Quest updated: '+p.quests[i].name);}}
+  const qs=(arr,status,label)=>{for(const q of (arr||[])){const nm=typeof q==='object'?q.name:q;const i=p.quests.findIndex(x=>keyOf(x)===keyOf(nm));
+    if(i>=0)p.quests[i].status=status;else p.quests.push(normQuest({name:nm,status}));notes.push(label+': '+nm);}};
+  qs(u.quests_complete,'completed','Quest complete');qs(u.quests_fail,'failed','Quest failed');
+  for(const q of (u.quests_remove||[])){const i=p.quests.findIndex(x=>keyOf(x)===keyOf(q));if(i>=0)p.quests.splice(i,1);}
+  for(const t of (u.titles_add||[])){const n=String(typeof t==='object'?t.name:t);if(!p.titles.includes(n)){p.titles.push(n);notes.push('Title acquired: '+n);}}
+  if(u.notification)notes.push(String(u.notification));
+  if(Array.isArray(u.notifications))u.notifications.forEach(x=>notes.push(String(x)));
+  clampPlayer(p);
+  return notes;
+}
+function clampPlayer(p){p.maxHp=Math.max(1,p.maxHp);p.maxMp=Math.max(0,p.maxMp);p.hp=Math.min(Math.max(0,p.hp),p.maxHp);p.mp=Math.min(Math.max(0,p.mp),p.maxMp);
+  p.fatigue=Math.max(0,p.fatigue);p.points=Math.max(0,p.points);p.level=Math.max(1,p.level);p.exp=Math.max(0,p.exp);}
+
+/* ---- generic diff/revert so redo/delete undoes exactly one post's effects ---- */
+const SCALARS=['level','exp','expNext','hp','maxHp','mp','maxMp','fatigue','gold','points','job','title','officialRank'];
+const LISTS=['inventory','skills','quests','companions'];
+function diffPlayer(a,b){
+  const patch={nums:{},strs:{},stats:{},lists:{},titles:{added:[],removed:[]}};
+  for(const k of SCALARS){if(typeof b[k]==='number'){const d=b[k]-a[k];if(d)patch.nums[k]=d;}else if(a[k]!==b[k])patch.strs[k]=[a[k],b[k]];}
+  for(const s in b.stats){const d=b.stats[s]-(a.stats[s]||0);if(d)patch.stats[s]=d;}
+  for(const L of LISTS){const am=new Map(a[L].map(x=>[keyOf(x),x])),bm=new Map(b[L].map(x=>[keyOf(x),x]));const r={added:[],removed:[],changed:[]};
+    for(const [k,v] of bm){if(!am.has(k))r.added.push(clone(v));else if(JSON.stringify(am.get(k))!==JSON.stringify(v))r.changed.push([clone(am.get(k)),clone(v)]);}
+    for(const [k,v] of am)if(!bm.has(k))r.removed.push(clone(v));
+    if(r.added.length||r.removed.length||r.changed.length)patch.lists[L]=r;}
+  patch.titles.added=b.titles.filter(t=>!a.titles.includes(t));patch.titles.removed=a.titles.filter(t=>!b.titles.includes(t));
+  return patch;
+}
+function revertPatch(p,patch){
+  if(!patch)return;
+  for(const k in patch.nums)p[k]-=patch.nums[k];
+  for(const k in patch.strs)if(p[k]===patch.strs[k][1])p[k]=patch.strs[k][0];
+  for(const s in patch.stats)p.stats[s]=(p.stats[s]||0)-patch.stats[s];
+  for(const L in patch.lists){const r=patch.lists[L];
+    for(const v of r.added){const i=p[L].findIndex(x=>keyOf(x)===keyOf(v));if(i<0)continue;
+      if(L==='inventory'){p[L][i].qty-=v.qty;if(p[L][i].qty<=0)p[L].splice(i,1);}else p[L].splice(i,1);}
+    for(const [from,to] of r.changed){const i=p[L].findIndex(x=>keyOf(x)===keyOf(to));
+      if(i<0){p[L].push(clone(from));continue;}
+      if(L==='inventory'){const cur=p[L][i];const q=cur.qty-(to.qty-from.qty);p[L][i]={...clone(from),qty:q,id:cur.id};if(q<=0)p[L].splice(i,1);}
+      else p[L][i]=clone(from);}
+    for(const v of r.removed){const i=p[L].findIndex(x=>keyOf(x)===keyOf(v));
+      if(i>=0&&L==='inventory')p[L][i].qty+=v.qty;else if(i<0)p[L].push(clone(v));}
+  }
+  p.titles=p.titles.filter(t=>!patch.titles.added.includes(t));
+  for(const t of patch.titles.removed)if(!p.titles.includes(t))p.titles.push(t);
+  clampPlayer(p);
+}
+function applyTextToPlayer(p,text,cfg){
+  const before=clone(p);const {updates,errors}=parseSystemUpdates(text);const notes=[];
+  for(const u of updates)notes.push(...applyUpdate(p,u,cfg));
+  return {patch:(updates.length?diffPlayer(before,p):null),notes,errors};
+}
+function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
+
+/* expose pure logic for tests */
+const API_EXPORT={normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT};
+if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
+if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
+
+/* ================= STATE ================= */
+const store=(()=>{try{const t='__srp';window.localStorage.setItem(t,'1');window.localStorage.removeItem(t);return window.localStorage;}
+  catch(e){const m={};setTimeout(()=>toast('Browser storage is blocked here — progress will NOT persist. Use Export to save, or open the file in Chrome/Edge/Firefox.',8000),500);
+    return {getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v);},removeItem:k=>{delete m[k];}};}})();
+let S;
+function load(){try{const raw=store.getItem(LS_KEY);if(raw)return migrate(JSON.parse(raw));}catch(e){console.warn(e);}return defaultState();}
+function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
+  s.player=deepMerge(defaultPlayer(),(d&&d.player)||{});
+  ['inventory','skills','quests','titles','companions'].forEach(k=>{if(!Array.isArray(s.player[k]))s.player[k]=[];});
+  s.player.companions=s.player.companions.map(normCompanion);
+  if(!s.flags)s.flags={};if(!s.flags.innate){innateSkills().forEach(sk=>{if(!s.player.skills.some(x=>keyOf(x)===keyOf(sk)))s.player.skills.push(sk);});s.flags.innate=true;}
+  s.messages=Array.isArray(d&&d.messages)?d.messages:[];
+  s.messages.forEach(m=>{if(m.role==='narrator'){m.alts=(m.alts||[]).filter(a=>a&&typeof a.text==='string');m.alts.forEach(a=>a.streaming=false);m.sel=Math.min(m.sel||0,Math.max(0,m.alts.length-1));}});
+  s.messages=s.messages.filter(m=>m.role!=='narrator'||m.alts.length);
+  s.statRanks=Array.isArray(d&&d.statRanks)&&d.statRanks.length?d.statRanks:base.statRanks;
+  s.rankChart=Array.isArray(d&&d.rankChart)&&d.rankChart.length?d.rankChart:base.rankChart;s.shop=Array.isArray(d&&d.shop)?d.shop:base.shop;
+  s.daily=deepMerge(defaultDaily(),(d&&d.daily)||{});if(d&&d.daily&&Array.isArray(d.daily.items))s.daily.items=d.daily.items;return s;}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
+function saveNow(){try{store.setItem(LS_KEY,JSON.stringify(S));}catch(e){toast('Save failed: '+e.message);}}
+const $=s=>document.querySelector(s);
+function toast(t,ms=2600){const el=$('#toast');el.textContent=t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',ms);}
+function getPath(o,path){return path.split('.').reduce((a,k)=>a==null?a:a[k],o);}
+function setPath(o,path,v){const ks=path.split('.');const last=ks.pop();const t=ks.reduce((a,k)=>a[k],o);t[last]=v;}
+function cfg(){return S.settings;}
+function model(){return (S.settings.customModel||'').trim()||S.settings.model;}
+function apiKey(){return store.getItem(KEY_KEY)||'';}
+
+/* ================= RENDER: TEXT ================= */
+function inlineMd(s){return s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');}
+const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|Daily Quest|Status|Item|Skill|Job Change|Penalty|Reward)[^\]]*\]/i;
+function renderProse(text){
+  const parts=[];let rest=text||'';const re=/<system>([\s\S]*?)(<\/system>|$)/i;let m;
+  while(rest&&(m=re.exec(rest))){parts.push({t:'p',v:rest.slice(0,m.index)});parts.push({t:'s',v:m[1]});rest=rest.slice(m.index+m[0].length);}
+  parts.push({t:'p',v:rest});
+  return parts.map(pt=>{
+    if(pt.t==='s')return sysWindow(pt.v);
+    return pt.v.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean).map(b=>SYS_HEAD.test(b)?sysWindow(b):'<p>'+inlineMd(esc(b)).replace(/\n/g,'<br>')+'</p>').join('');
+  }).join('');
+}
+function sysWindow(v){const lines=v.trim().split('\n');let title='System';const mm=(lines[0]||'').match(/^\s*\[([^\]]+)\]\s*$/);
+  if(mm){title=mm[1];lines.shift();}const warn=/alert|warning|penalty|danger/i.test(title);
+  return '<div class="syswin'+(warn?' warn':'')+'"><span class="title">'+esc(title)+'</span>'+lines.map(l=>inlineMd(esc(l))).join('<br>')+'</div>';}
+function changesWindow(notes,errors){
+  if(!(notes&&notes.length)&&!(errors&&errors.length))return '';
+  return '<div class="syswin changes"><span class="title">Status Updated</span><ul style="margin:0;padding-left:18px">'+(notes||[]).map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul>'+(errors||[]).map(e=>'<div class="err">'+esc(e)+'</div>').join('')+'</div>';
+}
+
+/* ================= STORY ================= */
+let busy=false,abortCtl=null,editing=null;
+function curAlt(m){return m.alts[m.sel];}
+function renderLog(){
+  const log=$('#log');const atBottom=window.innerHeight+window.scrollY>=document.body.scrollHeight-80;
+  if(!S.messages.length){log.innerHTML='<div class="syswin"><span class="title">Notification</span>You have acquired the qualifications to be a Player.<br>Will you accept?<br><br><span class="muted">Set up the Character &amp; World tab, paste your xAI API key in Settings, then write your opening post below.</span></div>';}
+  else log.innerHTML=S.messages.map((m,i)=>renderMsg(m,i)).join('');
+  renderHud();
+  if(atBottom)window.scrollTo(0,document.body.scrollHeight);
+}
+function editBox(t){return '<textarea class="editArea" style="min-height:160px">'+esc(t)+'</textarea><div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small primary" data-act="saveEdit">Save</button> <button class="btn small" data-act="cancelEdit">Cancel</button></div></div>';}
+function renderMsg(m,i){
+  const isEdit=editing===m.id;
+  if(m.role==='user'||m.role==='syslog'){
+    const label=m.role==='user'?(S.character.name||'You'):'System log';
+    return '<div class="msg '+m.role+'" data-i="'+i+'"><div class="who">'+esc(label)+'<span class="tools">'+
+      (m.role==='user'?'<button class="icon" data-act="regenFrom" title="Get a new narrator reply to this post">↻ reply</button>':'')+
+      '<button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
+      '</span></div><div class="body">'+(isEdit?editBox(m.text):renderProse(m.text))+'</div></div>';
+  }
+  const a=curAlt(m);if(!a)return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body typing"></div></div>';const parsed=parseSystemUpdates(a.text);
+  const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
+  return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator '+swipe+'<span class="tools">'+
+    '<button class="icon" data-act="regen" title="Redo (new alternative)">↻ redo</button><button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
+    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean)+(a.streaming?'':changesWindow(a.notes,a.errors)))+'</div></div>';
+}
+function applyAlt(a){if(!a||a.applied)return;const r=applyTextToPlayer(S.player,a.text,cfg());a.patch=r.patch;a.notes=r.notes;a.errors=r.errors.concat(a.reqErrors||[]);a.applied=true;}
+function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);a.applied=false;}}
+
+function onLogClick(e){
+  const b=e.target.closest('[data-act]');if(!b)return;const el=b.closest('.msg');if(!el)return;const i=+el.dataset.i;const m=S.messages[i];if(!m)return;const act=b.dataset.act;
+  if(busy&&!['edit','cancelEdit'].includes(act)){toast('Wait for the narrator to finish (or press Stop).');return;}
+  if(act==='prev'||act==='next'){unapplyAlt(curAlt(m));m.sel=(m.sel+(act==='next'?1:-1)+m.alts.length)%m.alts.length;applyAlt(curAlt(m));afterChange();}
+  else if(act==='regen'){regenerate(i);}
+  else if(act==='regenFrom'){const n=S.messages[i+1];if(n&&n.role==='narrator')regenerate(i+1);else{S.messages.splice(i+1,0,{id:uid(),role:'narrator',alts:[],sel:0});regenerate(i+1);}}
+  else if(act==='del'){if(!confirm('Delete this post?'+(m.role==='narrator'?' Any stat changes it made will be reverted.':'')))return;
+    if(m.role==='narrator')m.alts.forEach(unapplyAlt);S.messages.splice(i,1);afterChange();}
+  else if(act==='edit'){editing=m.id;renderLog();const ta=document.querySelector('.msg[data-i="'+i+'"] textarea');if(ta)ta.focus();}
+  else if(act==='cancelEdit'){editing=null;renderLog();}
+  else if(act==='saveEdit'){const v=el.querySelector('.editArea').value;editing=null;
+    if(m.role==='narrator'){const a=curAlt(m);unapplyAlt(a);a.text=v;a.reqErrors=[];applyAlt(a);}else m.text=v;afterChange();}
+}
+function afterChange(){save();renderLog();renderSystem();renderCompanions();}
+function setBusy(b,label){busy=b;$('#sendBtn').disabled=b;$('#continueBtn').disabled=b;$('#stopBtn').style.display=b?'':'none';$('#statusLine').textContent=label||'';}
+
+async function sendUser(){
+  const t=$('#input').value.trim();if(!t||busy)return;
+  S.messages.push({id:uid(),role:'user',text:t});$('#input').value='';
+  if(!apiKey()){save();renderLog();toast('Post saved. Paste your xAI API key in Settings to get narrator replies (then press ↻ reply).',5000);return;}
+  S.messages.push({id:uid(),role:'narrator',alts:[],sel:0});save();renderLog();
+  await regenerate(S.messages.length-1);
+}
+async function continueScene(){if(busy)return;if(!apiKey()){toast('Paste your xAI API key in Settings first.');return;}
+  S.messages.push({id:uid(),role:'narrator',alts:[],sel:0,continuation:true});renderLog();await regenerate(S.messages.length-1);}
+
+async function regenerate(i){
+  const m=S.messages[i];if(!m||m.role!=='narrator')return;
+  if(!apiKey()){toast('Paste your xAI API key in Settings first.');if(!m.alts.length)S.messages.splice(i,1);renderLog();return;}
+  if(m.alts.length)unapplyAlt(curAlt(m));
+  const a={text:'',streaming:true,applied:false,notes:[],errors:[],reqErrors:[]};m.alts.push(a);m.sel=m.alts.length-1;
+  const msgs=buildContext(i,m.continuation);
+  setBusy(true,'The System is writing…');renderLog();renderSystem();
+  try{a.text=await chat(msgs,{stream:cfg().stream,onDelta:(full)=>{a.text=full;updateStreaming(i);}});}
+  catch(e){
+    if(e.name!=='AbortError'){a.reqErrors=['Request failed: '+e.message];toast('Error: '+e.message,6000);}
+  }
+  a.streaming=false;
+  if(!a.text.trim()){m.alts.pop();m.sel=Math.max(0,m.alts.length-1);}
+  if(!m.alts.length)S.messages.splice(i,1);else applyAlt(curAlt(m));
+  setBusy(false);save();renderLog();renderSystem();renderCompanions();
+  if(cfg().autoSummarize)maybeAutoSummarize();
+}
+function updateStreaming(i){const el=document.querySelector('.msg[data-i="'+i+'"] .body');if(!el){renderLog();return;}
+  el.innerHTML=renderProse(parseSystemUpdates(curAlt(S.messages[i]).text).clean);window.scrollTo(0,document.body.scrollHeight);}
+
+function statusBlock(){const p=S.player;
+  return JSON.stringify({name:S.character.name,level:p.level,exp:p.exp+'/'+p.expNext,job:p.job,title:p.title,titles:p.titles,hunter_rank_from_level:rankForLevel(S.rankChart,p.level)+' (this is what mana readers detect)',association_record_rank:p.officialRank,
+    stat_ranks:Object.fromEntries(STAT_KEYS.map(k=>[k,statRank(S.statRanks,p.stats[k])])),hp:p.hp+'/'+p.maxHp,mp:p.mp+'/'+p.maxMp,fatigue:p.fatigue,stats:p.stats,unspent_ability_points:p.points,gold:p.gold,
+    skills:p.skills,inventory:p.inventory.map(x=>({name:x.name,qty:x.qty,category:x.category,equipped:x.equipped,stats:x.stats,effects:x.effects})),active_quests:p.quests.filter(q=>q.status==='active'),
+    companions:p.companions.map(c=>({name:c.name,species:c.species,rank:c.rank,level:c.level,exp:c.exp+'/'+c.expNext,hp:c.hp+'/'+c.maxHp,mp:c.mp+'/'+c.maxMp,stats:c.stats,skills:c.skills,bond:c.bond,evolution_stage:c.stage,kills:c.kills,appearance:c.appearance,personality:c.personality,evolution_path:c.evolutionPath,pending_evolution_conditions:c.conditions.filter(x=>!x.done).map(x=>x.text)}))});}
+function gameDateStr(){const g=S.game;let s='Day '+g.day;const t=Date.parse(g.startDate);if(g.startDate&&!isNaN(t)){const dt=new Date(t);dt.setDate(dt.getDate()+g.day-1);s+=' ('+dt.toISOString().slice(0,10)+')';}else if(g.startDate)s+=' (story began: '+g.startDate+')';return s;}
+function dailyBlock(){const d=S.daily;return 'In-game time: '+gameDateStr()+'. Daily Quest progress today: '+d.items.map(x=>x.name+' '+x.done+'/'+x.target+(x.unit?' '+x.unit:'')).join(', ')+(d.claimed?' — COMPLETED and reward claimed today.':' — not yet complete.');}
+function buildContext(uptoIndex,continuation){
+  const c=S.character,w=S.world;
+  const sys=S.settings.systemPrompt+'\n\n=== PLAYER CHARACTER (the user plays her; you NEVER control her) ===\nName: '+(c.name||'(unnamed)')+'\nAge: '+c.age+'\nGender: '+c.gender+'\nHome: '+(c.city||'Norway')+'\nAppearance: '+c.appearance+'\nBackground: '+c.background+(c.extra?'\nOther facts: '+c.extra:'')+'\nCombat build: '+(c.build||'')+'\nClass name: '+(c.className||S.player.job||'(none yet)')+'\nClass path plan: '+(c.classPlan||'')+
+    '\n\n=== THE SYSTEM\'S CREATOR / PATRON ===\nType: '+(c.patronType||'The Architect')+(c.patronName?'\nName: '+c.patronName:'')+(c.patronDesc?'\nDescription: '+c.patronDesc:'')+
+    '\n\n=== WORLD NOTES ===\n'+w.notes+'\n\n=== NARRATION STYLE ===\n'+w.style+
+    (w.summary?'\n\n=== STORY SO FAR (summary of older posts) ===\n'+w.summary:'')+
+    '\n\n=== LEVEL → HUNTER RANK CHART ===\n'+S.rankChart.map(r=>r.rank+': Lv '+r.minLevel+'+').join('; ')+
+    '\n=== STAT RANK THRESHOLDS (per stat, independent of hunter rank) ===\n'+S.statRanks.map(r=>r.rank+': '+(r.max==null||r.max===''?'above previous':'up to '+r.max)).join('; ')+
+    '\n\n=== CURRENT STATUS (authoritative) ===\n'+statusBlock()+'\n'+dailyBlock();
+  const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='narrator'||m.alts.length);
+  const recent=hist.slice(-Math.max(2,num(S.settings.contextMessages,40)));
+  const out=[{role:'system',content:sys}];
+  for(const m of recent){
+    if(m.role==='user')out.push({role:'user',content:m.text});
+    else if(m.role==='syslog')out.push({role:'user',content:'[SYSTEM LOG — an out-of-story record of what the System/app did, not an action by her]: '+m.text});
+    else{const a=curAlt(m);if(!a||a.streaming)continue;out.push({role:'assistant',content:parseSystemUpdates(a.text).clean+(a.notes&&a.notes.length?'\n[Applied System changes: '+a.notes.join('; ')+']':'')});}
+  }
+  if(continuation||out[out.length-1].role!=='user')out.push({role:'user',content:'((OOC: Continue the scene from the world\'s side only — NPCs, environment, monsters, System. Do not act, speak, think, or decide for my character. Stop where I can act.))'});
+  return out;
+}
+
+/* ================= API ================= */
+async function chat(messages,{stream=false,onDelta,temperature,maxTokens}={}){
+  abortCtl=new AbortController();
+  const body={model:model(),messages,temperature:temperature!=null?temperature:num(S.settings.temperature,0.9),max_tokens:maxTokens!=null?maxTokens:num(S.settings.maxTokens,2000),stream:!!stream};
+  const res=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey()},body:JSON.stringify(body),signal:abortCtl.signal});
+  if(!res.ok){let t='';try{t=await res.text();}catch(e){}throw new Error('HTTP '+res.status+' '+t.slice(0,300));}
+  if(!stream||!res.body){const j=await res.json();return (j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||'';}
+  const reader=res.body.getReader();const dec=new TextDecoder();let buf='',full='';
+  try{
+    while(true){const {done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});
+      let idx;while((idx=buf.indexOf('\n'))>=0){const line=buf.slice(0,idx).trim();buf=buf.slice(idx+1);
+        if(!line.startsWith('data:'))continue;const data=line.slice(5).trim();if(data==='[DONE]')continue;
+        try{const j=JSON.parse(data);const d=j.choices&&j.choices[0]&&j.choices[0].delta;if(d&&d.content){full+=d.content;onDelta&&onDelta(full);}}catch(e){}}}
+  }catch(e){if(e.name==='AbortError')return full;throw e;}
+  return full;
+}
+function extractJSON(t){const s=t.indexOf('{'),e=t.lastIndexOf('}');if(s<0||e<=s)throw new Error('No JSON in response');return JSON.parse(t.slice(s,e+1).replace(/,\s*([}\]])/g,'$1'));}
+
+/* ================= SUMMARY ================= */
+let summarizing=false;
+async function summarize(manual){
+  if(summarizing)return;
+  const keep=Math.max(2,num(S.settings.contextMessages,40));const hist=S.messages.filter(m=>m.role!=='narrator'||m.alts.length);
+  const cutoff=hist.length-keep;const start=Math.min(num(S.world.summarizedCount,0),Math.max(0,cutoff));
+  if(cutoff<=start){if(manual)toast('Nothing older than the recent window ('+keep+' posts) to summarize yet.');return;}
+  if(!apiKey()){if(manual)toast('API key needed.');return;}
+  const chunk=hist.slice(start,cutoff).map(m=>m.role==='user'?(S.character.name||'Player')+': '+m.text:m.role==='syslog'?'[System log] '+m.text:'Narrator: '+parseSystemUpdates(curAlt(m).text).clean).join('\n\n');
+  summarizing=true;$('#sumStatus').textContent='Summarizing…';
+  try{const out=await chat([{role:'system',content:'You maintain a concise but complete rolling summary of a Solo Leveling roleplay for continuity. Keep key events, NPC names and relationships, locations, items, promises, open plot threads, and System events. Never invent details. Past tense; bullet points allowed. Max ~600 words.'},
+      {role:'user',content:'EXISTING SUMMARY:\n'+(S.world.summary||'(none)')+'\n\nNEW POSTS TO FOLD IN:\n'+chunk+'\n\nReturn the full updated summary only.'}],{stream:false,temperature:0.3,maxTokens:1500});
+    if(out.trim()){S.world.summary=out.trim();S.world.summarizedCount=cutoff;save();bindAll(true);}$('#sumStatus').textContent='Summary updated ('+cutoff+' posts folded in).';
+  }catch(e){$('#sumStatus').textContent='Summary failed: '+e.message;}
+  summarizing=false;
+}
+function maybeAutoSummarize(){const keep=Math.max(2,num(S.settings.contextMessages,40));if(S.messages.length-keep-num(S.world.summarizedCount,0)>=10)summarize(false);}
+
+/* ================= HUD & SYSTEM PANEL ================= */
+function renderHud(){const p=S.player;$('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b></span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Rank <b class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
+let sysTab='status',lastBoxResult=null,openingBox=false;
+function field(path,val,type){return '<input type="'+(type||'text')+'" data-pfield="'+path+'" value="'+esc(val)+'">';}
+function pct(a,b){return Math.max(0,Math.min(100,b?a/b*100:0));}
+function li(L,i,k,val,extra){return '<input type="text" data-list="'+L+'" data-i="'+i+'" data-k="'+k+'" value="'+esc(val)+'" '+(extra||'')+'>';}
+function renderSystem(){
+  renderHud();const p=S.player;const body=$('#sysBody');let h='';
+  document.querySelectorAll('#sysSub button').forEach(b=>b.classList.toggle('active',b.dataset.sub===sysTab));
+  if(sysTab==='status'){
+    h+='<div class="syswin"><span class="title">Status</span><div class="status-grid">'+
+      '<div class="kv"><span class="k">Name</span><input type="text" data-bind="character.name" value="'+esc(S.character.name)+'"></div>'+
+      '<div class="kv"><span class="k">Level</span>'+field('level',p.level,'number')+'</div>'+
+      '<div class="kv"><span class="k">Job</span>'+field('job',p.job)+'</div>'+
+      '<div class="kv"><span class="k">Title</span>'+field('title',p.title)+'</div>'+
+      '<div class="kv"><span class="k">Hunter Rank</span><span class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</span><span class="muted">(by level · what mana readers show)</span></div>'+
+      '<div class="kv"><span class="k">Assoc. Record</span>'+field('officialRank',p.officialRank)+'</div>'+
+      '<div class="kv"><span class="k">Day</span><span>'+esc(gameDateStr())+'</span></div>'+
+      '</div><h3>Condition</h3><div class="status-grid">'+
+      '<div><div class="kv"><span class="k">HP</span>'+field('hp',p.hp,'number')+'/'+field('maxHp',p.maxHp,'number')+'</div><div class="bar hp"><i style="width:'+pct(p.hp,p.maxHp)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">MP</span>'+field('mp',p.mp,'number')+'/'+field('maxMp',p.maxMp,'number')+'</div><div class="bar mp"><i style="width:'+pct(p.mp,p.maxMp)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">Fatigue</span>'+field('fatigue',p.fatigue,'number')+'</div><div class="bar fat"><i style="width:'+pct(p.fatigue,100)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">EXP</span>'+field('exp',p.exp,'number')+'/'+field('expNext',p.expNext,'number')+'</div><div class="bar"><i style="width:'+pct(p.exp,p.expNext)+'%"></i></div></div>'+
+      '<div class="kv"><span class="k">Gold</span>'+field('gold',p.gold,'number')+'</div>'+
+      '</div><h3>Stats</h3><div class="status-grid">';
+    for(const s of STAT_KEYS)h+='<div class="stat"><span class="k" title="'+STAT_NAMES[s]+'">'+s.toUpperCase()+'</span>'+field('stats.'+s,p.stats[s],'number')+'<span class="srank" title="'+STAT_NAMES[s]+' rank">'+esc(statRank(S.statRanks,p.stats[s]))+'</span><button class="btn small" data-plus="'+s+'" '+(p.points>0?'':'disabled')+' title="Spend 1 ability point">+</button></div>';
+    h+='<div class="stat"><span class="k" style="width:auto">Available Points</span>'+field('points',p.points,'number')+'</div></div>';
+    h+='<h3>Titles</h3>'+(p.titles.length?p.titles.map((t,i)=>'<span class="tag" style="margin-right:4px">'+esc(t)+' <button class="icon" data-deltitle="'+i+'">×</button></span>').join(''):'<span class="muted">None</span>')+
+      ' <button class="btn small" id="addTitle">+ Title</button>';
+    h+='<div class="muted" style="margin-top:8px">Every field is editable. Redo/delete only reverts changes a narrator post applied; your manual edits stay.</div></div>';
+  }else if(sysTab==='skills'){
+    h+='<div class="syswin"><span class="title">Skills</span>'+(p.skills.length?'':'<div class="muted">No skills yet.</div>')+p.skills.map((s,i)=>
+      '<div class="list-item"><div class="head">'+li('skills',i,'name',s.name,'style="flex:2 1 160px"')+'<select data-list="skills" data-i="'+i+'" data-k="type" style="flex:0 0 110px">'+['Active','Passive'].map(o=>'<option'+(s.type===o?' selected':'')+'>'+o+'</option>').join('')+'</select>'+
+      '<span class="muted">Lv</span><input type="number" data-list="skills" data-i="'+i+'" data-k="level" value="'+esc(s.level)+'" style="width:70px;flex:0 0 70px"><button class="icon" data-dellist="skills" data-i="'+i+'">🗑</button></div>'+
+      '<div class="row"><div><label>MP cost</label>'+li('skills',i,'mp_cost',s.mp_cost)+'</div><div><label>Cooldown</label>'+li('skills',i,'cooldown',s.cooldown)+'</div></div>'+
+      '<label>Description</label><textarea data-list="skills" data-i="'+i+'" data-k="description">'+esc(s.description)+'</textarea></div>').join('')+
+      '<button class="btn small" data-addlist="skills">+ Add skill</button></div>';
+  }else if(sysTab==='inventory'){
+    h+=(lastBoxResult?'<div class="syswin"><span class="title">'+esc(lastBoxResult.title)+'</span><ul style="margin:0;padding-left:18px">'+lastBoxResult.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul><button class="btn small" data-closebox="1">OK</button></div>':'')+'<div class="syswin"><span class="title">Inventory</span>'+(p.inventory.length?'':'<div class="muted">Empty.</div>')+p.inventory.map((it,i)=>itemEditor(it,i)).join('')+'<button class="btn small" data-addlist="inventory">+ Add item</button></div>';
+  }else if(sysTab==='quests'){
+    h+='<div class="syswin"><span class="title">Quest Log</span>'+(p.quests.length?'':'<div class="muted">No quests.</div>')+p.quests.map((q,i)=>
+      '<div class="list-item"><div class="head">'+li('quests',i,'name',q.name,'style="flex:2 1 160px"')+'<select data-list="quests" data-i="'+i+'" data-k="status" style="flex:0 0 130px">'+['active','completed','failed'].map(o=>'<option'+(q.status===o?' selected':'')+'>'+o+'</option>').join('')+'</select><button class="icon" data-dellist="quests" data-i="'+i+'">🗑</button></div>'+
+      '<label>Description</label><textarea data-list="quests" data-i="'+i+'" data-k="description">'+esc(q.description)+'</textarea>'+
+      '<div class="row"><div><label>Reward</label>'+li('quests',i,'reward',q.reward)+'</div><div><label>Deadline</label>'+li('quests',i,'deadline',q.deadline)+'</div><div><label>Progress</label>'+li('quests',i,'progress',q.progress)+'</div></div></div>').join('')+
+      '<button class="btn small" data-addlist="quests">+ Add quest</button></div>';
+  }else if(sysTab==='shop'){
+    h+='<div class="syswin"><span class="title">Shop</span><div class="muted">Gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+'</b>. Purchases are added to the story as a System log so the narrator knows. Stock below is placeholder — edit freely.</div>'+
+      '<table><tr><th>Item</th><th>Price</th><th>Description</th><th></th></tr>'+S.shop.map((s,i)=>'<tr><td><input type="text" data-shop="'+i+'" data-k="name" value="'+esc(s.name)+'"></td><td style="width:110px"><input type="number" data-shop="'+i+'" data-k="price" value="'+esc(s.price)+'"></td><td><input type="text" data-shop="'+i+'" data-k="description" value="'+esc(s.description)+'"></td><td style="white-space:nowrap"><button class="btn small" data-buy="'+i+'" '+(p.gold>=s.price?'':'disabled')+'>Buy</button><button class="icon" data-delshop="'+i+'">🗑</button></td></tr>').join('')+'</table>'+
+      '<button class="btn small" id="addShop" style="margin-top:6px">+ Add shop item</button></div>';
+  }
+  body.innerHTML=h;
+}
+function itemEditor(it,i){
+  const statsTxt=Object.entries(it.stats||{}).map(([k,v])=>k+': '+v).join('\n');
+  return '<div class="list-item"><div class="head">'+li('inventory',i,'name',it.name,'style="flex:2 1 160px"')+'<span class="muted">×</span><input type="number" data-list="inventory" data-i="'+i+'" data-k="qty" value="'+esc(it.qty)+'" style="width:70px;flex:0 0 70px">'+
+    (it.acquisition_difficulty?'<span class="tag">'+esc(it.acquisition_difficulty)+'</span>':'')+
+    '<label style="flex:0 0 auto;margin:0"><input type="checkbox" data-list="inventory" data-i="'+i+'" data-k="equipped" '+(it.equipped?'checked':'')+'> Equipped</label>'+
+    (isBox(it)?'<button class="btn small primary" data-open="'+i+'">Open</button>':'<button class="btn small" data-use="'+i+'">Use</button>')+'<button class="icon" data-dellist="inventory" data-i="'+i+'">🗑</button></div>'+
+    '<details><summary>Details</summary><div class="row"><div><label>Category</label>'+li('inventory',i,'category',it.category)+'</div><div><label>Acquisition Difficulty</label>'+li('inventory',i,'acquisition_difficulty',it.acquisition_difficulty)+'</div><div><label>Durability</label>'+li('inventory',i,'durability',it.durability)+'</div></div>'+
+    '<label>Stats (one per line, e.g. "Attack: +20")</label><textarea data-list="inventory" data-i="'+i+'" data-k="stats">'+esc(statsTxt)+'</textarea>'+
+    '<label>Effects (one per line)</label><textarea data-list="inventory" data-i="'+i+'" data-k="effects">'+esc((it.effects||[]).join('\n'))+'</textarea>'+
+    '<label>Requirements</label>'+li('inventory',i,'requirements',it.requirements)+
+    '<label>Description</label><textarea data-list="inventory" data-i="'+i+'" data-k="description">'+esc(it.description)+'</textarea></details></div>';
+}
+function onSysInput(e){
+  const t=e.target;const p=S.player;
+  if(t.dataset.pfield){const path=t.dataset.pfield;const cur=getPath(p,path);setPath(p,path,typeof cur==='number'?num(t.value,cur):t.value);save();renderHud();if(e.type==='change')renderSystem();return;}
+  if(t.dataset.list){const L=t.dataset.list,i=+t.dataset.i,k=t.dataset.k;const obj=p[L][i];if(!obj)return;
+    if(t.type==='checkbox')obj[k]=t.checked;else if(k==='qty'||k==='level')obj[k]=num(t.value,obj[k]);
+    else if(k==='stats'){const o={};t.value.split('\n').forEach(l=>{const j=l.indexOf(':');if(j>0)o[l.slice(0,j).trim()]=l.slice(j+1).trim();});obj.stats=o;}
+    else if(k==='effects')obj.effects=t.value.split('\n').map(x=>x.trim()).filter(Boolean);else obj[k]=t.value;save();return;}
+  if(t.dataset.shop){const s=S.shop[+t.dataset.shop];s[t.dataset.k]=t.dataset.k==='price'?num(t.value,0):t.value;save();return;}
+}
+function syslog(text){S.messages.push({id:uid(),role:'syslog',text});save();renderLog();}
+function onSysClick(e){
+  const t=e.target.closest('button');if(!t)return;const p=S.player;
+  if(t.dataset.sub){sysTab=t.dataset.sub;renderSystem();return;}
+  if(t.dataset.plus){if(p.points>0){p.stats[t.dataset.plus]++;p.points--;save();renderSystem();}return;}
+  if(t.dataset.deltitle!==undefined){p.titles.splice(+t.dataset.deltitle,1);save();renderSystem();return;}
+  if(t.id==='addTitle'){const n=prompt('Title name');if(n){p.titles.push(n);save();renderSystem();}return;}
+  if(t.dataset.dellist){if(!confirm('Delete?'))return;p[t.dataset.dellist].splice(+t.dataset.i,1);save();renderSystem();return;}
+  if(t.dataset.addlist){const L=t.dataset.addlist;p[L].push(L==='skills'?normSkill({name:'New Skill'}):L==='quests'?normQuest({name:'New Quest'}):normItem({name:'New Item'}));save();renderSystem();return;}
+  if(t.dataset.buy!==undefined){const s=S.shop[+t.dataset.buy];if(!s||p.gold<s.price)return;p.gold-=s.price;
+    const ex=p.inventory.find(x=>keyOf(x)===keyOf(s));if(ex)ex.qty++;else p.inventory.push(normItem({name:s.name,category:s.category,description:s.description}));
+    syslog('Shop purchase: '+s.name+' for '+s.price+' gold. Gold remaining: '+p.gold+'.');renderSystem();toast('Purchased '+s.name);return;}
+  if(t.dataset.delshop!==undefined){S.shop.splice(+t.dataset.delshop,1);save();renderSystem();return;}
+  if(t.id==='addShop'){S.shop.push({name:'New Item',price:1000,category:'',description:''});save();renderSystem();return;}
+  if(t.dataset.open!==undefined){openBox(+t.dataset.open);return;}
+  if(t.dataset.closebox){lastBoxResult=null;renderSystem();return;}
+  if(t.dataset.use!==undefined){const idx=+t.dataset.use;const it=p.inventory[idx];if(!it)return;
+    if(confirm('Use "'+it.name+'"? This removes 1 from your Inventory and adds a System log so the narrator applies its effect next reply.')){
+      const name=it.name;it.qty--;if(it.qty<=0)p.inventory.splice(idx,1);syslog('Item used from Inventory: '+name+'. (Narrator: apply its canon effect and include the stat change in a system_update.)');save();renderSystem();}return;}
+}
+
+/* ================= DAILY QUEST & DAYS ================= */
+function dailyDone(){return S.daily.claimed||S.daily.items.every(x=>x.done>=x.target);}
+function nextDay(){
+  if(busy){toast('Wait for the narrator to finish.');return;}
+  const d=S.daily,g=S.game;const done=dailyDone();
+  if(!confirm('Advance to Day '+(g.day+1)+'?'+(done?'':'\n\n⚠ Today\'s Daily Quest is NOT complete — the canon Penalty Quest will trigger.')))return;
+  d.history=(d.history||[]).concat([{day:g.day,completed:done}]).slice(-60);
+  if(!done){
+    const p=S.player;const pq={name:'Penalty Quest: Survive',description:'Failure to complete the Daily Quest. Survive in the Penalty Zone until the time limit expires.',reward:'',deadline:'Penalty Zone time limit',status:'active',progress:''};
+    const i=p.quests.findIndex(q=>keyOf(q)===keyOf(pq));if(i>=0)p.quests[i]=pq;else p.quests.push(pq);
+    syslog('[Warning] Day '+g.day+': the Daily Quest "Preparation to Become Powerful" was NOT completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon: desert, giant centipedes, survive until the time limit). Narrator: run the Penalty Quest now.');
+  }
+  g.day+=1;d.items.forEach(x=>x.done=0);d.claimed=false;d.date='Day '+g.day;
+  syslog('— Day '+g.day+' begins'+(S.game.startDate?' · '+gameDateStr():'')+'. A new Daily Quest has arrived. —');
+  save();renderDaily();renderSystem();renderHud();toast(done?'Day '+g.day+' begins.':'Day '+g.day+' — Penalty Quest triggered!',4000);
+}
+function renderDaily(){
+  const d=S.daily;const all=d.items.every(x=>x.done>=x.target);
+  let h='<div class="syswin daily"><span class="title">Daily Quest — Preparation to Become Powerful</span><div class="muted" style="text-align:center">'+esc(gameDateStr())+' · resets when you press Next Day</div>';
+  d.items.forEach((x,i)=>{const ok=x.done>=x.target;h+='<div class="q'+(ok?' ok':'')+'"><button class="qbtn" data-dtoggle="'+i+'" title="Click to mark complete / incomplete">'+(ok?'✔':'☐')+'</button><span class="name">'+esc(x.name)+'</span>'+
+    '<input type="number" data-ddone="'+i+'" value="'+x.done+'"> / <input type="number" data-dtarget="'+i+'" value="'+x.target+'"> '+esc(x.unit)+
+    ' <button class="btn small" data-dadd="'+i+'">+'+(x.unit==='km'?1:10)+'</button><div class="bar" style="flex:1 1 100%"><i style="width:'+pct(x.done,x.target)+'%"></i></div></div>';});
+  h+='<div class="muted" style="margin-top:6px">WARNING: Failure to complete the daily quest will result in an appropriate penalty.</div>';
+  h+='<h3>Rewards</h3><div class="muted">Always: Full Recovery (HP/MP restored, fatigue cleared) + 3 free Ability Points. Then choose ONE reward box:</div>'+
+    '<div class="row" style="margin-top:6px">'+(d.claimed?'<div style="flex:0 0 auto"><span class="tag done">Reward claimed ✓</span></div>':
+      [['random','Random Box'],['stat','Stat Point Box'],['gold','Gold Box']].map(([k,l])=>'<div style="flex:0 0 auto"><button class="btn primary" data-dclaim="'+k+'" '+(all?'':'disabled')+'>Claim + '+l+'</button></div>').join(''))+'</div>'+
+    '<div class="row" style="margin-top:10px">'+
+    '<div style="flex:0 0 auto"><button class="btn" id="dNext">Next Day ▸</button></div>'+
+    '<div style="flex:0 0 auto"><button class="btn danger" id="dPenalty">Trigger penalty now</button></div></div>'+
+    '<div class="muted" style="margin-top:6px">Box tier matches your current Hunter Rank. Open boxes from Inventory. Pressing Next Day with the quest unfinished triggers the Penalty Quest and tells the narrator.</div></div>';
+  const hist=(d.history||[]).slice(-14).reverse();
+  if(hist.length)h+='<div class="card"><h3>Previous days</h3>'+hist.map(x=>'<span class="tag '+(x.completed?'done':'failed')+'" style="margin:2px;display:inline-block">'+esc(x.day!=null?'Day '+x.day:x.date)+' '+(x.completed?'✓':'✗ penalty')+'</span>').join('')+'</div>';
+  $('#dailyBody').innerHTML=h;
+}
+function onDaily(e){
+  const t=e.target;const d=S.daily;const btn=t.closest&&t.closest('button');
+  if(e.type==='change'&&t.dataset.ddone!==undefined){d.items[+t.dataset.ddone].done=Math.max(0,num(t.value));}
+  else if(e.type==='change'&&t.dataset.dtarget!==undefined){d.items[+t.dataset.dtarget].target=Math.max(1,num(t.value,1));}
+  else if(e.type==='click'&&btn&&btn.dataset.dtoggle!==undefined){const x=d.items[+btn.dataset.dtoggle];x.done=x.done>=x.target?0:x.target;}
+  else if(e.type==='click'&&btn&&btn.dataset.dadd!==undefined){const x=d.items[+btn.dataset.dadd];x.done=Math.min(x.target,x.done+(x.unit==='km'?1:10));}
+  else if(e.type==='click'&&btn&&btn.id==='dNext'){nextDay();return;}
+  else if(e.type==='click'&&btn&&btn.dataset.dclaim){if(d.claimed||!d.items.every(x=>x.done>=x.target))return;const p=S.player;p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;p.points+=3;
+    const hr=rankForLevel(S.rankChart,p.level);const tier=BOX_TIERS.includes(hr)?hr:(tierIdx(hr)?hr:'S');const box=normItem(makeBox({kind:btn.dataset.dclaim,tier:['National','Deity'].includes(hr)?'S':tier}));
+    const ex=p.inventory.find(x=>keyOf(x)===keyOf(box));if(ex)ex.qty++;else p.inventory.push(box);
+    d.claimed=true;syslog('[Daily Quest: Preparation to Become Powerful] completed ('+gameDateStr()+'). Rewards received: Full Recovery (HP/MP restored, fatigue cleared), 3 free Ability Points, '+box.name+' ×1 (unopened).');renderSystem();toast('Daily Quest complete! '+box.name+' added to Inventory.');}
+  else if(e.type==='click'&&btn&&btn.id==='dPenalty'){if(!confirm('Trigger the Penalty Quest now?'))return;
+    syslog('[Warning] The Daily Quest was not completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon penalty quest: "Survive"). Narrator: run the Penalty Quest now.');toast('Penalty logged to the story.');}
+  else return;
+  save();renderDaily();renderHud();
+}
+
+/* ================= SUMMONS / COMPANIONS ================= */
+const CORE_EXP={E:50,D:150,C:400,B:1000,A:2500,S:6000,National:15000};
+const EVOLVE_PROMPT=`You are the Solo Leveling SYSTEM's evolution module for a Tamer/Binder Summoner's bound companion. Given the companion's current data, its intended evolution path (if any), and the conditions it met, design its NEXT evolved form in Solo Leveling canon style (monster species, rank progression E→D→C→B→A→S, proportional power jump, skills that build on old ones). Follow the user's evolution path when given (example chain: Goblin → Goblina (female hobgoblin) → Goblin Knight → Goblin Queen). Keep its personal name; change species. Adult forms only for any humanoid.
+Respond ONLY with JSON: {"species":"","rank":"","appearance":"","personality":"","max_hp":0,"max_mp":0,"stats":{"str":0,"agi":0,"sen":0,"vit":0,"int":0,"luk":0},"skills":["Skill: description"],"evolution_message":"short System notification","next_conditions":["condition for the following evolution"]}`;
+let evoDraft=null; // {cid, data}
+function compById(id){return S.player.companions.find(c=>c.id===id);}
+function cin(c,k,v,type,extra){return '<input type="'+(type||'text')+'" data-comp="'+c.id+'" data-k="'+k+'" value="'+esc(v)+'" '+(extra||'')+'>';}
+function renderCompanions(){
+  const p=S.player;const el=$('#compBody');if(!el)return;
+  const cores=p.inventory.filter(it=>/core/i.test(it.name));
+  let h='<div class="syswin"><span class="title">Summons &amp; Companions</span><div class="muted">Bound companions level up from EXP (fights, fed cores) and evolve when you decide their conditions are met. The narrator sees this roster every turn and can add or update companions.</div>'+
+    '<div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small" id="compAdd">+ Add companion</button></div></div></div>';
+  if(!p.companions.length)h+='<div class="card muted">No companions yet. Your Tamer/Binder path will let you bind monsters — or add one manually.</div>';
+  for(const c of p.companions){
+    const done=c.conditions.length&&c.conditions.every(x=>x.done);
+    h+='<div class="syswin" data-cid="'+c.id+'"><span class="title">'+esc(c.name)+' · '+esc(c.species||'?')+' · Stage '+c.stage+'</span>'+
+      '<div class="status-grid">'+
+      '<div class="kv"><span class="k">Name</span>'+cin(c,'name',c.name)+'</div><div class="kv"><span class="k">Species</span>'+cin(c,'species',c.species)+'</div>'+
+      '<div class="kv"><span class="k">Rank</span>'+cin(c,'rank',c.rank)+'</div><div class="kv"><span class="k">Level</span>'+cin(c,'level',c.level,'number')+'</div>'+
+      '<div class="kv"><span class="k">Stage</span>'+cin(c,'stage',c.stage,'number')+'</div><div class="kv"><span class="k">Kills</span>'+cin(c,'kills',c.kills,'number')+'<button class="btn small" data-ckill="'+c.id+'">+1</button></div>'+
+      '</div><div class="status-grid" style="margin-top:6px">'+
+      '<div><div class="kv"><span class="k">HP</span>'+cin(c,'hp',c.hp,'number')+'/'+cin(c,'maxHp',c.maxHp,'number')+'</div><div class="bar hp"><i style="width:'+pct(c.hp,c.maxHp)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">MP</span>'+cin(c,'mp',c.mp,'number')+'/'+cin(c,'maxMp',c.maxMp,'number')+'</div><div class="bar mp"><i style="width:'+pct(c.mp,c.maxMp)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">EXP</span>'+cin(c,'exp',c.exp,'number')+'/'+cin(c,'expNext',c.expNext,'number')+'</div><div class="bar"><i style="width:'+pct(c.exp,c.expNext)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">Bond</span>'+cin(c,'bond',c.bond,'number')+'</div><div class="bar fat"><i style="width:'+pct(c.bond,100)+'%"></i></div></div>'+
+      '</div><h3>Stats</h3><div class="status-grid">'+STAT_KEYS.map(k=>'<div class="stat"><span class="k">'+k.toUpperCase()+'</span>'+cin(c,'stats.'+k,c.stats[k],'number')+'<span class="srank">'+esc(statRank(S.statRanks,c.stats[k]))+'</span></div>').join('')+'</div>'+
+      '<label>Skills (one per line)</label><textarea data-comp="'+c.id+'" data-k="skills">'+esc(c.skills.join('\n'))+'</textarea>'+
+      '<div class="row"><div><label>Appearance</label><textarea data-comp="'+c.id+'" data-k="appearance">'+esc(c.appearance)+'</textarea></div><div><label>Personality</label><textarea data-comp="'+c.id+'" data-k="personality">'+esc(c.personality)+'</textarea></div></div>'+
+      '<label>Evolution path (optional plan, e.g. Goblin → Goblina → Goblin Knight → Goblin Queen)</label>'+cin(c,'evolutionPath',c.evolutionPath)+
+      '<h3>Evolution conditions</h3>'+(c.conditions.length?c.conditions.map((x,i)=>'<div class="q'+(x.done?' ok':'')+'" style="display:flex;gap:8px;align-items:center;padding:3px 0"><button class="qbtn" data-ccond="'+c.id+'" data-i="'+i+'">'+(x.done?'✔':'☐')+'</button><input type="text" data-ccondtext="'+c.id+'" data-i="'+i+'" value="'+esc(x.text)+'" style="flex:1"><button class="icon" data-cconddel="'+c.id+'" data-i="'+i+'">🗑</button></div>').join(''):'<div class="muted">No conditions set.</div>')+
+      '<button class="btn small" data-ccondadd="'+c.id+'">+ Condition</button>'+
+      '<div class="row" style="margin-top:10px">'+
+        '<div style="flex:0 0 auto"><select data-ccore="'+c.id+'" style="width:auto">'+(cores.length?cores.map(it=>'<option value="'+esc(it.name)+'">'+esc(it.name)+' ×'+it.qty+'</option>').join(''):'<option value="">No cores in Inventory</option>')+'</select> <button class="btn small" data-cfeed="'+c.id+'" '+(cores.length?'':'disabled')+'>Feed core</button></div>'+
+        '<div style="flex:0 0 auto"><button class="btn small primary" data-cevolve="'+c.id+'">'+(done?'Evolve ✦ (conditions met)':'Evolve')+'</button> <button class="btn small danger" data-cdel="'+c.id+'">Release</button></div>'+
+        '<div class="muted" style="align-self:center">Cores fed: '+c.coresFed+'</div></div>'+
+      (evoDraft&&evoDraft.cid===c.id?evoCard(c,evoDraft.data):'')+
+      '<details style="margin-top:8px"><summary>History ('+c.history.length+')</summary><ul style="margin:4px 0;padding-left:18px">'+c.history.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></details></div>';
+  }
+  el.innerHTML=h;
+}
+function evoCard(c,d){
+  return '<div class="syswin itemcard" style="margin-top:10px"><span class="title">Evolution Preview</span><div class="itemname">'+esc(c.name)+': '+esc(c.species)+' → '+esc(d.species||'?')+'</div>'+
+    '<div class="meta"><span>Rank</span><span class="rank">'+esc(c.rank)+' → '+esc(d.rank||c.rank)+'</span><span>Max HP / MP</span><span>'+esc(d.max_hp)+' / '+esc(d.max_mp)+'</span>'+
+    STAT_KEYS.map(k=>'<span>'+k.toUpperCase()+'</span><span>'+esc(c.stats[k])+' → '+esc(d.stats&&d.stats[k]!=null?d.stats[k]:c.stats[k])+'</span>').join('')+'</div>'+
+    '<div><b style="color:var(--glow2)">Skills</b><ul style="margin:4px 0;padding-left:18px">'+(d.skills||[]).map(x=>'<li>'+esc(typeof x==='object'?(x.name+': '+(x.description||'')):x)+'</li>').join('')+'</ul></div>'+
+    '<div class="muted"><i>'+esc(d.appearance||'')+'</i></div>'+(d.next_conditions&&d.next_conditions.length?'<div class="muted">Next conditions: '+esc(d.next_conditions.join(' · '))+'</div>':'')+
+    '<div class="row" style="margin-top:8px"><div style="flex:0 0 auto"><button class="btn small primary" data-evoaccept="'+c.id+'">Accept</button> <button class="btn small" data-cevolve="'+c.id+'">Reroll</button> <button class="btn small" data-evoedit="'+c.id+'">Edit JSON</button> <button class="btn small danger" data-evodiscard="1">Discard</button></div></div>'+
+    '<div id="evoEditBox" style="display:none"><textarea id="evoJson" style="min-height:200px;font-family:monospace;font-size:12px"></textarea><button class="btn small" data-evoapply="'+c.id+'">Apply edit</button></div></div>';
+}
+async function evolve(c){
+  if(!apiKey()){toast('Paste your xAI API key in Settings first.');return;}
+  if(c.conditions.length&&!c.conditions.every(x=>x.done)&&!confirm('Not all evolution conditions are checked. Evolve anyway?'))return;
+  toast('The System is analysing '+c.name+'…',4000);
+  const info={name:c.name,species:c.species,rank:c.rank,level:c.level,stage:c.stage,stats:c.stats,max_hp:c.maxHp,max_mp:c.maxMp,skills:c.skills,bond:c.bond,kills:c.kills,cores_fed:c.coresFed,appearance:c.appearance,personality:c.personality,
+    evolution_path:c.evolutionPath,conditions_met:c.conditions.filter(x=>x.done).map(x=>x.text),master:{name:S.character.name,level:S.player.level,hunter_rank:rankForLevel(S.rankChart,S.player.level)}};
+  try{const out=await chat([{role:'system',content:EVOLVE_PROMPT},{role:'user',content:JSON.stringify(info)}],{stream:false,maxTokens:1500,temperature:1});
+    evoDraft={cid:c.id,data:extractJSON(out)};renderCompanions();}
+  catch(e){toast('Evolution failed: '+e.message,6000);}
+}
+function acceptEvolution(c){
+  const d=evoDraft.data;const old=c.species;
+  c.species=d.species||c.species;c.rank=d.rank||c.rank;if(d.appearance)c.appearance=d.appearance;if(d.personality)c.personality=d.personality;
+  if(num(d.max_hp))c.maxHp=num(d.max_hp);if(num(d.max_mp))c.maxMp=num(d.max_mp);c.hp=c.maxHp;c.mp=c.maxMp;
+  if(d.stats)STAT_KEYS.forEach(k=>{if(d.stats[k]!=null)c.stats[k]=num(d.stats[k],c.stats[k]);});
+  if(Array.isArray(d.skills)&&d.skills.length)c.skills=d.skills.map(x=>typeof x==='object'?(x.name+': '+(x.description||'')):String(x));
+  c.stage++;c.conditions=(d.next_conditions||[]).map(t=>({text:String(t),done:false}));
+  c.history.push('Day '+S.game.day+': evolved from '+old+' into '+c.species+' ('+c.rank+'-rank).');
+  syslog('[Evolution] '+c.name+' has evolved: '+old+' → '+c.species+' ('+c.rank+'-rank). '+(d.evolution_message||''));
+  evoDraft=null;save();renderCompanions();
+}
+function onCompInput(e){
+  const t=e.target;
+  if(t.dataset.comp){const c=compById(t.dataset.comp);if(!c)return;const k=t.dataset.k;
+    if(k.startsWith('stats.'))c.stats[k.slice(6)]=num(t.value,c.stats[k.slice(6)]);
+    else if(k==='skills')c.skills=t.value.split('\n').map(x=>x.trim()).filter(Boolean);
+    else c[k]=typeof c[k]==='number'?num(t.value,c[k]):t.value;save();return;}
+  if(t.dataset.ccondtext){const c=compById(t.dataset.ccondtext);if(c&&c.conditions[+t.dataset.i]){c.conditions[+t.dataset.i].text=t.value;save();}}
+}
+function onCompClick(e){
+  const b=e.target.closest('button');if(!b)return;const ds=b.dataset;const p=S.player;
+  if(b.id==='compAdd'){const n=prompt('Companion name');if(!n)return;p.companions.push(normCompanion({name:n,species:prompt('Species (e.g. Goblin)')||'',history:['Day '+S.game.day+': bound.']}));save();renderCompanions();return;}
+  const c=compById(ds.ckill||ds.ccond||ds.cconddel||ds.ccondadd||ds.cfeed||ds.cevolve||ds.cdel||ds.evoaccept||ds.evoedit||ds.evoapply);
+  if(ds.evodiscard){evoDraft=null;renderCompanions();return;}
+  if(!c)return;
+  if(ds.ckill){c.kills++;}
+  else if(ds.ccond){const x=c.conditions[+ds.i];x.done=!x.done;}
+  else if(ds.cconddel){c.conditions.splice(+ds.i,1);}
+  else if(ds.ccondadd){c.conditions.push({text:'New condition',done:false});}
+  else if(ds.cdel){if(!confirm('Release '+c.name+'? This removes it from your roster.'))return;p.companions.splice(p.companions.indexOf(c),1);syslog('[Companion released] '+c.name+' ('+c.species+').');}
+  else if(ds.cfeed){const sel=document.querySelector('[data-ccore="'+c.id+'"]');const nm=sel&&sel.value;const i=p.inventory.findIndex(it=>it.name===nm);if(i<0)return;
+    const it=p.inventory[i];const r=(it.acquisition_difficulty||(nm.match(/\((E|D|C|B|A|S|National)/)||[])[1]||'E');const gain=CORE_EXP[r]||50;
+    it.qty--;if(it.qty<=0)p.inventory.splice(i,1);c.coresFed++;const notes=[];companionGainExp(c,gain,cfg(),notes);c.bond=Math.min(100,c.bond+1);
+    c.history.push('Day '+S.game.day+': fed '+nm+' (+'+gain+' EXP).');syslog('[Companion] '+c.name+' consumed '+nm+': EXP +'+gain+(notes.length?'; '+notes.join('; '):'')+'.');toast(c.name+' +'+gain+' EXP');}
+  else if(ds.cevolve){evolve(c);return;}
+  else if(ds.evoaccept){acceptEvolution(c);return;}
+  else if(ds.evoedit){const bx=document.getElementById('evoEditBox');bx.style.display=bx.style.display==='none'?'block':'none';document.getElementById('evoJson').value=JSON.stringify(evoDraft.data,null,2);return;}
+  else if(ds.evoapply){try{evoDraft.data=JSON.parse(document.getElementById('evoJson').value);renderCompanions();}catch(err){toast('Invalid JSON: '+err.message);}return;}
+  save();renderCompanions();renderHud();
+}
+function initCompanions(){const el=$('#compBody');el.addEventListener('input',onCompInput);el.addEventListener('change',e=>{onCompInput(e);if(e.target.dataset.comp&&e.target.type==='number')renderCompanions();});el.addEventListener('click',onCompClick);}
+
+/* ================= FORGE ================= */
+let forgeItem=null,forgeReq=null;
+function renderForgeInv(){const inv=S.player.inventory;$('#fInv').innerHTML=inv.length?inv.map((it,i)=>'<label style="display:inline-flex;gap:4px;margin:2px 10px 2px 0;color:var(--text)"><input type="checkbox" data-fmat="'+i+'"> '+esc(it.name)+' (×'+it.qty+')</label>').join(''):'Inventory is empty.';}
+function itemCard(it){
+  const stats=Object.entries(it.stats||{});
+  return '<div class="syswin itemcard"><span class="title">Item</span><div class="itemname">['+esc(it.name)+']</div><div class="meta">'+
+    '<span>Acquisition Difficulty</span><span class="rank">'+esc(it.acquisition_difficulty||'?')+'</span><span>Category</span><span>'+esc(it.category||'')+'</span>'+
+    stats.map(([k,v])=>'<span>'+esc(k)+'</span><span>'+esc(v)+'</span>').join('')+
+    (it.durability?'<span>Durability</span><span>'+esc(it.durability)+'</span>':'')+(it.requirements?'<span>Requirements</span><span>'+esc(it.requirements)+'</span>':'')+'</div>'+
+    ((it.effects||[]).length?'<div><b style="color:var(--glow2)">Effects</b><ul style="margin:4px 0;padding-left:18px">'+it.effects.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'')+
+    '<div class="muted" style="font-style:italic">'+esc(it.description||'')+'</div></div>';
+}
+function renderForgeResult(){
+  if(!forgeItem){$('#forgeResult').innerHTML='';return;}
+  $('#forgeResult').innerHTML=itemCard(forgeItem)+'<div class="row"><div style="flex:0 0 auto"><button class="btn primary" id="fAccept">Accept → Inventory</button> <button class="btn" id="fReroll">Reroll</button> <button class="btn" id="fEdit">Edit</button> <button class="btn danger" id="fDiscard">Discard</button></div></div>'+
+    '<div id="fEditBox" style="display:none"><label>Edit the item JSON, then Apply</label><textarea id="fJson" style="min-height:220px;font-family:monospace;font-size:12px"></textarea><button class="btn small" id="fApplyJson">Apply edit</button></div>'+
+    '<label style="margin-top:8px"><input type="checkbox" id="fLog" checked> Add a System log to the story when accepted</label>'+
+    (forgeItem._mats&&forgeItem._mats.length?'<div class="muted">Will consume from Inventory: '+esc(forgeItem._mats.join(', '))+'</div>':'');
+}
+async function forge(){
+  if(!apiKey()){toast('Paste your xAI API key in Settings first.');return;}
+  const mats=[...document.querySelectorAll('[data-fmat]:checked')].map(c=>S.player.inventory[+c.dataset.fmat]).filter(Boolean);
+  forgeReq={name:$('#fName').value.trim(),category:$('#fType').value,rank:$('#fRank').value,materials:$('#fMats').value.trim(),invMats:mats.map(m=>m.name),effects:$('#fEffects').value.trim(),notes:$('#fNotes').value.trim()};
+  if(!forgeReq.materials&&!forgeReq.invMats.length&&!forgeReq.effects&&!forgeReq.name){toast('Describe at least a name, materials, or effects.');return;}
+  await runForge();
+}
+async function runForge(){
+  const r=forgeReq;if(!r)return;const p=S.player;
+  const req='Player: '+(S.character.name||'the Player')+' (Lv '+p.level+', stats '+JSON.stringify(p.stats)+', job '+p.job+')\nRequested name: '+(r.name||'(System chooses)')+'\nCategory: '+r.category+'\nTarget Acquisition Difficulty: '+(r.rank||'(System decides from materials)')+
+    '\nMaterials: '+([r.materials].concat(r.invMats).filter(Boolean).join(', ')||'(unspecified)')+'\nIntended effects: '+(r.effects||'(none specified)')+'\nNotes: '+(r.notes||'-');
+  $('#forgeStatus').textContent='The System is forging…';$('#forgeBtn').disabled=true;
+  try{const out=await chat([{role:'system',content:S.settings.craftPrompt},{role:'user',content:req}],{stream:false,maxTokens:1500});
+    const j=extractJSON(out);if(r.name&&!j.name)j.name=r.name;if(!j.category)j.category=r.category;
+    forgeItem=normItem(j);forgeItem._mats=r.invMats;$('#forgeStatus').textContent='';renderForgeResult();
+  }catch(e){$('#forgeStatus').textContent='Forge failed: '+e.message;}
+  $('#forgeBtn').disabled=false;
+}
+function onForgeClick(e){
+  const t=e.target.closest('button');if(!t)return;
+  if(t.id==='forgeBtn')forge();
+  else if(t.id==='fReroll')runForge();
+  else if(t.id==='fDiscard'){forgeItem=null;renderForgeResult();}
+  else if(t.id==='fEdit'){const b=$('#fEditBox');b.style.display=b.style.display==='none'?'block':'none';const c=Object.assign({},forgeItem);delete c.id;delete c._mats;delete c.equipped;$('#fJson').value=JSON.stringify(c,null,2);}
+  else if(t.id==='fApplyJson'){try{const m=forgeItem._mats;forgeItem=normItem(JSON.parse($('#fJson').value));forgeItem._mats=m;renderForgeResult();}catch(err){toast('Invalid JSON: '+err.message);}}
+  else if(t.id==='fAccept'){const p=S.player;const logIt=$('#fLog')&&$('#fLog').checked;const it=clone(forgeItem);const mats=it._mats||[];delete it._mats;it.id=uid();
+    for(const mn of mats){const i=p.inventory.findIndex(x=>keyOf(x)===keyOf(mn));if(i>=0){p.inventory[i].qty--;if(p.inventory[i].qty<=0)p.inventory.splice(i,1);}}
+    const ex=p.inventory.find(x=>keyOf(x)===keyOf(it));if(ex)ex.qty+=it.qty;else p.inventory.push(it);
+    if(logIt)syslog('[Item Created] '+it.name+' ('+it.category+', Acquisition Difficulty '+it.acquisition_difficulty+') has been added to the Inventory.'+(mats.length?' Materials consumed: '+mats.join(', ')+'.':'')+(it.effects.length?' Effects: '+it.effects.join('; '):''));
+    forgeItem=null;save();renderForgeResult();renderForgeInv();renderSystem();toast('Added '+it.name+' to Inventory');}
+}
+
+/* ================= REWARD BOXES ================= */
+async function openBox(idx){
+  if(openingBox)return;const p=S.player;const box=p.inventory[idx];if(!box||!isBox(box))return;
+  openingBox=true;const roll=rollBox(box,p.stats.luk);
+  const toFlavor=roll.items.filter(x=>x._flavor);
+  if(toFlavor.length&&apiKey()&&S.settings.boxFlavor!==false){
+    toast('The System is identifying the contents…',4000);
+    try{const out=await chat([{role:'system',content:'You are the Solo Leveling SYSTEM identifying items that dropped from a reward box. For each placeholder, create a canon-style item of the given category and Acquisition Difficulty (rank). Rune Stones contain one skill (name the skill; describe what it does). Keep power proportional to the rank. Respond ONLY with JSON: {"items":[{"name":"","category":"","acquisition_difficulty":"","stats":{},"effects":[""],"durability":"","description":""}]} with exactly one entry per placeholder, in order.'},
+      {role:'user',content:'Player LUK '+p.stats.luk+', hunter rank '+rankForLevel(S.rankChart,p.level)+'. Box: '+box.name+'. Placeholders: '+JSON.stringify(toFlavor.map(x=>({category:x.category,acquisition_difficulty:x.acquisition_difficulty,type:x._flavor})))}],{stream:false,temperature:1,maxTokens:1500});
+      const j=extractJSON(out);(j.items||[]).forEach((it,k)=>{if(toFlavor[k])Object.assign(toFlavor[k],it);});}
+    catch(e){toast('Item identification failed ('+e.message+'); kept generic names.',5000);}
+  }
+  roll.items.forEach(x=>delete x._flavor);
+  const cur=p.inventory.indexOf(box);if(cur<0){openingBox=false;return;}
+  const notes=applyUpdate(p,{gold:roll.gold,stat_points:roll.stat_points,items_add:roll.items,items_remove:[{name:box.name,qty:1}]},cfg()).filter(n=>!/^Item removed/.test(n));
+  if(!notes.length)notes.push('The box was empty.');
+  lastBoxResult={title:'Opened: '+box.name,notes};
+  syslog('[Box Opened] '+box.name+' → '+notes.join('; ')+'.');
+  openingBox=false;save();renderSystem();renderHud();renderForgeInv();
+}
+
+/* ================= SETTINGS / BINDINGS ================= */
+function bindAll(skipActive){
+  document.querySelectorAll('[data-bind]').forEach(el=>{if(skipActive&&el===document.activeElement)return;const v=getPath(S,el.dataset.bind);
+    if(el.dataset.bool!==undefined)el.checked=!!v;else el.value=v==null?'':v;});
+  const sel=$('#modelSel');const list=[...new Set(MODELS.concat(S.settings.extraModels||[],[S.settings.model]))];
+  sel.innerHTML=list.map(m=>'<option'+(m===S.settings.model?' selected':'')+'>'+esc(m)+'</option>').join('');
+  $('#temp').value=S.settings.temperature;$('#tempVal').textContent=S.settings.temperature;if(document.activeElement!==$('#apiKey'))$('#apiKey').value=apiKey();renderRankTable();renderStatRankTable();
+}
+function onBind(e){const el=e.target;if(!el.dataset||!el.dataset.bind)return;let v=el.dataset.bool!==undefined?el.checked:el.value;if(el.dataset.num!==undefined)v=num(v,getPath(S,el.dataset.bind));
+  setPath(S,el.dataset.bind,v);save();
+  if(el.dataset.bind==='character.name')document.querySelectorAll('[data-bind="character.name"]').forEach(x=>{if(x!==el)x.value=v;});}
+function renderRankTable(){
+  $('#rankTable').innerHTML='<tr><th>Rank label</th><th>Min level</th><th></th></tr>'+S.rankChart.map((r,i)=>'<tr><td><input type="text" data-rank="'+i+'" data-k="rank" value="'+esc(r.rank)+'"></td><td><input type="number" data-rank="'+i+'" data-k="minLevel" value="'+esc(r.minLevel)+'"></td><td><button class="icon" data-delrank="'+i+'">🗑</button></td></tr>').join('');
+}
+function renderStatRankTable(){
+  $('#statRankTable').innerHTML='<tr><th>Stat rank</th><th>Up to (blank = no cap)</th><th></th></tr>'+S.statRanks.map((r,i)=>'<tr><td><input type="text" data-srank="'+i+'" data-k="rank" value="'+esc(r.rank)+'"></td><td><input type="number" data-srank="'+i+'" data-k="max" value="'+esc(r.max==null?'':r.max)+'"></td><td><button class="icon" data-delsrank="'+i+'">🗑</button></td></tr>').join('');
+}
+function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+function showTab(name){document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
+  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge')renderForgeInv();if(name==='story')renderLog();if(name==='summons')renderCompanions();if(name==='settings'||name==='character')bindAll();}
+
+function init(){
+  S=load();
+  document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+  $('#log').addEventListener('click',onLogClick);
+  $('#sendBtn').addEventListener('click',sendUser);$('#continueBtn').addEventListener('click',continueScene);
+  $('#stopBtn').addEventListener('click',()=>{if(abortCtl)abortCtl.abort();});
+  $('#sysNoteBtn').addEventListener('click',()=>{const t=prompt('System log entry (the narrator sees this as an out-of-story record):');if(t)syslog(t);});
+  $('#input').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();sendUser();}});
+  $('#sysBody').addEventListener('input',onSysInput);$('#sysBody').addEventListener('change',onSysInput);$('#sysBody').addEventListener('click',onSysClick);$('#sysSub').addEventListener('click',onSysClick);
+  $('#dailyBody').addEventListener('change',onDaily);$('#dailyBody').addEventListener('click',onDaily);
+  $('#tab-forge').addEventListener('click',onForgeClick);
+  document.addEventListener('input',onBind);document.addEventListener('change',onBind);
+  $('#apiKey').addEventListener('input',e=>{const v=e.target.value.trim();if(v)store.setItem(KEY_KEY,v);else store.removeItem(KEY_KEY);});
+  $('#showKey').addEventListener('click',()=>{const k=$('#apiKey');k.type=k.type==='password'?'text':'password';$('#showKey').textContent=k.type==='password'?'Show':'Hide';});
+  $('#modelSel').addEventListener('change',e=>{S.settings.model=e.target.value;save();});
+  $('#temp').addEventListener('input',e=>{S.settings.temperature=num(e.target.value,0.9);$('#tempVal').textContent=S.settings.temperature;save();});
+  $('#testBtn').addEventListener('click',async()=>{const st=$('#testStatus');if(!apiKey()){st.textContent='Paste a key first.';return;}st.textContent='Checking…';
+    try{const r=await fetch(API+'/models',{headers:{Authorization:'Bearer '+apiKey()}});if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,200));
+      const j=await r.json();const ids=(j.data||[]).map(m=>m.id).filter(id=>/grok/i.test(id)&&!/image|video|voice|imagine/i.test(id));S.settings.extraModels=ids;save();bindAll();st.textContent='Connected ✓ — '+ids.length+' text models loaded into the picker.';}
+    catch(e){st.textContent='Failed: '+e.message+(/fetch|network/i.test(String(e.message))?' (network or browser blocked the request)':'');}});
+  $('#rankTable').addEventListener('input',e=>{const t=e.target;if(t.dataset.rank===undefined)return;const r=S.rankChart[+t.dataset.rank];r[t.dataset.k]=t.dataset.k==='minLevel'?num(t.value,0):t.value;save();renderHud();});
+  $('#rankTable').addEventListener('click',e=>{const t=e.target.closest('[data-delrank]');if(!t)return;S.rankChart.splice(+t.dataset.delrank,1);save();renderRankTable();renderHud();});
+  $('#addRank').addEventListener('click',()=>{S.rankChart.push({rank:'?',minLevel:999});save();renderRankTable();});
+  $('#resetRanks').addEventListener('click',()=>{if(confirm('Restore the default rank chart?')){S.rankChart=DEFAULT_RANKS.map(r=>({...r}));save();renderRankTable();renderHud();}});
+  $('#resetPrompt').addEventListener('click',()=>{if(confirm('Restore the default narrator prompt?')){S.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;save();bindAll();}});
+  $('#resetCraft').addEventListener('click',()=>{if(confirm('Restore the default forge prompt?')){S.settings.craftPrompt=DEFAULT_CRAFT_PROMPT;save();bindAll();}});
+  $('#summarizeBtn').addEventListener('click',()=>summarize(true));
+  $('#exportBtn').addEventListener('click',()=>{saveNow();download('solo-rp-save-'+today()+'.json',JSON.stringify(S,null,2));});
+  $('#importBtn').addEventListener('click',()=>$('#importFile').click());
+  $('#importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(confirm('Replace your current save with this file?')){S=migrate(d);saveNow();bindAll();renderAllViews();toast('Save imported.');}}catch(err){toast('Import failed: '+err.message);}e.target.value='';});
+  $('#clearStory').addEventListener('click',()=>{if(confirm('Delete all story posts? Stats are kept.')){S.messages=[];S.world.summarizedCount=0;saveNow();renderLog();}});
+  $('#resetAll').addEventListener('click',()=>{if(confirm('Reset EVERYTHING (story, stats, character, settings)? Export first if unsure. Your API key is kept.')){S=defaultState();saveNow();bindAll();renderAllViews();}});
+  initCompanions();
+  $('#nextDayBtn').addEventListener('click',nextDay);
+  $('#statRankTable').addEventListener('input',e=>{const t=e.target;if(t.dataset.srank===undefined)return;const r=S.statRanks[+t.dataset.srank];if(t.dataset.k==='max')r.max=t.value===''?null:num(t.value,r.max);else r.rank=t.value;save();});
+  $('#statRankTable').addEventListener('click',e=>{const t=e.target.closest('[data-delsrank]');if(!t)return;S.statRanks.splice(+t.dataset.delsrank,1);save();renderStatRankTable();});
+  $('#addSRank').addEventListener('click',()=>{S.statRanks.push({rank:'?',max:null});save();renderStatRankTable();});
+  $('#resetSRanks').addEventListener('click',()=>{if(confirm('Restore default stat rank thresholds?')){S.statRanks=DEFAULT_STAT_RANKS.map(r=>({...r}));save();renderStatRankTable();}});
+  $('#patronType').innerHTML=PATRONS.map(p=>'<option>'+esc(p)+'</option>').join('');
+  bindAll();renderAllViews();
+}
+function renderAllViews(){renderCompanions();renderLog();renderSystem();renderDaily();renderForgeInv();renderForgeResult();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+</body>
+</html>
