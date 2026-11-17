@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -309,6 +309,12 @@ pre{white-space:pre-wrap;word-break:break-word}
 #claimKillsBox .qty-box{margin-top:0}
 #claimKillsBtn{width:100%;min-height:44px;margin-top:10px}
 
+#skipDaysBox .claim-grid{margin-top:8px}
+.skip-daily-opt{display:flex;align-items:center;gap:10px;min-height:44px;min-width:0}
+.skip-daily-opt input[type=checkbox]{width:22px;height:22px;flex:0 0 22px}
+#skipDaysBtn{width:100%;min-height:44px}
+#skipDaysAmt{width:100%;max-width:100%;min-height:44px;padding:6px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:16px}
+
 </style>
 </head>
 <body>
@@ -561,6 +567,7 @@ Pacing: one beat per reply, then stop and give her space to react. Do not inject
 Combat: when a COMBAT GUIDE is in the system context, follow it strictly. Do not one-shot a higher-level, orange, or red monster (a rare LUK/SEN weak-point crit may drop an orange if the fiction supports it; never a red). Mobs fight back; emit received damage as hp in <system_event> using the guide's numbers. Only resolve the outcome of actions she wrote — never decide her moves.
 Regeneration is innate and app-applied: do not award HP or write a regen window for it. If she is wounded, you may briefly describe minor wounds closing; the app updates HP.
 Titles are app-run. For a story feat with no app rule, emit title_earned[{name,description,effects}]. Do not invent titles, title windows, or title effects otherwise — the app awards them and draws '[You have acquired the title: X]'.
+If she skips or moves forward time (in story or OOC) and says she did her dailies, emit <system_event>{"time_skip":{"days":N,"dailies_done":true}}</system_event> in that reply (dailies_done may be a number of days if only some were completed). The app advances the day, awards Daily Quest rewards, and draws the notice — do not invent points, boxes, or HP/MP. If she asks (in story or OOC) to sell specific items and quantities, emit {"sell":[{"name":"Wolf Pelt","qty":10}]}. If she asks to mix, craft, or combine specific items, emit {"craft":[{"inputs":[{"name":"...","qty":N}],"output":{"name":"...","qty":1,"category":"...","description":"...","effects":[]}}]}. The app performs the sale or craft and draws the notice; reject items she does not have. Do not invent gold or items, and do not set max HP or max MP on crafted output.
 If the context lists "Since last reply, she did (app actions)", those already happened out-of-story. Acknowledge them naturally (NPCs or the world can notice a new item or outfit). Do not narrate her performing those actions or invent her feelings about them. She is already wearing any equipped gear and title listed under Currently equipped.
 Do not acknowledge this OOC note in the story.))`;
 function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
@@ -1459,6 +1466,313 @@ function advanceGameDay(state){
   const titlesEarned=p?evaluateAppTitles(p,{streak:dailyStreak(state)}):[];
   return {ok:true,done,penalty,day:g.day,regen,titlesEarned};
 }
+const TIME_SKIP_MAX=365;
+const PENALTY_QUEST={name:'Penalty Quest: Survive',description:'Failure to complete the Daily Quest. Survive in the Penalty Zone until the time limit expires.',reward:'',deadline:'Penalty Zone time limit',status:'active',progress:''};
+function clampTimeSkipDays(n){const d=Math.floor(num(n,0));if(!(d>0))return 0;return Math.min(TIME_SKIP_MAX,d);}
+function parseTimeSkipSpec(raw){
+  if(raw==null||raw===false)return null;
+  if(typeof raw==='number'||typeof raw==='string'){const days=clampTimeSkipDays(raw);return days?{days,dailiesDone:0}:null;}
+  if(typeof raw!=='object')return null;
+  const days=clampTimeSkipDays(raw.days!=null?raw.days:(raw.n!=null?raw.n:(raw.count!=null?raw.count:raw.day)));
+  if(!days)return null;
+  const done=raw.dailies_done!=null?raw.dailies_done:(raw.dailiesDone!=null?raw.dailiesDone:(raw.dailies!=null?raw.dailies:(raw.daily!=null?raw.daily:raw.completed)));
+  let dailiesDone=0;
+  if(done===true||done==='all'||done==='yes'||done==='true')dailiesDone=days;
+  else if(done===false||done==null||done===''||done==='no'||done==='false')dailiesDone=0;
+  else dailiesDone=Math.max(0,Math.min(days,Math.floor(num(done,0))));
+  return {days,dailiesDone};
+}
+function collectTimeSkip(events,updates){
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){
+    if(!o||typeof o!=='object')continue;
+    const raw=o.time_skip!=null?o.time_skip:(o.timeSkip!=null?o.timeSkip:(o.timeskip!=null?o.timeskip:(o.skip_days!=null?o.skip_days:o.days_passed)));
+    if(raw==null||raw===false)continue;
+    const spec=parseTimeSkipSpec(raw);
+    if(spec&&spec.days)return spec;
+  }
+  return null;
+}
+function durationToDays(count,unit){
+  const n=parseCountToken(count)||Math.floor(num(count,0));
+  const u=String(unit||'day').toLowerCase();
+  if(!(n>0))return 0;
+  if(/^month/.test(u))return n*30;
+  if(/^week/.test(u))return n*7;
+  return n;
+}
+function detectUserTimeSkip(text){
+  const t=String(text||'');
+  if(!t.trim())return null;
+  const didDailies=/\b(?:did|completed|finished|kept up with|do(?:ing)?)\b[\s\S]{0,48}\b(?:my |her |the |all (?:my |her |the )?)?dail(?:y|ies|ys|y quests?)\b|\bdail(?:y|ies|ys|y quests?)\b[\s\S]{0,32}\b(?:each|every|all)\s+days?\b|\b(?:each|every)\s+day[\s\S]{0,32}\bdail(?:y|ies|ys)\b/i.test(t);
+  if(!didDailies)return null;
+  const skipish=/\b(?:mov(?:e|ed|ing)\s+forward|skip(?:s|ped|ping)?(?:\s+(?:ahead|forward|time))?|fast[- ]?forward(?:ed|ing)?|advance(?:d|s|ing)?|time[- ]?skip(?:ped)?|jump(?:ed|ing)?\s+forward|pass(?:ed|ing)\s+(?:ahead|forward)|spent|spend)\b/i.test(t)||/\b(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|a|an)\s+(?:days?|weeks?|months?)\s+(?:pass(?:ed)?|later|ahead|forward)\b/i.test(t);
+  if(!skipish&&!/\b(?:\d+|a|an|one)\s+(?:days?|weeks?|months?)\b/i.test(t))return null;
+  let days=0,best=-1;
+  const re=/\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|a|an)\s+(days?|weeks?|months?)\b/gi;
+  let m;const window=t;
+  while((m=re.exec(window))){
+    const d=durationToDays(m[1],m[2]);if(!d)continue;
+    const around=window.slice(Math.max(0,m.index-48),m.index+m[0].length+48);
+    const score=(/\b(?:mov(?:e|ed|ing)\s+forward|skip|advance|time[- ]?skip|fast[- ]?forward|jump|spent|spend|pass(?:ed)?|ahead|later)\b/i.test(around)?2:0)+d/1000;
+    if(score>best){best=score;days=d;}
+  }
+  days=clampTimeSkipDays(days);
+  if(!days)return null;
+  return {days,dailiesDone:days,fromUser:true};
+}
+function prevUserText(messages,uptoIndex){
+  const msgs=messages||[];
+  const end=uptoIndex==null?msgs.length:uptoIndex;
+  for(let i=end-1;i>=0;i--)if(msgs[i]&&msgs[i].role==='user')return String(msgs[i].text||'');
+  return '';
+}
+function flushClaimedDay(game,daily){
+  if(!game||!daily||!daily.claimed)return false;
+  daily.history=(daily.history||[]).concat([{day:num(game.day,1),completed:true}]).slice(-60);
+  game.day=num(game.day,1)+1;
+  (daily.items||[]).forEach(x=>x.done=0);
+  daily.claimed=false;
+  daily.date='Day '+game.day;
+  return true;
+}
+function applyPenaltyQuest(p){
+  if(!p)return false;
+  if(!Array.isArray(p.quests))p.quests=[];
+  const q=normQuest(PENALTY_QUEST);
+  const i=p.quests.findIndex(x=>keyOf(x)===keyOf(q));
+  if(i>=0){p.quests[i]=Object.assign({},p.quests[i],q);return p.quests[i].status!=='completed';}
+  p.quests.push(q);return true;
+}
+function dailyBoxTier(p,rankChart){
+  const hr=rankForLevel(rankChart||DEFAULT_RANKS,p&&p.level);
+  return (typeof BOX_TIERS!=='undefined'&&BOX_TIERS.includes(hr))?hr:((['National','Deity'].includes(hr))?'S':'E');
+}
+function applyTimeSkip(p,spec,cfg,opts){
+  opts=opts||{};spec=spec&&typeof spec==='object'?spec:parseTimeSkipSpec(spec);
+  if(!p||!spec||!spec.days)return {ok:false,reason:'missing'};
+  const days=clampTimeSkipDays(spec.days);if(!days)return {ok:false,reason:'days'};
+  const doneCount=Math.max(0,Math.min(days,Math.floor(num(spec.dailiesDone!=null?spec.dailiesDone:spec.dailies_done,0))));
+  const game=opts.game||(opts.state&&opts.state.game);
+  const daily=opts.daily||(opts.state&&opts.state.daily);
+  const rankChart=opts.rankChart||(opts.state&&opts.state.rankChart)||DEFAULT_RANKS;
+  const notes=[];const notices=[];
+  if(game&&daily)flushClaimedDay(game,daily);
+  let penalty=false;
+  for(let i=0;i<days;i++){
+    const completed=i<doneCount;
+    if(!completed&&!penalty){if(applyPenaltyQuest(p))penalty=true;}
+    if(game&&daily){
+      daily.history=(daily.history||[]).concat([{day:num(game.day,1),completed:!!completed}]).slice(-60);
+      game.day=num(game.day,1)+1;
+      (daily.items||[]).forEach(x=>x.done=0);
+      daily.claimed=false;
+      daily.date='Day '+game.day;
+    }
+  }
+  const points=doneCount*3;
+  const tier=dailyBoxTier(p,rankChart);
+  if(doneCount>0){
+    const box=makeBox({kind:'random',tier,qty:doneCount});
+    notes.push(...applyUpdate(p,{stat_points:points,boxes_add:[box]},cfg));
+    deriveMax(p,cfg);
+    p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;
+    clampPlayer(p);
+  }else if(opts.regen!==false){
+    const rg=typeof applyRegeneration==='function'?applyRegeneration(p,{ticks:REGEN_REST_TICKS}):{hp:0,notices:[]};
+    if(rg&&rg.notices)notices.push.apply(notices,rg.notices);
+  }
+  const boxName=doneCount?(tier+'-Rank Random Box'):'';
+  const bits=[days+' day'+(days===1?'':'s')+' passed.'];
+  if(doneCount)bits.push('Daily Quest completed ×'+doneCount+'.','Ability Points +'+points+'.','Random Box ×'+doneCount);
+  if(penalty)bits.push('Penalty Quest triggered.');
+  const body=bits.join(' ').replace(/\.\s*$/,'')+'.';
+  notices.unshift({title:'Notification',body:body});
+  const streak=(game&&daily)?dailyStreak({daily:daily}):doneCount;
+  return {ok:true,days,completed:doneCount,points,boxName,boxQty:doneCount,penalty,notes,notices,streak,tier};
+}
+function diffWorld(before,after){
+  if(!before||!after)return null;
+  const patch={};
+  if(JSON.stringify(before.game||null)!==JSON.stringify(after.game||null))patch.game=[clone(before.game||{}),clone(after.game||{})];
+  if(JSON.stringify(before.daily||null)!==JSON.stringify(after.daily||null))patch.daily=[clone(before.daily||{}),clone(after.daily||{})];
+  return (patch.game||patch.daily)?patch:null;
+}
+function revertWorldPatch(state,patch){
+  if(!state||!patch)return;
+  if(patch.game&&patch.game[0]){
+    const g=clone(patch.game[0]);
+    if(state.game){state.game.day=g.day;state.game.startDate=g.startDate;}else state.game=g;
+  }
+  if(patch.daily&&patch.daily[0]){
+    const d=clone(patch.daily[0]);
+    if(state.daily){state.daily.date=d.date;state.daily.claimed=!!d.claimed;state.daily.items=Array.isArray(d.items)?d.items:[];state.daily.history=Array.isArray(d.history)?d.history:[];}
+    else state.daily=d;
+  }
+}
+function normalizeItemName(s){
+  return keyOf(s).replace(/['’]/g,'').replace(/\b(the|a|an)\b/g,' ').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()
+    .replace(/ies$/,'y').replace(/ses$/,'s').replace(/s$/,'');
+}
+function findInventoryMatch(p,name){
+  if(!p||!Array.isArray(p.inventory)||!name)return -1;
+  const k=keyOf(name);
+  let i=p.inventory.findIndex(x=>keyOf(x)===k);
+  if(i>=0)return i;
+  const n1=normalizeItemName(name);
+  if(!n1)return -1;
+  const hits=[];
+  p.inventory.forEach((x,idx)=>{if(normalizeItemName(x.name)===n1)hits.push(idx);});
+  if(hits.length)return hits[0];
+  const loose=[];
+  p.inventory.forEach((x,idx)=>{const xn=normalizeItemName(x.name);if(xn===n1||xn.endsWith(' '+n1)||n1.endsWith(' '+xn))loose.push(idx);});
+  return loose.length===1?loose[0]:-1;
+}
+function inventoryQtyByName(p,name){
+  const i=findInventoryMatch(p,name);
+  return i<0?0:Math.max(0,num(p.inventory[i].qty,1));
+}
+function collectNamedList(events,updates,keys){
+  const out=[];
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){
+    if(!o||typeof o!=='object')continue;
+    for(const k of keys){
+      if(o[k]==null)continue;
+      const list=o[k];
+      (Array.isArray(list)?list:[list]).forEach(x=>{if(x)out.push(x);});
+    }
+  }
+  return out;
+}
+function sellNamedItems(p,list){
+  const sold=[];const rejected=[];
+  for(const req of (list||[])){
+    if(!req)continue;
+    const name=String(req.name||req.item||req.item_name||'').trim();
+    if(!name)continue;
+    const wantAll=req.all===true||String(req.qty||'').toLowerCase()==='all';
+    const i=findInventoryMatch(p,name);
+    if(i<0){rejected.push({name,qty:Math.max(1,Math.floor(num(req.qty,1))),reason:'missing'});continue;}
+    const it=p.inventory[i];
+    const have=Math.max(0,num(it.qty,1));
+    const qty=wantAll?have:Math.max(1,Math.floor(num(req.qty,1)));
+    if(have<qty||!have){rejected.push({name:it.name,qty,have,reason:'qty'});continue;}
+    const r=sellInventoryItems(p,i,qty);
+    if(r&&r.ok)sold.push(r);else rejected.push({name:it.name,qty,reason:r&&r.reason||'missing'});
+  }
+  const gold=sold.reduce((s,x)=>s+num(x.gold,0),0);
+  const notices=[];
+  if(sold.length){
+    const lines=sold.map(s=>'Sold '+s.name+' ×'+s.qty+' for '+s.gold+' G.');
+    if(sold.length>1)lines.push('Gold +'+gold+'.');
+    notices.push({title:'Notification',body:lines.join('\n')});
+  }
+  for(const r of rejected){
+    const msg=r.reason==='qty'?'You do not have '+r.qty+' × '+r.name+' (have '+(r.have||0)+').':'You do not have '+r.name+'.';
+    notices.push({title:'Notification',body:msg});
+  }
+  return {ok:!!sold.length,sold,rejected,gold,notices};
+}
+function scrubCraftedItem(it){
+  const n=normItem(it||{});
+  if(n.stats&&typeof n.stats==='object'){
+    const st=Object.assign({},n.stats);
+    for(const k of Object.keys(st)){
+      const s=String(k||'').toLowerCase().replace(/[\s_-]/g,'');
+      if(s==='maxhp'||s==='maxmp'||s==='hpmax'||s==='mpmax'||s==='hp'||s==='mp')delete st[k];
+    }
+    n.stats=st;
+  }
+  return n;
+}
+function consumeNamedItems(p,list){
+  for(const req of (list||[])){
+    const i=findInventoryMatch(p,req.name);
+    if(i<0)continue;
+    const it=p.inventory[i];
+    const q=Math.max(1,Math.floor(num(req.qty,1)));
+    it.qty=Math.max(0,num(it.qty,1)-q);
+    if(it.qty<=0){if(it.equipped)it.equipped=false;p.inventory.splice(i,1);}
+  }
+}
+function craftRecipes(p,recipes){
+  const crafted=[];const rejected=[];const notices=[];
+  for(const rec of (recipes||[])){
+    if(!rec)continue;
+    const inputs=(rec.inputs||rec.materials||rec.mats||rec.consume||[]).map(x=>{
+      if(typeof x==='string')return {name:x,qty:1};
+      return {name:String(x.name||x.item||'').trim(),qty:Math.max(1,Math.floor(num(x.qty,1)))};
+    }).filter(x=>x.name);
+    const output=scrubCraftedItem(rec.output||rec.item||rec.result||rec);
+    if(!output.name||output.name==='Item'&&!((rec.output||rec.item||rec.result||{}).name)){rejected.push({reason:'output',inputs});notices.push({title:'Notification',body:'The craft was missing a result item.'});continue;}
+    if(!inputs.length){rejected.push({reason:'inputs',name:output.name});notices.push({title:'Notification',body:'You do not have the materials to craft '+output.name+'.'});continue;}
+    const missing=[];
+    for(const inp of inputs){
+      const have=inventoryQtyByName(p,inp.name);
+      if(have<inp.qty)missing.push({name:inp.name,qty:inp.qty,have});
+    }
+    if(missing.length){
+      rejected.push({reason:'missing',name:output.name,missing});
+      const m=missing[0];
+      notices.push({title:'Notification',body:m.have?'You do not have '+m.qty+' × '+m.name+' (have '+m.have+') to craft '+output.name+'.':'You do not have the materials to craft '+output.name+'.'});
+      continue;
+    }
+    consumeNamedItems(p,inputs);
+    if(!output.qty||output.qty<1)output.qty=1;
+    addItemToInventory(p,output);
+    crafted.push({name:output.name,qty:output.qty,inputs});
+    const used=inputs.map(x=>x.name+(x.qty>1?' ×'+x.qty:'')).join(', ');
+    notices.push({title:'Notification',body:'Crafted '+output.name+(output.qty>1?' ×'+output.qty:'')+'. Materials consumed: '+used+'.'});
+  }
+  return {ok:!!crafted.length,crafted,rejected,notices};
+}
+function detectUserSells(text){
+  const t=String(text||'');
+  if(!/\bsell(?:s|ing)?\b/i.test(t))return [];
+  const out=[];
+  const chunks=t.split(/\bsell(?:s|ing)?\b/i).slice(1);
+  const numRe='(\\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|all|a|an)';
+  const itemRe=new RegExp('(?:^|,|;|\\band\\b|&)\\s*(?:'+numRe+'\\s*[x×]?\\s+)?(?:all\\s+)?([A-Za-z][A-Za-z0-9\' \\-]{1,60}?)(?=\\s*(?:,|;|\\band\\b|&|\\bfor\\b|\\bto\\b|[.!?)]|$))','gi');
+  for(const ch of chunks){
+    const slice=String(ch).split(/\b(?:then|before|after|because|and then|craft|mix|combine|forge|skip|move)\b/i)[0];
+    let m;itemRe.lastIndex=0;
+    while((m=itemRe.exec(slice))){
+      const raw=String(m[1]||'').toLowerCase();
+      const name=String(m[2]||'').replace(/\s+/g,' ').replace(/[.]+$/,'').trim();
+      if(!name||name.length<3)continue;
+      if(/^(and|the|my|her|all|some|them)$/i.test(name))continue;
+      if(raw==='all')out.push({name,qty:1,all:true});
+      else out.push({name,qty:parseCountToken(m[1])||1});
+    }
+  }
+  return out;
+}
+function parseItemQtyList(text){
+  const out=[];
+  const parts=String(text||'').split(/\s*(?:,|;|&|\band\b)\s*/);
+  for(const part of parts){
+    const bit=part.trim();if(!bit)continue;
+    const m=bit.match(/^(?:(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|a|an)\s*[x×]?\s+)?(.+)$/i);
+    if(!m)continue;
+    const name=String(m[2]||'').replace(/\s+/g,' ').trim();
+    if(!name||name.length<3)continue;
+    if(/^(and|the|my|her|all|some|them)$/i.test(name))continue;
+    out.push({name,qty:m[1]?(parseCountToken(m[1])||1):1});
+  }
+  return out;
+}
+function detectUserCrafts(text){
+  const t=String(text||'');
+  const verb=/\b(?:craft(?:s|ed|ing)?|mix(?:es|ed|ing)?|combine[sd]?|combin(?:e|ing)|forge(?:d|s|ing)?)\b/i;
+  if(!verb.test(t))return [];
+  const m=t.match(/\b(?:craft(?:s|ed|ing)?|mix(?:es|ed|ing)?|combine[sd]?|combin(?:e|ing)|forge(?:d|s|ing)?)\s+(?:(?:me|her|him)\s+)?(?:(?:a|an|one|the)\s+)?(.+?)\s+(?:from|using|with|out of)\s+(.+?)(?:[.!?]|$)/i);
+  if(!m)return [];
+  const outName=String(m[1]||'').replace(/\s+/g,' ').trim();
+  const inputs=parseItemQtyList(m[2]);
+  if(!outName||outName.length<2||!inputs.length)return [];
+  return [{inputs,output:{name:outName.replace(/^(a|an|the)\s+/i,''),qty:1,category:'Other',description:'Crafted on request.'}}];
+}
 function acceptQuestOffer(player,offer){
   if(!player||!offer||!offer.name)return {ok:false};
   if(!player.quests)player.quests=[];
@@ -1521,6 +1835,31 @@ function runSystemEngine(p,text,cfg,opts){
       for(const it of (rew.items||[]))notices.push({title:'Notification',body:'Item: '+it.name+(it.qty>1?' ×'+it.qty:'')+' has been acquired.'});
       if(rew.gold)notices.push({title:'Notification',body:'Gold +'+rew.gold+' has been acquired.'});
     }
+    const userText=opts.userText!=null?opts.userText:prevUserText(opts.messages,opts.uptoIndex);
+    const game=opts.game||(opts.state&&opts.state.game);
+    const daily=opts.daily||(opts.state&&opts.state.daily);
+    const sellList=collectNamedList(events,updates,['sell','sells','items_sell']);
+    if(!sellList.length&&userText)sellList.push.apply(sellList,detectUserSells(userText));
+    if(sellList.length){
+      const sr=sellNamedItems(p,sellList);
+      for(const n of (sr.notices||[]))notices.push(n);
+    }
+    const craftList=collectNamedList(events,updates,['craft','crafts','forge','combine']);
+    if(!craftList.length&&userText)craftList.push.apply(craftList,detectUserCrafts(userText));
+    if(craftList.length){
+      const cr=craftRecipes(p,craftList);
+      for(const n of (cr.notices||[]))notices.push(n);
+    }
+    let skip=collectTimeSkip(events,updates);
+    if(!skip&&userText)skip=detectUserTimeSkip(userText);
+    if(skip){
+      const ts=applyTimeSkip(p,skip,cfg,{game:game,daily:daily,rankChart:opts.rankChart||(opts.state&&opts.state.rankChart),state:opts.state,regen:true});
+      if(ts&&ts.ok){
+        notes.push.apply(notes,ts.notes||[]);
+        notices.push.apply(notices,ts.notices||[]);
+        if(opts.streak==null&&ts.streak!=null)opts.streak=ts.streak;
+      }
+    }
   }
   for(const n of notes){
     if(/^LEVEL UP/.test(n))notices.push({title:'Level Up!',body:n.replace(/^LEVEL UP!?\s*/,'')});
@@ -1537,7 +1876,8 @@ function runSystemEngine(p,text,cfg,opts){
       regen=applyRegeneration(p,{ticks});
     }
     const solo=!!(clear&&(clear.solo||clear.instance||/instance/i.test(String(clear.name||''))));
-    titlesEarned=evaluateAppTitles(p,{streak:opts.streak,soloClear:solo,penaltySurvived:penaltyJustSurvived(p,notes,events,updates)});
+    const streak=opts.streak!=null?opts.streak:((opts.daily||(opts.state&&opts.state.daily))?dailyStreak({daily:opts.daily||opts.state.daily}):0);
+    titlesEarned=evaluateAppTitles(p,{streak:streak,soloClear:solo,penaltySurvived:penaltyJustSurvived(p,notes,events,updates)});
   }
   for(const spec of collectTitleEarned(events,updates)){
     const r=grantTitle(p,spec,{autoEquip:true});if(r)titlesEarned.push(r);
@@ -1561,11 +1901,15 @@ function patchIsEmpty(patch){
 }
 function applyTextToPlayer(p,text,cfg,opts){
   const before=clone(p);opts=opts||{};
-  const parsed=parseSystemUpdates(text);
+  const state=opts.state;
+  if(state){if(!opts.game)opts.game=state.game;if(!opts.daily)opts.daily=state.daily;if(!opts.rankChart)opts.rankChart=state.rankChart;}
+  const beforeWorld=(opts.game||opts.daily)?{game:opts.game?clone(opts.game):null,daily:opts.daily?clone(opts.daily):null}:null;
+  const parsed=opts.parsed||parseSystemUpdates(text);
   const r=runSystemEngine(p,text,cfg,Object.assign({},opts,{parsed:parsed}));
   const patch=diffPlayer(before,p);
+  const worldPatch=beforeWorld?diffWorld(beforeWorld,{game:opts.game,daily:opts.daily}):null;
   const killNotices=(r.notices||[]).filter(n=>/You have killed/.test(n.body||'')).map(n=>(n.body||'').replace(/\n/g,' '));
-  return {patch:(patchIsEmpty(patch)?null:patch),notes:r.notes||[],errors:r.errors||parsed.errors||[],killNotices,sysNotices:r.notices||[],questOffers:r.questOffers||[],regen:r.regen||null,titlesEarned:r.titlesEarned||[]};
+  return {patch:(patchIsEmpty(patch)?null:patch),worldPatch:worldPatch,notes:r.notes||[],errors:r.errors||parsed.errors||[],killNotices,sysNotices:r.notices||[],questOffers:r.questOffers||[],regen:r.regen||null,titlesEarned:r.titlesEarned||[]};
 }
 function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
 
@@ -2191,7 +2535,7 @@ function commitActionLog(state,msgIndex,alt,used){
   let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
   if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -2481,7 +2825,7 @@ function editBox(t){return '<textarea class="editArea" style="min-height:160px">
 
 function filterCoveredNotes(notes,notices){
   if(!(notices&&notices.length))return notes;
-  return (notes||[]).filter(n=>!/^(EXP \+|Item acquired|Box acquired|Gold \+|LEVEL UP|Title acquired)/i.test(String(n)));
+  return (notes||[]).filter(n=>!/^(EXP \+|Item acquired|Box acquired|Gold \+|LEVEL UP|Title acquired|Ability Points|Sold |Crafted |\d+ days? passed)/i.test(String(n)));
 }
 function questOfferHtml(offers,msgIndex){
   return (offers||[]).map((q,i)=>{
@@ -2499,7 +2843,7 @@ function renderMsg(m,i){
   if(m.role==='error')return '<div class="msg syslog" style="border-color:var(--red);color:#ffb3c0" data-i="'+i+'"><div class="who">Narrator error<span class="tools"><button class="icon" data-act="retryErr">↻ retry</button><button class="icon" data-act="del">🗑</button></span></div><div class="body">The request to Grok failed: '+esc(m.text)+'<br><span class="muted">Check your API key / model in Settings, then press retry.</span></div></div>';
   if(m.role==='user'||m.role==='syslog'){
     const label=m.role==='user'?(S.character.name||'You'):'System log';
-    const canUndo=m.role==='syslog'&&m.applied&&m.patch;
+    const canUndo=m.role==='syslog'&&m.applied&&(m.patch||m.worldPatch);
     return '<div class="msg '+m.role+'" data-i="'+i+'"><div class="who">'+esc(label)+'<span class="tools">'+
       (m.role==='user'?'<button class="icon" data-act="regenFrom" title="Get a new narrator reply to this post">↻ reply</button>':'')+
       (canUndo?'<button class="icon" data-act="undoClaim" title="Undo this claim">↩ undo</button>':'')+
@@ -2516,7 +2860,7 @@ function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
   a.prevAwakened=!!(S.flags&&S.flags.systemAwakened);a.prevOpening=!!S.world.openingActive;
   if(!S.flags.systemAwakened&&wouldAwaken(a.text,parsed.updates,S.world.openingActive)){S.flags.systemAwakened=true;S.world.openingActive=false;}
-  if(S.flags.systemAwakened){const mi=(S.messages||[]).findIndex(m=>m.alts&&m.alts.includes(a));const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened,messages:S.messages,uptoIndex:mi>=0?mi:undefined});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];a.sysNotices=r.sysNotices||[];a.questOffers=r.questOffers||[];a.regenHp=(r.regen&&r.regen.hp)||0;if(a.regenHp)S.flags.regenFlash=a.regenHp;if((a.killNotices||[]).length||(a.sysNotices||[]).length)a.killExpAwarded=true;}
+  if(S.flags.systemAwakened){const mi=(S.messages||[]).findIndex(m=>m.alts&&m.alts.includes(a));const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened,messages:S.messages,uptoIndex:mi>=0?mi:undefined,state:S,rankChart:S.rankChart,userText:prevUserText(S.messages,mi>=0?mi:undefined)});a.patch=r.patch;a.worldPatch=r.worldPatch||null;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];a.sysNotices=r.sysNotices||[];a.questOffers=r.questOffers||[];a.regenHp=(r.regen&&r.regen.hp)||0;if(a.regenHp)S.flags.regenFlash=a.regenHp;if((a.killNotices||[]).length||(a.sysNotices||[]).length)a.killExpAwarded=true;}
   else{
     const keep=preAwakenUpdates(parsed.updates,parsed.clean);const before=clone(S.player);const notes=[];
     for(const u of keep)notes.push(...applyUpdate(S.player,u,cfg()));
@@ -2528,7 +2872,7 @@ function applyAlt(a){if(!a||a.applied)return;
   const ops=collectNpcOps(parsed.updates);
   a.npcPatch={deaths:applyNpcDeaths(S.world.npcs,ops.deaths,S.game&&S.game.day,uid),knowledge:applyNpcKnowledge(S.world.npcs,ops.knowledge,uid)};
   repairDerivedStats(S.player,cfg());a.applied=true;}
-function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);if(a.npcPatch){revertNpcKnowledge(S.world.npcs,a.npcPatch.knowledge);revertNpcDeaths(S.world.npcs,a.npcPatch.deaths);}if(a.prevAwakened!==undefined)S.flags.systemAwakened=a.prevAwakened;if(a.prevOpening!==undefined)S.world.openingActive=a.prevOpening;a.applied=false;repairDerivedStats(S.player,cfg());}}
+function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);if(a.worldPatch)revertWorldPatch(S,a.worldPatch);if(a.npcPatch){revertNpcKnowledge(S.world.npcs,a.npcPatch.knowledge);revertNpcDeaths(S.world.npcs,a.npcPatch.deaths);}if(a.prevAwakened!==undefined)S.flags.systemAwakened=a.prevAwakened;if(a.prevOpening!==undefined)S.world.openingActive=a.prevOpening;a.applied=false;repairDerivedStats(S.player,cfg());}}
 
 function onLogClick(e){
   if(e.target.closest('#beginOpening')){beginOpening();return;}
@@ -2552,7 +2896,7 @@ function onLogClick(e){
     const q=act==='undoClaim'?'Undo this claim? EXP, loot, and titles it granted will be reverted.':'Delete this post?'+(hasPatch?' Any stat changes it made will be reverted.':'');
     if(!confirm(q))return;
     if(m.role==='narrator')m.alts.forEach(unapplyAlt);
-    else if(m.applied&&m.patch){revertPatch(S.player,m.patch);m.applied=false;repairDerivedStats(S.player,cfg());}
+    else if(m.applied&&(m.patch||m.worldPatch)){revertPatch(S.player,m.patch);if(m.worldPatch)revertWorldPatch(S,m.worldPatch);m.applied=false;repairDerivedStats(S.player,cfg());}
     S.messages.splice(i,1);afterChange();if(act==='undoClaim')toast('Claim undone.');}
   else if(act==='edit'){editing=m.id;renderLog();const ta=document.querySelector('.msg[data-i="'+i+'"] textarea');if(ta)ta.focus();}
   else if(act==='cancelEdit'){editing=null;renderLog();}
@@ -3030,6 +3374,35 @@ function onSysClick(e){
 }
 
 /* ================= DAILY QUEST & DAYS ================= */
+function skipDaysFromUi(){
+  if(!isAwakened()){toast('The System has not awakened yet.');return;}
+  if(busy){toast('Wait for the narrator to finish.');return;}
+  const days=clampTimeSkipDays((($('#skipDaysAmt')||{}).value));
+  if(!days){toast('Enter how many days to skip.');return;}
+  const dailies=!!($('#skipDaysDailies')&&$('#skipDaysDailies').checked);
+  const pts=dailies?days*3:0;
+  const msg=dailies
+    ?('Skip '+days+' day'+(days===1?'':'s')+' and mark the Daily Quest complete each day? You will get Ability Points +'+pts+' and Random Box ×'+days+'. You can undo this from the System log.')
+    :('Skip '+days+' day'+(days===1?'':'s')+' without completing the Daily Quest? The Penalty Quest will trigger once (not once per day). You can undo this from the System log.');
+  if(!confirm(msg))return;
+  const before=clone(S.player);
+  const beforeWorld={game:clone(S.game),daily:clone(S.daily)};
+  const r=applyTimeSkip(S.player,{days:days,dailiesDone:dailies?days:0},cfg(),{state:S,game:S.game,daily:S.daily,rankChart:S.rankChart});
+  if(!r||!r.ok){toast('Could not skip those days.');return;}
+  repairDerivedStats(S.player,cfg());
+  const earned=evaluateAppTitles(S.player,{streak:dailyStreak(S)});
+  const notices=(r.notices||[]).slice();
+  for(const def of earned)notices.push(titleAcquireNotice(def));
+  const patch=diffPlayer(before,S.player);
+  const worldPatch=diffWorld(beforeWorld,{game:S.game,daily:S.daily});
+  const label=dailies?('skipped '+days+' days, completed dailies every day'):('skipped '+days+' days without completing dailies');
+  logAppAction(label);
+  const body=(notices[0]&&notices[0].body)||(days+' days passed.');
+  S.messages.push({id:uid(),role:'syslog',kind:'timeskip',text:'Skipped '+days+' day'+(days===1?'':'s')+(dailies?' (Daily Quest completed each day). ':' without completing dailies. ')+body,patch:patch,worldPatch:worldPatch,sysNotices:notices,notes:visibleNotes(r.notes||[]),applied:true});
+  save();renderLog();renderDaily();renderSystem();renderHud();
+  if(typeof renderActionChip==='function')renderActionChip();
+  toast(body);
+}
 function dailyDone(){return S.daily.claimed||S.daily.items.every(x=>x.done>=x.target);}
 function nextDay(){
   if(!isAwakened()){toast('The System has not awakened yet.');return;}
@@ -3044,6 +3417,15 @@ function nextDay(){
   const extra=[].concat((r.regen&&r.regen.notices)||[],(r.titlesEarned||[]).map(titleAcquireNotice));
   for(const n of extra)syslog('<system>['+n.title+']\n'+n.body+'</system>');
   renderDaily();renderSystem();renderHud();toast(r.done?'Day '+r.day+' begins.':'Day '+r.day+' — Penalty Quest triggered!',4000);
+}
+function renderSkipDaysPanel(){
+  return '<div class="syswin" id="skipDaysBox"><span class="title">Skip days</span>'+
+    '<div class="muted">Jump forward in time. If you completed the Daily Quest each day, you get the usual +3 Ability Points and a random box per day (full HP/MP). Undo from the System log.</div>'+
+    '<div class="claim-grid">'+
+    '<div class="kv"><span class="k">Days</span><input type="number" id="skipDaysAmt" min="1" max="'+TIME_SKIP_MAX+'" step="1" inputmode="numeric" placeholder="e.g. 30"></div>'+
+    '<label class="skip-daily-opt"><input type="checkbox" id="skipDaysDailies" checked><span>Completed dailies every day</span></label>'+
+    '<button class="btn small primary" id="skipDaysBtn">Skip days</button>'+
+    '</div></div>';
 }
 function renderDaily(){
   if(!isAwakened()){$('#dailyBody').innerHTML=lockedMarkup('Daily Quest');return;}
@@ -3060,6 +3442,7 @@ function renderDaily(){
     '<div style="flex:0 0 auto"><button class="btn" id="dNext">Next Day ▸</button></div>'+
     '<div style="flex:0 0 auto"><button class="btn danger" id="dPenalty">Trigger penalty now</button></div></div>'+
     '<div class="muted" style="margin-top:6px">Box tier matches your current Hunter Rank. Open boxes from Inventory. Pressing Next Day with the quest unfinished triggers the Penalty Quest and tells the narrator.</div></div>';
+  h+=renderSkipDaysPanel();
   const hist=(d.history||[]).slice(-14).reverse();
   if(hist.length)h+='<div class="card"><h3>Previous days</h3>'+hist.map(x=>'<span class="tag '+(x.completed?'done':'failed')+'" style="margin:2px;display:inline-block">'+esc(x.day!=null?'Day '+x.day:x.date)+' '+(x.completed?'✓':'✗ penalty')+'</span>').join('')+'</div>';
   $('#dailyBody').innerHTML=h;
@@ -3072,6 +3455,7 @@ function onDaily(e){
   else if(e.type==='click'&&btn&&btn.dataset.dadd!==undefined){const x=d.items[+btn.dataset.dadd];x.done=Math.min(x.target,x.done+(x.unit==='km'?1:10));}
   else if(e.type==='click'&&btn&&btn.id==='dNext'){nextDay();return;}
   else if(e.type==='click'&&btn&&btn.dataset.dclaim){const r=claimDailyReward(S.player,d,S.rankChart,btn.dataset.dclaim);if(!r.ok)return;syslog('[Daily Quest: Preparation to Become Powerful] completed ('+gameDateStr()+'). Rewards received: Full Recovery (HP/MP restored, fatigue cleared), 3 free Ability Points, '+r.box.name+' ×1 (unopened).');const earned=evaluateAppTitles(S.player,{streak:dailyStreak(S)});for(const def of earned)syslog('<system>['+titleAcquireNotice(def).title+']\n'+titleAcquireNotice(def).body+'</system>');renderSystem();renderHud();toast('Daily Quest complete! '+r.box.name+' added to Inventory.');}
+  else if(e.type==='click'&&btn&&btn.id==='skipDaysBtn'){skipDaysFromUi();return;}
   else if(e.type==='click'&&btn&&btn.id==='dPenalty'){if(!confirm('Trigger the Penalty Quest now?'))return;
     syslog('[Warning] The Daily Quest was not completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon penalty quest: "Survive"). Narrator: run the Penalty Quest now.');toast('Penalty logged to the story.');}
   else return;
