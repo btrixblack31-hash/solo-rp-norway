@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -302,6 +302,13 @@ pre{white-space:pre-wrap;word-break:break-word}
   .qty-row .qty-q{flex:0 0 auto}
 }
 
+.claim-grid{display:flex;flex-direction:column;gap:8px;margin-top:8px;min-width:0}
+.claim-grid .kv{display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:0}
+.claim-grid .kv .k{width:auto}
+.claim-grid input[type=text],.claim-grid input[type=number]{width:100%;max-width:100%;min-height:44px;padding:6px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:16px}
+#claimKillsBox .qty-box{margin-top:0}
+#claimKillsBtn{width:100%;min-height:44px;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -527,8 +534,8 @@ FORMAT
 - After awakening, tag creatures [[mob:Name|Lv.N]] (never humans). The app colors the tag.
 - The APP owns all System mechanics (EXP, drops, gold, level-ups, daily rewards, boxes, shop). Do not invent stats, EXP, gold, or loot, and do not write kill/loot/Level Up windows — the app draws them. Sometimes (sparingly) you may add one brief line in the creator's voice (see Patron).
 - When something mechanical happened, end with ONE event block (omit if nothing mechanical happened):
-  <system_event>{"kills":[{"name":"Wolf","level":8,"rank":"E","boss":false}]}</system_event>
-  Keys (all optional): kills[{name,level,rank,boss}], dungeon_clear{name,rank,boss,solo}, quest_offer[{name,description,type,reward}], quest_progress[{name,progress,complete}], item_use[{name}], npcDeaths[{name,cause}], npcKnowledge[{name,fact}], hp, mp, companions_add, companions_update, companions_remove, skills_add, skills_update, title_earned[{name,description,effects}], system_awakened.
+  <system_event>{"kills":[{"name":"Wolf","level":8,"rank":"E","boss":false,"count":20}]}</system_event>
+  Keys (all optional): kills[{name,level,rank,boss,count}], dungeon_clear{name,rank,boss,solo}, quest_offer[{name,description,type,reward}], quest_progress[{name,progress,complete}], item_use[{name}], npcDeaths[{name,cause}], npcKnowledge[{name,fact}], hp, mp, companions_add, companions_update, companions_remove, skills_add, skills_update, title_earned[{name,description,effects}], system_awakened.
   Valid JSON only. Never include exp_gain, gold, items_add, or level_up — the app awards those from events and kills.`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
@@ -543,7 +550,7 @@ Second person is only for addressing her as the reader of the environment (what 
 Bad: her post was a wave and a greeting → "No one notices the small smile that curves your lips as you lift your hand. \\"Hello?\\" your voice rings out."
 Good: her post was a wave and a greeting → "The statue does not move. Kari glances over, frowning. \\"Don't wander,\\" she mutters."
 
-system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. After awakening, when she kills a monster or creature on-screen, emit a <system_event> with kills[{name,level,rank,boss}] (or tag the mob with [[mob:Name|Lv.N]] and clearly narrate the kill). Do not invent EXP, gold, or drops and do not write the kill/loot/Level Up windows — the app awards them and draws the notices. Same for a dungeon clear (dungeon_clear). For a new quest, emit quest_offer; for progress, quest_progress. You may still include narrated hp/mp loss and npcDeaths/npcKnowledge in the event block. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
+system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. After awakening, when she kills a monster or creature on-screen, emit a <system_event> with kills[{name,level,rank,boss,count}] in that same reply (or tag the mob with [[mob:Name|Lv.N]] and clearly narrate the kill). For several of the same mob, one entry with count (e.g. {"name":"Wolf","level":8,"rank":"E","count":20}). If a fight spans replies, report only the kills that happened in this reply. If she asks OOC for missed EXP or loot for kills that clearly already happened, emit that kills event with count now. Do not invent EXP, gold, or drops and do not write the kill/loot/Level Up windows — the app awards them and draws the notices. Same for a dungeon clear (dungeon_clear). For a new quest, emit quest_offer; for progress, quest_progress. You may still include narrated hp/mp loss and npcDeaths/npcKnowledge in the event block. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
 When a named NPC dies on-screen (including the opening raid), include npcDeaths:[{name,cause}] in that same system_update. This is world tracking, not a System window — do not write it as a status box or <system> notice. Do not reuse deceased people as living characters; memories and mentions are fine.
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
 System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
@@ -1012,41 +1019,157 @@ function hasExpDelta(updates){
   return false;
 }
 function escapeRe(s){return String(s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
-function detectTaggedMobKills(text){
-  const raw=String(text||'').replace(/<system_update>[\s\S]*?(<\/system_update>|$)/gi,' ');
+const WORD_NUMBERS={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50};
+const CLAIM_KILL_MAX=99;
+const KILL_RE=/\b(?:killed|slain|slays|slew|slaughters?|finishes? off|has fallen|lies? dead|is dead|are dead|died|dies|collapses?(?:,? (?:dead|lifeless|still))?|crumples?(?:,? (?:dead|lifeless|still))?|goes? still|stopped moving|lifeless|corpses?|carcass(?:es)?|you have (?:killed|slain)|fatal(?:ly)?|killing blow|finishing blow|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses))\b/i;
+const GROUP_DEAD_RE=/\b(?:the (?:[\w-]+ )?(?:wolves|goblins|orcs|spiders|bears|slimes|skeletons|ants|beasts|monsters|creatures|pack) (?:are|is|lie|lies|lay|have been|has been) (?:dead|slain|killed|down)|(?:last|rest|remainder) of the (?:pack|[\w-]+s?)\b.{0,40}(?:falls?|fell|dies|died|crumples?|collapses?|is (?:dead|slain)|are (?:dead|slain))|the pack (?:is|are|lies|has been) (?:dead|slain|killed|down)|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses))\b/i;
+function parseCountToken(s){
+  s=String(s||'').trim().toLowerCase();
+  if(/^\d+$/.test(s)){const n=parseInt(s,10);return n>0?n:0;}
+  return WORD_NUMBERS[s]||0;
+}
+function singularMobName(word){
+  let s=String(word||'').toLowerCase().trim();
+  if(!s||s==='pack'||s==='group'||s==='horde'||s==='swarm'||s==='them')return '';
+  if(s==='wolves')return 'Wolf';
+  if(s==='mice')return 'Mouse';
+  if(s.endsWith('ies')&&s.length>4)s=s.slice(0,-3)+'y';
+  else if(s.endsWith('oes')&&s.length>4)s=s.slice(0,-2);
+  else if(s.endsWith('ses')&&s.length>4)s=s.slice(0,-2);
+  else if(s.endsWith('s')&&!/(ss|us|is)$/.test(s)&&s.length>3)s=s.slice(0,-1);
+  return s.replace(/^\w/,c=>c.toUpperCase());
+}
+function killCountOf(k){
+  const raw=k&&(k.count!=null?k.count:(k.qty!=null?k.qty:(k.n!=null?k.n:k.number)));
+  const n=Math.floor(num(raw,1));
+  return Math.max(1,Math.min(CLAIM_KILL_MAX,n>0?n:1));
+}
+function stripSystemBlocks(text){
+  return String(text||'').replace(/<system_update>[\s\S]*?(<\/system_update>|$)/gi,' ').replace(/<system_event>[\s\S]*?(<\/system_event>|$)/gi,' ');
+}
+function collectSceneMobs(messages,uptoIndex,extraText){
+  const map=new Map();
+  const msgs=(messages||[]).slice(0,uptoIndex==null?undefined:uptoIndex).slice(-16);
+  const texts=[];
+  for(const m of msgs)for(const tx of messageTexts(m))texts.push(tx);
+  if(extraText)texts.push(String(extraText));
+  for(const text of texts){
+    const raw=stripSystemBlocks(text);
+    const re=/\[\[mob:([^\]]+)\]\]/gi;let mm;
+    while((mm=re.exec(raw))){
+      const tag=parseMobTag(mm[1]);
+      if(tag&&tag.name)map.set(String(tag.name).toLowerCase(),Object.assign({},tag));
+    }
+  }
+  return [...map.values()];
+}
+function findSceneMob(sceneMobs,name){
+  const n=String(name||'').trim();if(!n)return null;
+  const key=n.toLowerCase();
+  const list=sceneMobs||[];
+  const exact=list.find(m=>String(m.name||'').toLowerCase()===key);
+  if(exact)return exact;
+  const last=(n.split(/\s+/).filter(w=>w.length>=3).pop())||n;
+  const lastHit=list.find(m=>String(m.name||'').toLowerCase()===last.toLowerCase()||new RegExp('\\b'+escapeRe(last)+'\\b','i').test(m.name||''));
+  if(lastHit)return lastHit;
+  const sp=inferMobSpecies(n);
+  if(sp&&sp!=='beast'){
+    const hits=list.filter(m=>inferMobSpecies(m.name)===sp);
+    if(hits.length===1)return hits[0];
+    if(hits.length>1){
+      const gen=hits.find(m=>String(m.name||'').toLowerCase()===sp||String(m.name||'').toLowerCase()===key);
+      return gen||hits[0];
+    }
+  }
+  return null;
+}
+function extractKillCounts(prose){
+  const out=[];
+  const re=/\b(?:all\s+|the last of the\s+|the rest of the\s+|the remaining\s+|a pack of\s+|pack of\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty)\s+([A-Za-z][A-Za-z-]+)\b/gi;
+  let m;
+  while((m=re.exec(prose))){
+    const count=parseCountToken(m[1]);
+    const name=singularMobName(m[2]);
+    if(count>=2&&name)out.push({name,count,index:m.index});
+  }
+  return out;
+}
+function detectTaggedMobKills(text,opts){
+  opts=opts||{};
+  const raw=stripSystemBlocks(text);
   const tags=[];const re=/\[\[mob:([^\]]+)\]\]/gi;let m;
   while((m=re.exec(raw)))tags.push(parseMobTag(m[1]));
-  if(!tags.length)return [];
+  const prior=opts.sceneMobs||((opts.messages&&opts.messages.length)?collectSceneMobs(opts.messages,opts.uptoIndex):[]);
   const prose=raw.replace(/\[\[mob:([^\]]+)\]\]/gi,(_,inner)=>' '+parseMobTag(inner).name+' ');
-  const KILL=/\b(?:killed|slain|slays|slew|slaughters?|finishes? off|has fallen|lies? dead|is dead|are dead|died|dies|collapses?(?:,? (?:dead|lifeless|still))?|goes? still|stopped moving|lifeless|corpse|you have (?:killed|slain)|fatal(?:ly)?|killing blow|finishing blow)\b/i;
-  if(!KILL.test(prose))return [];
+  if(!KILL_RE.test(prose)&&!GROUP_DEAD_RE.test(prose))return [];
   function vetoed(name){
     const n=escapeRe(name);
     if(!n)return false;
-    return new RegExp('(?:almost|nearly|tried to|would have|failed to|did not|didn\'t).{0,36}'+n+'|'+n+'.{0,36}(?:almost|nearly|survives|still alive|isn\'t dead|is not dead)','i').test(prose);
+    return new RegExp('(?:almost|nearly|tried to|would have|failed to|did not|didn\'t).{0,36}'+n+'|'+n+'.{0,36}(?:almost|nearly|survives|still alive|isn\'t dead|is not dead|still up|is still up)','i').test(prose);
   }
   function namedInKill(tag){
     const name=tag.name||'';
     const last=(name.split(/\s+/).filter(w=>w.length>=3).pop())||name;
     const nameRe=new RegExp('\\b'+escapeRe(name)+'\\b','i');
     const lastRe=new RegExp('\\b'+escapeRe(last)+'\\b','i');
-    return prose.split(/(?<=[.!?])\s+|\n+/).some(s=>KILL.test(s)&&(nameRe.test(s)||lastRe.test(s)));
+    const sp=inferMobSpecies(name);
+    const pluralRe=sp==='wolf'?/\bwolves\b/i:new RegExp('\\b'+escapeRe(last)+'s\\b','i');
+    return prose.split(/(?<=[.!?])\s+|\n+/).some(s=>(KILL_RE.test(s)||GROUP_DEAD_RE.test(s))&&(nameRe.test(s)||lastRe.test(s)||pluralRe.test(s)));
   }
-  let out;
-  if(tags.length===1)out=vetoed(tags[0].name)?[]:tags.slice();
-  else out=tags.filter(tag=>!vetoed(tag.name)&&namedInKill(tag));
+  // Never auto-award the only current tag just because a kill word exists (a living boss tag must not steal a pack wipe).
+  let out=tags.filter(tag=>tag&&tag.name&&!vetoed(tag.name)&&namedInKill(tag)).map(tag=>Object.assign({},tag));
   const seen=new Set();
-  return out.filter(tag=>{const k=String(tag.name||'').toLowerCase();if(!k||seen.has(k))return false;seen.add(k);return true;});
+  out=out.filter(tag=>{
+    const k=String(tag.name||'').toLowerCase()+'|'+(tag.level==null?'':tag.level);
+    if(!String(tag.name||'').toLowerCase()||seen.has(k))return false;seen.add(k);return true;
+  });
+  const counts=extractKillCounts(prose);
+  function sameMob(a,b){
+    const na=String(a||'').toLowerCase(),nb=String(b||'').toLowerCase();
+    if(na===nb)return true;
+    const sa=inferMobSpecies(a),sb=inferMobSpecies(b);
+    return !!(sa&&sb&&sa===sb&&sa!=='beast');
+  }
+  for(const k of out){
+    const c=counts.find(x=>sameMob(x.name,k.name));
+    if(c)k.count=c.count;
+  }
+  const have=out.map(k=>String(k.name||'').toLowerCase());
+  for(const c of counts){
+    if(out.some(k=>sameMob(k.name,c.name)))continue;
+    const scene=findSceneMob(prior,c.name);
+    if(vetoed(c.name)||(scene&&vetoed(scene.name)))continue;
+    const kill={name:(scene&&scene.name)||c.name,level:scene&&scene.level!=null?scene.level:null,rank:(scene&&scene.rank)||'',count:c.count,colorHint:(scene&&scene.colorHint)||''};
+    out.push(kill);
+  }
+  if(!out.length&&GROUP_DEAD_RE.test(prose)){
+    let hint='';
+    if(/\b(wolves|wolf)\b/i.test(prose))hint='Wolf';
+    else{
+      const pm=prose.match(/\bthe ([a-z]+s)\b/i);
+      if(pm)hint=singularMobName(pm[1]);
+    }
+    let scene=hint?findSceneMob(prior,hint):null;
+    if(!scene&&prior.length){
+      const wolves=prior.filter(m=>inferMobSpecies(m.name)==='wolf');
+      if(wolves.length)scene=wolves[0];
+      else if(new Set(prior.map(m=>String(m.name||'').toLowerCase())).size===1)scene=prior[0];
+    }
+    if(scene&&!vetoed(scene.name))out.push({name:scene.name,level:scene.level!=null?scene.level:null,rank:scene.rank||'',count:1,colorHint:scene.colorHint||''});
+    else if(hint&&!vetoed(hint))out.push({name:hint,level:null,count:1});
+  }
+  return out;
 }
-function killExpFallback(text,updates,player,cfg){
+function killExpFallback(text,updates,player,cfg,opts){
   if(hasExpDelta(updates))return {exp:0,notices:[],notes:[]};
-  const kills=detectTaggedMobKills(text);
+  const kills=detectTaggedMobKills(text,opts);
   if(!kills.length)return {exp:0,notices:[],notes:[]};
   const notices=[],notes=[];let exp=0;
   for(const k of kills){
-    const amt=expForMobKill(k.level,player,cfg);
+    const n=killCountOf(k);let amt=0;
+    for(let i=0;i<n;i++)amt+=expForMobKill(k.level,player,cfg);
     exp+=amt;
-    notices.push('You have killed '+k.name+'. EXP +'+amt);
+    notices.push('You have killed '+k.name+(n>1?' ×'+n:'')+'. EXP +'+amt);
     notes.push('EXP +'+amt);
   }
   return {exp,notices,notes};
@@ -1074,7 +1197,7 @@ function backfillKillExp(s){
       if(!a||a.killExpAwarded)continue;
       const parsed=parseSystemUpdates(a.text||'');
       if(hasExpDelta(parsed.updates)||(a.patch&&a.patch.nums&&num(a.patch.nums.exp))){a.killExpAwarded=true;continue;}
-      const fb=killExpFallback(a.text,parsed.updates,s.player,cfg);
+      const fb=killExpFallback(a.text,parsed.updates,s.player,cfg,{messages:msgs,uptoIndex:i});
       if(!fb.exp)continue;
       const before=clone(s.player);
       const notes=applyUpdate(s.player,{exp_gain:fb.exp},cfg);
@@ -1166,22 +1289,26 @@ function rollDungeonClear(clear,player,rng){
   if(rng()<Math.min(0.8,0.35*luck))items.push(makeLootItem({name:'Magic Stone ('+rank+'-rank)',qty:2,category:'Material',description:'Mana crystals gathered after the dungeon was cleared.'},rank));
   return {items,gold,rank};
 }
-function collectEngineKills(events,updates,text){
+function collectEngineKills(events,updates,text,opts){
   const out=[];
-  const push=k=>{if(!k)return;const name=String(k.name||k.mob||k.monster||'').trim();if(!name)return;out.push({name,level:k.level!=null?num(k.level,null): (k.lv!=null?num(k.lv,null):null),rank:k.rank||k.acquisition_difficulty||'',boss:!!(k.boss||k.type==='boss'),type:k.type||''});};
+  const push=k=>{
+    if(!k)return;
+    const name=String(k.name||k.mob||k.monster||'').trim();if(!name)return;
+    const level=k.level!=null?num(k.level,null):(k.lv!=null?num(k.lv,null):null);
+    out.push({name,level,rank:k.rank||k.acquisition_difficulty||'',boss:!!(k.boss||k.type==='boss'),type:k.type||'',count:killCountOf(k)});
+  };
   for(const ev of (events||[])){
     if(!ev||typeof ev!=='object')continue;
     const list=ev.kills||ev.kill||[];
-    (Array.isArray(list)?list: [list]).forEach(push);
+    (Array.isArray(list)?list:[list]).forEach(push);
   }
   for(const u of (updates||[])){
     if(!u||typeof u!=='object')continue;
     const list=u.kills||u.kill||[];
     (Array.isArray(list)?list:[list]).forEach(push);
   }
-  if(!out.length)for(const k of detectTaggedMobKills(text))push(k);
-  const seen=new Set();
-  return out.filter(k=>{const key=k.name.toLowerCase();if(seen.has(key))return false;seen.add(key);return true;});
+  if(!out.length)for(const k of detectTaggedMobKills(text,opts))push(k);
+  return out;
 }
 function collectDungeonClear(events,updates){
   const src=[].concat(events||[],updates||[]);
@@ -1351,7 +1478,7 @@ function runSystemEngine(p,text,cfg,opts){
   const rebirth=first&&AWAKEN_RE.test(text||'');
   if(first)updates=updates.map(sanitizeFirstAwakeningUpdate);
   if(rebirth)updates=updates.map(u=>{if(!u||typeof u!=='object')return u;const o=Object.assign({},u);delete o.exp_gain;delete o.exp;delete o.level_up;return o;});
-  const kills=rebirth?[]:collectEngineKills(events,updates,text);
+  const kills=rebirth?[]:collectEngineKills(events,updates,text,opts);
   const clear=rebirth?null:collectDungeonClear(events,updates);
   const offers=rebirth?[]:collectQuestOffers(events,updates);
   const strip=kills.length||clear;
@@ -1363,15 +1490,28 @@ function runSystemEngine(p,text,cfg,opts){
     const dmg=collectEventDamage(events);
     if(dmg.hp)notes.push(...applyUpdate(p,{hp:dmg.hp},cfg));
     if(dmg.mp)notes.push(...applyUpdate(p,{mp:dmg.mp},cfg));
-    for(const k of kills){
-      const amt=expForMobKill(k.level,p,cfg);
-      notes.push(...applyUpdate(p,{exp_gain:amt},cfg));
-      notices.push({title:'Notification',body:'You have killed '+k.name+'.\nEXP +'+amt});
-      const drops=rollMobDrops(k,p,rng);
-      if(drops.gold)notes.push(...applyUpdate(p,{gold:drops.gold},cfg));
-      if(drops.items&&drops.items.length)notes.push(...applyUpdate(p,{items_add:drops.items},cfg));
-      for(const it of (drops.items||[]))notices.push({title:'Notification',body:'Item: '+it.name+(it.qty>1?' ×'+it.qty:'')+' has been acquired.'});
-      if(drops.gold)notices.push({title:'Notification',body:'Gold +'+drops.gold+' has been acquired.'});
+    if(kills.length){
+      const loot=[];let gold=0;
+      const stack=it=>{if(!it)return;const ex=loot.find(x=>keyOf(x)===keyOf(it));if(ex)ex.qty=num(ex.qty,1)+num(it.qty,1);else loot.push(Object.assign({},it,{qty:num(it.qty,1)}));};
+      for(const k of kills){
+        const n=killCountOf(k);let exp=0;
+        for(let i=0;i<n;i++){
+          const amt=expForMobKill(k.level,p,cfg);
+          exp+=amt;
+          notes.push(...applyUpdate(p,{exp_gain:amt},cfg));
+          const drops=rollMobDrops(k,p,rng);
+          if(drops.gold)gold+=drops.gold;
+          for(const it of (drops.items||[]))stack(it);
+        }
+        notices.push({title:'Notification',body:'You have killed '+k.name+(n>1?' ×'+n:'')+'.\nEXP +'+exp});
+      }
+      if(gold)notes.push(...applyUpdate(p,{gold:gold},cfg));
+      if(loot.length)notes.push(...applyUpdate(p,{items_add:loot},cfg));
+      if(loot.length||gold){
+        const lines=loot.map(it=>'Item: '+it.name+(it.qty>1?' ×'+it.qty:'')+' has been acquired.');
+        if(gold)lines.push('Gold +'+gold+' has been acquired.');
+        notices.push({title:'Notification',body:lines.join('\n')});
+      }
     }
     if(clear){
       const rew=rollDungeonClear(clear,p,rng);
@@ -1603,7 +1743,7 @@ function collectLiveMobs(messages,uptoIndex){
           if(name)map.delete(name);
         }
       }
-      for(const k of detectTaggedMobKills(text)){
+      for(const k of detectTaggedMobKills(text,{sceneMobs:[...map.values()]})){
         const name=String(k&&k.name||'').toLowerCase();
         if(name)map.delete(name);
       }
@@ -1650,6 +1790,7 @@ function combatGuideBlock(player,mobs){
   L.push('Enhancement: only if she already activated it this scene (~10% physical at low skill, more as it scales). Do not assume it is on.');
   L.push('Hits-to-kill: green (much weaker) = possibly one hit. Orange (near her level) = several exchanges; do not one-shot. Red / higher-level = many hits; needs tactics, weak points, or allies.');
   L.push('No one-shotting a higher-level, orange, or red mob. A rare LUK/SEN weak-point crit may (rarely) drop an orange if the fiction supports it; never a red. Mobs fight back.');
+  L.push('Kills this reply: emit one <system_event> kills entry; for a group use count (e.g. {"name":"Wolf","level":8,"rank":"E","count":20}). Report only kills that happen in this reply. If she asks OOC for missed EXP or loot, emit those missed kills with count now — the app awards EXP and drops.');
   for(const mob of mobs){
     const P=num(player.level,1);
     const M=mob.level;
@@ -1880,11 +2021,12 @@ function recordMobKills(p,kills,playerLevel){
   const P=Math.max(1,num(playerLevel!=null?playerLevel:p&&p.level,1));
   for(const k of kills||[]){
     if(!k)continue;
-    kc.total++;
+    const n=killCountOf(k);
+    kc.total+=n;
     const sp=inferMobSpecies(k.name);
-    kc.bySpecies[sp]=num(kc.bySpecies[sp],0)+1;
-    if(k.boss)kc.bosses++;
-    if(mobThreatColor(k.level,P)==='red')kc.red++;
+    kc.bySpecies[sp]=num(kc.bySpecies[sp],0)+n;
+    if(k.boss)kc.bosses+=n;
+    if(mobThreatColor(k.level,P)==='red')kc.red+=n;
   }
   return kc;
 }
@@ -1985,6 +2127,27 @@ function buyShopItems(p,shopItem,qty){
   return {ok:true,name:shopItem.name,qty:n,gold,unit};
 }
 
+function claimMissedKills(p,spec,cfg,opts){
+  opts=opts||{};
+  if(!p||!spec)return {ok:false,reason:'missing'};
+  const name=String(spec.name||spec.mob||spec.monster||'').trim();
+  if(!name)return {ok:false,reason:'name'};
+  const count=Math.max(1,Math.min(CLAIM_KILL_MAX,Math.floor(num(spec.count,1))));
+  let level=spec.level==null||spec.level===''?null:num(spec.level,null);
+  if(level!=null&&!(level>0))level=null;
+  if(level==null){
+    const scene=opts.sceneMobs||((opts.messages&&opts.messages.length)?collectSceneMobs(opts.messages,opts.uptoIndex):[]);
+    const hit=findSceneMob(scene,name);
+    if(hit&&hit.level!=null)level=hit.level;
+  }
+  const rank=spec.rank||(level!=null?mobRankFromLevel(level):'');
+  const ev='<system_event>'+JSON.stringify({kills:[{name,level:level,rank,boss:!!spec.boss,count}]})+'</system_event>';
+  const before=clone(p);
+  const r=runSystemEngine(p,ev,cfg,Object.assign({},opts,{regen:false}));
+  repairDerivedStats(p,cfg);
+  return {ok:true,patch:diffPlayer(before,p),notes:r.notes||[],notices:r.notices||[],kills:r.kills||[],titlesEarned:r.titlesEarned||[],name,level,count};
+}
+
 /* ---- Out-of-story action log for the narrator ---- */
 function logAppAction(text,state){
   const t=String(text||'').replace(/\s+/g,' ').trim();if(!t)return;
@@ -2028,7 +2191,7 @@ function commitActionLog(state,msgIndex,alt,used){
   let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
   if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -2336,10 +2499,12 @@ function renderMsg(m,i){
   if(m.role==='error')return '<div class="msg syslog" style="border-color:var(--red);color:#ffb3c0" data-i="'+i+'"><div class="who">Narrator error<span class="tools"><button class="icon" data-act="retryErr">↻ retry</button><button class="icon" data-act="del">🗑</button></span></div><div class="body">The request to Grok failed: '+esc(m.text)+'<br><span class="muted">Check your API key / model in Settings, then press retry.</span></div></div>';
   if(m.role==='user'||m.role==='syslog'){
     const label=m.role==='user'?(S.character.name||'You'):'System log';
+    const canUndo=m.role==='syslog'&&m.applied&&m.patch;
     return '<div class="msg '+m.role+'" data-i="'+i+'"><div class="who">'+esc(label)+'<span class="tools">'+
       (m.role==='user'?'<button class="icon" data-act="regenFrom" title="Get a new narrator reply to this post">↻ reply</button>':'')+
+      (canUndo?'<button class="icon" data-act="undoClaim" title="Undo this claim">↩ undo</button>':'')+
       '<button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
-      '</span></div><div class="body">'+(isEdit?editBox(m.text):renderProse(m.text))+'</div></div>';
+      '</span></div><div class="body">'+(isEdit?editBox(m.text):renderProse(m.text)+(canUndo&&(m.sysNotices||[]).length?sysNoticeStack(m):''))+'</div></div>';
   }
   const a=curAlt(m);if(a)a._msgIndex=i;if(!a||(a.streaming&&!a.text))return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body"><span class="thinking">thinking<i>.</i><i>.</i><i>.</i></span></div></div>';const parsed=parseSystemUpdates(a.text);const allow=showSystemInMsg(i);
   const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
@@ -2351,7 +2516,7 @@ function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
   a.prevAwakened=!!(S.flags&&S.flags.systemAwakened);a.prevOpening=!!S.world.openingActive;
   if(!S.flags.systemAwakened&&wouldAwaken(a.text,parsed.updates,S.world.openingActive)){S.flags.systemAwakened=true;S.world.openingActive=false;}
-  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];a.sysNotices=r.sysNotices||[];a.questOffers=r.questOffers||[];a.regenHp=(r.regen&&r.regen.hp)||0;if(a.regenHp)S.flags.regenFlash=a.regenHp;if((a.killNotices||[]).length||(a.sysNotices||[]).length)a.killExpAwarded=true;}
+  if(S.flags.systemAwakened){const mi=(S.messages||[]).findIndex(m=>m.alts&&m.alts.includes(a));const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened,messages:S.messages,uptoIndex:mi>=0?mi:undefined});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];a.sysNotices=r.sysNotices||[];a.questOffers=r.questOffers||[];a.regenHp=(r.regen&&r.regen.hp)||0;if(a.regenHp)S.flags.regenFlash=a.regenHp;if((a.killNotices||[]).length||(a.sysNotices||[]).length)a.killExpAwarded=true;}
   else{
     const keep=preAwakenUpdates(parsed.updates,parsed.clean);const before=clone(S.player);const notes=[];
     for(const u of keep)notes.push(...applyUpdate(S.player,u,cfg()));
@@ -2382,8 +2547,13 @@ function onLogClick(e){
   else if(act==='retryErr'){const r=m.retry||{};S.messages.splice(i,1,{id:uid(),role:'narrator',alts:[],sel:0,continuation:r.continuation,instruction:r.instruction});regenerate(i);}
   else if(act==='regen'){regenerate(i);}
   else if(act==='regenFrom'){const n=S.messages[i+1];if(n&&n.role==='narrator')regenerate(i+1);else{S.messages.splice(i+1,0,{id:uid(),role:'narrator',alts:[],sel:0});regenerate(i+1);}}
-  else if(act==='del'){if(!confirm('Delete this post?'+(m.role==='narrator'?' Any stat changes it made will be reverted.':'')))return;
-    if(m.role==='narrator')m.alts.forEach(unapplyAlt);S.messages.splice(i,1);afterChange();}
+  else if(act==='del'||act==='undoClaim'){
+    const hasPatch=(m.role==='narrator')||(m.applied&&m.patch);
+    const q=act==='undoClaim'?'Undo this claim? EXP, loot, and titles it granted will be reverted.':'Delete this post?'+(hasPatch?' Any stat changes it made will be reverted.':'');
+    if(!confirm(q))return;
+    if(m.role==='narrator')m.alts.forEach(unapplyAlt);
+    else if(m.applied&&m.patch){revertPatch(S.player,m.patch);m.applied=false;repairDerivedStats(S.player,cfg());}
+    S.messages.splice(i,1);afterChange();if(act==='undoClaim')toast('Claim undone.');}
   else if(act==='edit'){editing=m.id;renderLog();const ta=document.querySelector('.msg[data-i="'+i+'"] textarea');if(ta)ta.focus();}
   else if(act==='cancelEdit'){editing=null;renderLog();}
   else if(act==='saveEdit'){const v=el.querySelector('.editArea').value;editing=null;
@@ -2633,6 +2803,7 @@ function renderSystem(){
     h+='<h3>Titles</h3><div class="muted">Equipped: <b>'+esc(eqTitle)+'</b>'+(eqDef&&!isFlavorTitle(eqDef)?' — '+esc(titleEffectSummary(eqDef)):'')+'. One title at a time; manage them in the Titles tab.</div>';
     h+='<div class="muted" style="margin-top:8px">Every field is editable. Redo/delete only reverts changes a narrator post applied; your manual edits stay.</div>';
     h+='<div class="grant-exp"><div class="muted" style="margin-bottom:6px">Grant EXP if a kill did not award any. Level-ups apply automatically (+5 free points, +1 all stats, HP/MP from the formulas).</div><div class="row" style="align-items:flex-end;gap:8px;flex-wrap:wrap"><div style="flex:0 0 110px"><label for="grantExpAmt">Amount</label><input type="number" id="grantExpAmt" min="1" step="1" value="20" inputmode="numeric"></div><button class="btn small primary" id="grantExpBtn" style="min-height:44px">Grant EXP</button></div></div></div>';
+    h+=renderClaimKillsPanel();
   }else if(sysTab==='skills'){
     h+='<div class="syswin"><span class="title">Skills</span>'+(p.skills.length?'':'<div class="muted">No skills yet.</div>')+p.skills.map((s,i)=>
       '<div class="list-item"><div class="head">'+li('skills',i,'name',s.name,'style="flex:2 1 160px"')+'<select data-list="skills" data-i="'+i+'" data-k="type" style="flex:0 0 110px">'+['Active','Passive'].map(o=>'<option'+(s.type===o?' selected':'')+'>'+o+'</option>').join('')+'</select>'+
@@ -2654,6 +2825,32 @@ function renderSystem(){
     h+='<div class="syswin"><span class="title">Store</span><div class="muted">Gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+'</b>. Buy potions and basic supplies. Sell from Inventory. Purchases are logged for the narrator.</div><div class="shop-list">'+S.shop.map((s,i)=>{const maxB=maxBuyQty(p,s);return '<div class="shop-card"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.category?esc(s.category)+' · ':'')+esc(s.description||'')+'</div><div class="price">'+Number(s.price||0).toLocaleString()+' G each</div></div><div class="shop-buy">'+qtyPickerHtml('buy',i,maxB,s.price)+'<button class="btn small primary" data-buy="'+i+'" '+(maxB>=1?'':'disabled')+' style="min-height:44px;margin-top:6px">Buy</button></div></div>';}).join('')+'</div></div>';
   }
   body.innerHTML=h;
+  bindClaimKillsPanel();
+}
+function renderClaimKillsPanel(){
+  return '<div class="syswin" id="claimKillsBox"><span class="title">Claim missed kills</span>'+
+    '<div class="muted">If a fight did not award EXP or loot, claim the kills here. Same rewards as a normal fight. Delete the System log entry (or press undo) to revert.</div>'+
+    '<div class="claim-grid">'+
+    '<div class="kv"><span class="k">Monster</span><input type="text" id="claimKillName" placeholder="e.g. Wolf" autocomplete="off"></div>'+
+    '<div class="kv"><span class="k">Level</span><input type="number" id="claimKillLevel" min="1" step="1" inputmode="numeric" placeholder="From the fight"></div>'+
+    '<div class="kv"><span class="k">Count</span><div class="qty-box" data-qty-box="claim-kills"><div class="qty-row">'+
+    '<button type="button" class="btn small" data-qty-step="claim-kills" data-dir="-1" style="min-height:44px">−</button>'+
+    '<input class="qty-input" type="number" data-qty-input="claim-kills" data-qty-max="99" min="1" max="99" value="1" inputmode="numeric">'+
+    '<button type="button" class="btn small" data-qty-step="claim-kills" data-dir="1" style="min-height:44px">+</button>'+
+    '<button type="button" class="btn small qty-q" data-qty-set="claim-kills" data-n="1" style="min-height:44px">1</button>'+
+    '<button type="button" class="btn small qty-q" data-qty-set="claim-kills" data-n="5" style="min-height:44px">5</button>'+
+    '<button type="button" class="btn small qty-q" data-qty-set="claim-kills" data-n="10" style="min-height:44px">10</button>'+
+    '</div></div></div></div>'+
+    '<button class="btn small primary" id="claimKillsBtn">Claim</button></div>';
+}
+function bindClaimKillsPanel(){
+  const cn=$('#claimKillName'),cl=$('#claimKillLevel');if(!cn||!cl)return;
+  const fill=()=>{
+    const hit=findSceneMob(collectSceneMobs(S.messages),cn.value.trim());
+    if(hit&&hit.level!=null)cl.placeholder='Lv. '+hit.level+' (from the fight)';
+    else cl.placeholder='From the fight';
+  };
+  cn.addEventListener('input',fill);cn.addEventListener('blur',fill);fill();
 }
 function equipmentPanel(p){
   const slots=[['weapon','Weapon'],['armor','Armor'],['helmet','Helmet'],['gloves','Gloves'],['boots','Boots'],['cloak','Cloak'],['ring','Ring'],['accessory','Accessory']];
@@ -2770,6 +2967,28 @@ function onSysClick(e){
     syslog('Granted EXP +'+n+(ups.length?'; '+ups.join('; '):'')+'.');
     toast(notes.filter(isMechanicalNote).join(' · ')||('EXP +'+n));
     renderSystem();renderHud();
+    return;
+  }
+  if(t.id==='claimKillsBtn'){
+    if(!isAwakened()){toast('The System has not awakened yet.');return;}
+    const name=(($('#claimKillName')||{}).value||'').trim();
+    const levelRaw=($('#claimKillLevel')||{}).value;
+    const countInp=document.querySelector('[data-qty-input="claim-kills"]');
+    const count=Math.max(1,Math.min(CLAIM_KILL_MAX,Math.floor(num(countInp&&countInp.value,1))));
+    if(!name){toast('Enter the monster name.');return;}
+    let level=levelRaw===''||levelRaw==null?null:num(levelRaw,null);
+    if(level!=null&&!(level>0))level=null;
+    if(level==null){const hit=findSceneMob(collectSceneMobs(S.messages),name);if(hit&&hit.level!=null)level=hit.level;}
+    const lvLabel=level!=null?(' Lv.'+level):' (level unknown)';
+    if(!confirm('Award EXP and loot for '+count+' × '+name+lvLabel+'? You can undo this by deleting the System log entry it creates.'))return;
+    const r=claimMissedKills(p,{name,level,count},cfg(),{messages:S.messages});
+    if(!r.ok){toast(r.reason==='name'?'Enter the monster name.':'Could not claim those kills.');return;}
+    const label='claimed '+r.count+' missed kills: '+r.name+(r.level!=null?' Lv.'+r.level:'');
+    logAppAction(label);
+    S.messages.push({id:uid(),role:'syslog',kind:'claim',text:'Claimed '+r.count+' missed kills: '+r.name+(r.level!=null?' Lv.'+r.level:'.')+(r.notes&&r.notes.length?' '+r.notes.filter(isMechanicalNote).join('; ')+'.':''),patch:r.patch,sysNotices:r.notices||[],notes:visibleNotes(r.notes||[]),applied:true});
+    save();renderLog();renderSystem();renderHud();
+    if(typeof renderActionChip==='function')renderActionChip();
+    toast('Claimed '+r.count+' × '+r.name+'.');
     return;
   }
   if(t.dataset.dellist){if(!confirm('Delete?'))return;p[t.dataset.dellist].splice(+t.dataset.i,1);save();renderSystem();return;}
