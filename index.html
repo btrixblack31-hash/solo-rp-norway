@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -444,31 +444,32 @@ RULES (highest priority)
 2. End each reply where she can act. No "What do you do?", no option lists unless the System canonically offers a choice. Don't skip time unless she asks.
 3. SECOND PERSON always: narrate as "you" only for what she sees, hears, or what the world does to her — never for choosing what she does. She writes in third person ("She steps forward…"); treat that as already done. NPCs may say her name.
 4. No repetition: never reuse phrases, descriptions, openings, or recaps from earlier replies.
-5. NPCs are not suspicious by default: they mind their own business, accept ordinary explanations, and never interrogate or investigate her unless she invites it. Never derail her plans.
-6. 18+ fiction between adults: violence, gore, profanity, dark themes, romance and explicit sex are allowed when she steers there. No moralizing, disclaimers or fade-to-black. Never sexualize minors.
+5. NPCs are not suspicious by default: they mind their own business, accept ordinary explanations, and do not interrogate her unless she invites it. Never derail her plans.
+6. 18+ fiction between adults only (never sexualize minors). Violence, gore, profanity, dark themes, romance and explicit sex are allowed when she steers there. No moralizing. Intimate scenes: explicit, sensory, literary detail of bodies, touch, and the partner's reactions; never fade to black. Never narrate her actions, words, feelings, or sensations she did not write.
 7. Orientation: respect hers (PLAYER CHARACTER). Romantic interest from NPCs comes from women by default; never force romance or decide her feelings.
 8. Answer ((OOC)) notes briefly in ((double parentheses)).
 9. Knowledge is private: NPCs know only what they saw or were told.
 10. Pacing: one beat, then stop. No new NPC entrances, interruptions, or drama unless the scene demands it or she invites it. Let quiet moments breathe, especially after System messages. No filler (birds, sunlight) every reply. Don't end with an NPC barging in or questioning her unless it follows from her action.
 
 CANON (follow precisely)
-- Exact Solo Leveling world, set in NORWAY; Sung Jinwoo's canon story continues in Korea in parallel.
-- Gates rank E–S by mana reading; boss kill closes them; uncleared gates break; red gates trap raiders; double dungeons exist. Stones, cores, materials are valuable.
-- Hunters are ranked E–S at awakening (national level above S); re-awakening is rare. Ordinary hunters grow via training, experience, skills, and gear. Only the Player grows via the System.
+- Exact Solo Leveling world in NORWAY; Sung Jinwoo's canon story continues in Korea in parallel.
+- Gates rank E–S by mana reading; a boss kill closes them; uncleared gates break; red gates trap raiders; double dungeons exist.
+- System instance dungeons (dungeon keys / System quests) are private: invisible and undetectable — no mana readings, Association/guild detection or alerts, no gate others can see. Bystanders see nothing (at most she vanishes/reappears). NPCs never know she entered unless she tells them.
+- Hunters are ranked E–S at awakening (national level above S); re-awakening is rare. Ordinary hunters grow by training, skills, and gear. Only the Player grows via the System.
 - E-ranks are extremely rare in Norway; she is one of a handful. Notable or pitiable, not suspicious.
-- Her System: blue windows only she sees (Level, EXP, HP, MP, Fatigue, stats, points, titles, job, skills, gold, shop, keys, quests, penalties). Max HP = VIT × Level × 10; Max MP = INT × Level (app computes; never send max_hp/max_mp).
-- Daily Quest: 100 push-ups/sit-ups/squats + 10 km run/day; fail = Penalty Zone. App applies (don't add): level-up +5 points and +1 all stats; Daily = recovery, +3 points, a box.
-- Stat ranks are independent of hunter rank; mana readers only ever show her HUNTER RANK.
-- Build: BRAWLER (unarmed). NOT the Shadow Monarch. 3-part class path, third = Tamer/Binder Summoner; never pick parts for her. Innate Regeneration (passive) and Enhancement (self-buff partly shared with allies/summons) start weak, scale with level/stats.
-- Patron (default Sól, Norse sun goddess; she revived her in the double dungeon): a RARE presence at major thresholds only.
-- Companions follow her commands, act by species/personality/bond; evolution is triggered in the app.
+- Her System: blue windows only she sees (Level, EXP, HP, MP, Fatigue, stats, points, titles, job, skills, gold, shop, keys, quests, penalties). Max HP = VIT×Level×10; Max MP = INT×Level (app computes these).
+- Daily Quest: 100 push-ups/sit-ups/squats + 10 km run/day; fail = Penalty Zone. App applies (don't add): level-up +5 pts and +1 all stats; Daily = recovery, +3 pts, a box.
+- Stat ranks are independent of hunter rank; mana readers show only her HUNTER RANK.
+- Build: BRAWLER (unarmed). NOT the Shadow Monarch. 3-part class path, third = Tamer/Binder; never pick parts for her. Innate Regeneration (passive) and Enhancement (self-buff) start weak and scale with level.
+- Patron (default Sól, Norse sun goddess; she revived her in the double dungeon): a rare presence at major thresholds only.
+- Companions follow her commands and act by species, personality, and bond; evolution is triggered in the app.
 - Loot scales with monster rank; bosses drop more. Grant boxes via boxes_add; never reveal contents.
-- Use WORLD roster NPCs by name; invent minor extras; roster NPCs can grow stronger.
+- Use WORLD roster NPCs by name; invent minor extras; they can grow stronger.
 
 FORMAT
-- Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system> or <system_update>, and do not mention the System as if she can see it. Once awake, <system>[Notification]\\n...</system> (or [Quest Info], [Alert], [Warning], [Level Up], [Penalty]) only when there is something to tell her. Most replies have no window. Usually terse and impersonal; SOMETIMES (sparingly, never every notice, never two in a row, never repetitive) a line may slip into the living voice of the System's creator (see Patron): warmer, personal, divine, a little odd. Not a conversation.
-- When the System changes anything, end the reply with ONE block: <system_update>{json}</system_update>. Numbers are deltas except inside "set". Keys (all optional): exp_gain, level_up, gold, hp, mp, fatigue, max_hp, max_mp, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,acquisition_difficulty,stats{},effects[],description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind:random|quest|boss|gold|stat,qty}], companions_add[{name,species,rank,level,max_hp,max_mp,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats{},skills_add[],history}], companions_remove[names], notification, system_awakened.
-  Valid JSON only. Omit if nothing changed. Prefer exp_gain (the app auto-levels).`;
+- Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system> or <system_update>, and do not treat the System as visible to her. Once awake, <system>[Notification]\\n...</system> (or Quest Info, Alert, Warning, Level Up, Penalty) only when needed. Most replies have no window. Usually terse; SOMETIMES (sparingly, never two in a row) a line may take the creator's voice (see Patron): warmer, a little odd.
+- When the System changes anything, end with ONE block: <system_update>{json}</system_update>. Deltas except in "set". Keys: exp_gain, level_up, gold, hp, mp, fatigue, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,stats{},effects[],description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind,qty}], companions_add[{name,species,rank,level,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats{},skills_add[],history}], companions_remove[names], notification, system_awakened.
+  Valid JSON only. Omit if unchanged. Prefer exp_gain (app auto-levels).`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
 Respond with ONLY a JSON object, no prose, no code fences:
@@ -485,7 +486,9 @@ Good: her post was a wave and a greeting → "The statue does not move. Kari gla
 system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
 When a named NPC dies on-screen (including the opening raid), include npcDeaths:[{name,cause}] in that same system_update. This is world tracking, not a System window — do not write it as a status box or <system> notice. Do not reuse deceased people as living characters; memories and mentions are fine.
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
-When showing her a status window, emit <system>[[STATUS]]</system> (or [Player Status] with [[STATUS]]). The app fills the real tracker numbers. Never invent HP, MP, free points, stats, gold, or other sheet values.
+System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
+When showing her a status window, emit exactly one <system>[[STATUS]]</system> and do not write the stats yourself. The app fills one real tracker block. Never invent HP, MP, free points, stats, gold, or other sheet values.
+Intimate/sexual scenes: be vividly descriptive of bodies, physical sensation, touch, and partners' reactions in explicit, sensory, literary detail; do not fade to black or summarize. Still never narrate her actions, words, feelings, or sensations she did not write — describe the partner's body, actions, and responses, and what the world does to her, then leave room for her. All participants must be adults.
 Pacing: one beat per reply, then stop and give her space to react. Do not inject new NPC entrances, interruptions, or dramatic events unless the scene logically demands it or she invites it. Let quiet moments breathe, especially after System messages. No filler flourishes (a bird on the sill, sunlight) in every reply. Do not end a reply by having an NPC barge in or ask her a question unless it follows directly from her action.
 Do not acknowledge this OOC note in the story.))`;
 function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
@@ -541,7 +544,7 @@ function defaultState(){return {version:1,
   settings:{model:'grok-4.20-0309-non-reasoning',reasoningEffort:'low',customModel:'',temperature:0.9,maxTokens:2000,stream:true,contextMessages:40,autoSummarize:true,
     pointsPerLevel:5,statsPerLevel:1,deriveHpMp:true,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
   character:{name:'',age:'',gender:'Female (she/her)',orientation:'Lesbian',city:'',appearance:'Blonde hair with an undercut, blue eyes, light freckles across the nose and cheeks. Usually wears a crop top and shorts.',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
-  world:{notes:'Canon Solo Leveling world, set in Norway. Sung Jinwoo\'s canon story continues in Korea in parallel.',opening:"OPENING ARC (hidden GM guidance; never quote it. One beat or less per reply):\nSetting: Nordmarka forest outside Oslo. The Østkant Raid Group takes a gate the Association measured as D-rank. Party (all D-rank; she is the ONLY E-rank): Kari Lie (leader), Marius Fjeld, Jonas Berg (healer), Mats Hagen, Thea Lind, Ola Bakken, Nora Sæther, Sander Holm. Tester Silje Kroken reads the gate.\nBeats:\n1. Arrival: the reading, Kari's briefing, banter, stepping through. (FIRST POST = this beat only.)\n2. An easy D-rank dungeon; then a hidden second door.\n3. DOUBLE DUNGEON: a vast Norse temple (runes, wolves, sun-wheels, a great statue holding a stone sun), stone commandments; the door seals.\n4. Statues awaken; hunters die breaking the rules; survivors must work them out. Her actions matter.\n5. Only after deaths have happened: she is mortally wounded / left behind as survivors escape (never by deciding her choices).\n6. Dying: silence, then golden light — SÓL appears (radiant, warm, regal), speaks, chooses her; her light floods in; rebirth. End that post with:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nBeats 1–5: no System windows. Never rush beats 5–6.",style:'Second person ("you"), present tense. Vivid, grounded, varied prose. 3–6 paragraphs, or a short beat.',summary:'',summarizedCount:0,npcs:[]},
+  world:{notes:'Canon Solo Leveling world in Norway; Sung Jinwoo\'s story continues in Korea in parallel.',opening:"OPENING ARC (hidden GM guidance; never quote it. One beat or less per reply):\nSetting: Nordmarka forest outside Oslo. The Østkant Raid Group takes a gate the Association measured as D-rank. Party (all D-rank; she is the ONLY E-rank): Kari Lie (leader), Marius Fjeld, Jonas Berg (healer), Mats Hagen, Thea Lind, Ola Bakken, Nora Sæther, Sander Holm. Tester Silje Kroken reads the gate.\nBeats:\n1. Arrival: the reading, Kari's briefing, banter, stepping through. (FIRST POST = this beat only.)\n2. An easy D-rank dungeon; then a hidden second door.\n3. DOUBLE DUNGEON: a vast Norse temple (runes, wolves, sun-wheels, a great statue holding a stone sun), stone commandments; the door seals.\n4. Statues awaken; hunters die breaking the rules; survivors must work them out. Her actions matter.\n5. Only after deaths have happened: she is mortally wounded / left behind as survivors escape (never by deciding her choices).\n6. Dying: silence, then golden light — SÓL appears (radiant, warm, regal), speaks, chooses her; her light floods in; rebirth. End that post with:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nBeats 1–5: no System windows. Never rush beats 5–6.",style:'Second person ("you"), present tense. Vivid, grounded, varied prose. 3–6 paragraphs, or a short beat.',summary:'',summarizedCount:0,npcs:[]},
   flags:{systemAwakened:false},player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
 
 /* ================= UTILS ================= */
@@ -974,15 +977,16 @@ function ensureNpcDefaults(npcs){
   }
 }
 
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta};
+const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|Daily Quest|Status|Player Status|Item|Skill|Job Change|Penalty|Reward)[^\]]*\]/i;
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
+let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
 
 /* ================= STATE ================= */
 const store=(()=>{try{const t='__srp';window.localStorage.setItem(t,'1');window.localStorage.removeItem(t);return window.localStorage;}
   catch(e){const m={};setTimeout(()=>toast('Browser storage is blocked here — progress will NOT persist. Use Export to save, or open the file in Chrome/Edge/Firefox.',8000),500);
     return {getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v);},removeItem:k=>{delete m[k];}};}})();
-let S;
 function load(){try{const raw=store.getItem(LS_KEY);return migrate(raw?JSON.parse(raw):{});}catch(e){console.warn(e);}return migrate({});}
 function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
   s.player=deepMerge(defaultPlayer(),(d&&d.player)||{});
@@ -1032,11 +1036,22 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
     if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
     if(typeof s.world.opening==='string')s.world.opening=s.world.opening.replace('OPENING ARC (hidden GM guidance; never quote it. Reveal one beat or less per reply; let her act between beats):','OPENING ARC (hidden GM guidance; never quote it. One beat or less per reply):');
     if((s.world.notes||'')==='Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.')s.world.notes=base.world.notes;
+    if((s.world.notes||'')==='Canon Solo Leveling world, set in Norway. Sung Jinwoo\'s canon story continues in Korea in parallel.')s.world.notes=base.world.notes;
     if((s.world.style||'')==='Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.')s.world.style=base.world.style;
     s.flags.pacing1=true;
   }
   scrubFakeMaxSave(s);
   repairDerivedStats(s.player,s.settings);
+  if(!s.flags.intimate1){
+    const sp=s.settings.systemPrompt||'';
+    if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
+    s.flags.intimate1=true;
+  }
+  if(!s.flags.instance1){
+    const sp=s.settings.systemPrompt||'';
+    if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
+    s.flags.instance1=true;
+  }
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
 function saveNow(){try{if(S&&S.player)repairDerivedStats(S.player,S.settings);store.setItem(LS_KEY,JSON.stringify(S));}catch(e){toast('Save failed: '+e.message);}}
@@ -1050,8 +1065,51 @@ function apiKey(){return store.getItem(KEY_KEY)||'';}
 
 /* ================= RENDER: TEXT ================= */
 function inlineMd(s){return s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');}
-const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|Daily Quest|Status|Player Status|Item|Skill|Job Change|Penalty|Reward)[^\]]*\]/i;
+function isStandaloneStatusInner(inner){
+  const raw=String(inner||'').trim();
+  const lines=raw.split('\n');let title='';
+  const mm=(lines[0]||'').match(/^\s*\[([^\]]+)\]\s*$/);
+  if(mm)title=mm[1];
+  const body=mm?lines.slice(1).join('\n'):raw;
+  if(isStatusWindowTitle(title))return true;
+  if(/^\[\[STATUS\]\]$/i.test(raw))return true;
+  if(/\[\[STATUS\]\]/i.test(raw)&&!body.replace(/\[\[STATUS\]\]/ig,'').trim())return true;
+  return false;
+}
+function collapseStatusInText(text){
+  text=String(text||'');
+  let placed=false;
+  const one='<system>[[STATUS]]</system>';
+  text=text.replace(/<system>([\s\S]*?)(<\/system>|$)/gi,(full,inner)=>{
+    if(isStandaloneStatusInner(inner)){
+      if(placed)return '';
+      placed=true;return one;
+    }
+    if(/\[\[STATUS\]\]/i.test(inner)){
+      const stripped=full.replace(/\[\[STATUS\]\]/gi,'');
+      if(!placed){placed=true;return stripped+'\n'+one;}
+      return stripped;
+    }
+    return full;
+  });
+  text=text.replace(/(<system>\[\[STATUS\]\]<\/system>)|\[\[STATUS\]\]/gi,(all,canon)=>{
+    if(canon)return canon;
+    if(placed)return '';
+    placed=true;return one;
+  });
+  // bare [Player Status] / [Status] / [Status Window] paragraphs (not Status Updated)
+  const bits=text.split(/(\n\s*\n)/);
+  for(let i=0;i<bits.length;i++){
+    if(/^\n/.test(bits[i]))continue;
+    const t=bits[i].trim();if(!t)continue;
+    const mm=t.match(/^\[([^\]]+)\]/);if(!mm||!isStatusWindowTitle(mm[1]))continue;
+    if(placed){bits[i]='';}
+    else{placed=true;bits[i]=one;}
+  }
+  return bits.join('');
+}
 function renderProse(text,allowSystem){
+  if(allowSystem!==false)text=collapseStatusInText(text);
   const parts=[];let rest=text||'';const re=/<system>([\s\S]*?)(<\/system>|$)/i;let m;
   while(rest&&(m=re.exec(rest))){parts.push({t:'p',v:rest.slice(0,m.index)});if(allowSystem!==false)parts.push({t:'s',v:m[1]});rest=rest.slice(m.index+m[0].length);}
   parts.push({t:'p',v:rest});
