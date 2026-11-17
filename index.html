@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -531,6 +531,7 @@ After the System is awake, when a monster or creature appears, emit [[mob:Name|L
 When showing her a status window, emit exactly one <system>[[STATUS]]</system> and do not write the stats yourself. The app fills one real tracker block. Never invent HP, MP, free points, stats, gold, or other sheet values.
 Intimate/sexual scenes: be vividly descriptive of bodies, physical sensation, touch, and partners' reactions in explicit, sensory, literary detail; do not fade to black or summarize. Still never narrate her actions, words, feelings, or sensations she did not write — describe the partner's body, actions, and responses, and what the world does to her, then leave room for her. All participants must be adults.
 Pacing: one beat per reply, then stop and give her space to react. Do not inject new NPC entrances, interruptions, or dramatic events unless the scene logically demands it or she invites it. Let quiet moments breathe, especially after System messages. No filler flourishes (a bird on the sill, sunlight) in every reply. Do not end a reply by having an NPC barge in or ask her a question unless it follows directly from her action.
+Combat: when a COMBAT GUIDE is in the system context, follow it strictly. Do not one-shot a higher-level, orange, or red monster (a rare LUK/SEN weak-point crit may drop an orange if the fiction supports it; never a red). Mobs fight back; emit received damage as hp in <system_event> using the guide's numbers. Only resolve the outcome of actions she wrote — never decide her moves.
 Do not acknowledge this OOC note in the story.))`;
 function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
 function playerControlViolation(reply,userText){
@@ -924,16 +925,55 @@ function scrubFakeMaxSave(s){
 //     mobLevel >= P+5: 1.5
 //     mobLevel >= P+3: 1.25
 //     else: 1
-function expForMobKill(mobLevel,playerLevel){
-  const p=Math.max(1,Number(playerLevel)||1);
-  const m=Number(mobLevel);const M=Number.isFinite(m)&&m>0?m:p;
-  let exp=10+6*M;
-  const diff=M-p;
-  if(diff<=-5)exp*=0.25;
-  else if(diff<=-2)exp*=0.5;
-  else if(diff>=5)exp*=1.5;
-  else if(diff>=3)exp*=1.25;
-  return Math.max(1,Math.round(exp));
+// Kill EXP curve (app-owned):
+// Bars start at 100 and grow ×expGrowth (default 1.25, rounded) on each level-up.
+// "N levels' worth" from current progress = remaining EXP in the current bar
+//   plus the next (N-1) full bars after each growth step.
+// Colors use the same thresholds as name tags (MOB_GREEN_BELOW / MOB_RED_ABOVE):
+//   green  (mobLevel <= P-5): small, 5–15% of the current bar (15% at the
+//     green threshold, shrinking toward 5% the weaker the mob).
+//   orange (P-4 .. P+2): moderate, 0.5–1.0 of the current bar
+//     (0.5 just above green, 1.0 just below red).
+//   red    (mobLevel >= P+3): at least 2 full levels from current progress;
+//     +1 level-worth per mob level above the red threshold; cap 6 levels' worth.
+// Unknown mob level: treat as even (orange at her level).
+// Pass the full player (level, exp, expNext) plus cfg so mid-bar progress counts.
+function expNeededForLevels(player,levels,cfg){
+  const growth=num(cfg&&cfg.expGrowth,1.25);
+  const n=Math.max(0,Math.round(Number(levels)||0));
+  if(n<=0)return 0;
+  let bar=Math.max(1,num(player&&player.expNext,100));
+  let need=Math.max(0,bar-num(player&&player.exp,0));
+  for(let i=1;i<n;i++){bar=Math.max(1,Math.round(bar*growth));need+=bar;}
+  return need;
+}
+function asExpPlayer(playerOrLevel){
+  if(playerOrLevel&&typeof playerOrLevel==='object')return playerOrLevel;
+  return {level:Math.max(1,Number(playerOrLevel)||1),exp:0,expNext:100};
+}
+function expForMobKill(mobLevel,playerOrLevel,cfg){
+  const player=asExpPlayer(playerOrLevel);
+  const P=Math.max(1,num(player.level,1));
+  const m=Number(mobLevel);
+  const known=Number.isFinite(m)&&m>0;
+  const M=known?m:P;
+  const color=mobThreatColor(M,P)||'orange';
+  const bar=Math.max(1,num(player.expNext,100));
+  if(color==='red'){
+    const extra=Math.max(0,M-(P+MOB_RED_ABOVE));
+    const levels=Math.min(MOB_EXP_RED_CAP_LEVELS,MOB_EXP_RED_MIN_LEVELS+extra);
+    return Math.max(1,expNeededForLevels(player,levels,cfg));
+  }
+  if(color==='green'){
+    const weaker=Math.max(0,(P-MOB_GREEN_BELOW)-M);
+    const frac=Math.max(0.05,0.15-weaker*0.02);
+    return Math.max(1,Math.round(bar*frac));
+  }
+  const lo=P-(MOB_GREEN_BELOW-1);
+  const hi=P+(MOB_RED_ABOVE-1);
+  const t=hi===lo?0.5:Math.max(0,Math.min(1,(M-lo)/(hi-lo)));
+  const frac=0.5+t*0.5;
+  return Math.max(1,Math.round(bar*frac));
 }
 function hasExpDelta(updates){
   for(const u of (updates||[])){
@@ -975,10 +1015,9 @@ function killExpFallback(text,updates,player,cfg){
   if(hasExpDelta(updates))return {exp:0,notices:[],notes:[]};
   const kills=detectTaggedMobKills(text);
   if(!kills.length)return {exp:0,notices:[],notes:[]};
-  const pLevel=player&&player.level||1;
   const notices=[],notes=[];let exp=0;
   for(const k of kills){
-    const amt=expForMobKill(k.level,pLevel);
+    const amt=expForMobKill(k.level,player,cfg);
     exp+=amt;
     notices.push('You have killed '+k.name+'. EXP +'+amt);
     notes.push('EXP +'+amt);
@@ -1289,8 +1328,11 @@ function runSystemEngine(p,text,cfg,opts){
   if(!rebirth)applyQuestProgress(p,events,updates,notes);
   const rng=opts.rng||Math.random;
   if(!rebirth){
+    const dmg=collectEventDamage(events);
+    if(dmg.hp)notes.push(...applyUpdate(p,{hp:dmg.hp},cfg));
+    if(dmg.mp)notes.push(...applyUpdate(p,{mp:dmg.mp},cfg));
     for(const k of kills){
-      const amt=expForMobKill(k.level,p.level);
+      const amt=expForMobKill(k.level,p,cfg);
       notes.push(...applyUpdate(p,{exp_gain:amt},cfg));
       notices.push({title:'Notification',body:'You have killed '+k.name+'.\nEXP +'+amt});
       const drops=rollMobDrops(k,p,rng);
@@ -1450,7 +1492,119 @@ const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|
 // No level: use narrator green|orange|yellow|amber|red (yellow/amber → orange); else unknown.
 const MOB_GREEN_BELOW=5;
 const MOB_RED_ABOVE=3;
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,expForMobKill,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock};
+const MOB_EXP_RED_MIN_LEVELS=2;
+const MOB_EXP_RED_CAP_LEVELS=6;
+
+function collectEventDamage(events){
+  let hp=0,mp=0;
+  for(const o of events||[]){
+    if(!o||typeof o!=='object')continue;
+    if(o.hp!=null)hp+=num(o.hp,0);
+    if(o.mp!=null)mp+=num(o.mp,0);
+    const list=o.damage||o.hits;
+    if(list==null)continue;
+    for(const d of (Array.isArray(list)?list:[list])){
+      if(d==null)continue;
+      if(typeof d==='number')hp+=d;
+      else if(typeof d==='object'){
+        if(d.hp!=null)hp+=num(d.hp,0);
+        else if(d.amount!=null&&d.mp==null)hp+=num(d.amount,0);
+        if(d.mp!=null)mp+=num(d.mp,0);
+      }
+    }
+  }
+  return {hp,mp};
+}
+function messageTexts(m){
+  if(!m)return [];
+  if(m.role==='user'||m.role==='syslog')return m.text?[String(m.text)]:[];
+  if(m.role==='narrator'){
+    const a=(m.alts&&m.alts[m.sel])||(m.alts&&m.alts[0]);
+    return a&&a.text?[String(a.text)]:[];
+  }
+  return m.text?[String(m.text)]:[];
+}
+function collectLiveMobs(messages,uptoIndex){
+  const msgs=(messages||[]).slice(0,uptoIndex==null?undefined:uptoIndex).slice(-12);
+  const map=new Map();
+  for(const m of msgs){
+    for(const text of messageTexts(m)){
+      const re=/\[\[mob:([^\]]+)\]\]/gi;let mm;
+      while((mm=re.exec(text))){
+        const tag=parseMobTag(mm[1]);
+        if(tag&&tag.name)map.set(String(tag.name).toLowerCase(),tag);
+      }
+      const parsed=parseSystemUpdates(text);
+      const src=[].concat(parsed.events||[],parsed.updates||[]);
+      for(const ev of src){
+        const list=(ev&&(ev.kills||ev.kill))||[];
+        for(const k of (Array.isArray(list)?list:[list])){
+          const name=String(k&&(k.name||k.mob)||'').toLowerCase();
+          if(name)map.delete(name);
+        }
+      }
+      for(const k of detectTaggedMobKills(text)){
+        const name=String(k&&k.name||'').toLowerCase();
+        if(name)map.delete(name);
+      }
+    }
+  }
+  return [...map.values()];
+}
+function suggestedMobHit(player,mob){
+  const P=Math.max(1,num(player&&player.level,1));
+  const M=Math.max(1,num(mob&&mob.level,P));
+  const b=equippedBonuses(player||{});
+  const vit=num(player&&player.stats&&player.stats.vit,10)+num(b.stats&&b.stats.vit,0);
+  const maxHp=Math.max(1,num(player&&player.maxHp,0)||(vit*P*10));
+  const color=mobThreatColor(M,P)||'orange';
+  const scale=color==='red'?1.15:color==='green'?0.45:0.8;
+  const typ=Math.max(1,Math.round((M*6+8)*maxHp/(80+vit*8+P*15)*scale));
+  return {typical:typ,low:Math.max(1,Math.round(typ*0.55)),high:Math.max(typ+1,Math.round(typ*1.45)),color};
+}
+function hitsToKillHint(player,mob){
+  const P=Math.max(1,num(player&&player.level,1));
+  const M=Number(mob&&mob.level);
+  const color=Number.isFinite(M)?(mobThreatColor(M,P)||'orange'):(mob&&mob.colorHint)||'orange';
+  if(color==='green')return 'possibly one solid hit';
+  if(color==='red')return 'many hits (it will not drop in one blow — use tactics, weak points, or allies)';
+  return 'several exchanges (a few solid hits; do not one-shot)';
+}
+function combatGuideBlock(player,mobs){
+  if(!mobs||!mobs.length)return '';
+  player=player||{};
+  const b=equippedBonuses(player);
+  const st=player.stats||{};
+  const eff=k=>num(st[k],10)+num(b.stats&&b.stats[k],0);
+  const gear=((player.inventory)||[]).filter(x=>x&&x.equipped).map(x=>x.name);
+  const bits=[];
+  for(const k of STAT_KEYS){if(b.stats&&b.stats[k])bits.push(k.toUpperCase()+' +'+b.stats[k]);}
+  if(b.atk)bits.push('ATK +'+b.atk);
+  if(b.maxHp)bits.push('MaxHP +'+b.maxHp);
+  const L=[];
+  L.push('COMBAT GUIDE (app; follow this. Resolve only what she attempts — never choose her actions.)');
+  L.push('Her: Lv '+num(player.level,1)+'  STR '+eff('str')+'  AGI '+eff('agi')+'  SEN '+eff('sen')+'  VIT '+eff('vit')+'  LUK '+eff('luk')+'. Gear: '+(gear.join(', ')||'none')+(bits.length?' ('+bits.join(', ')+')':'')+'.');
+  L.push('Enhancement: only if she already activated it this scene (~10% physical at low skill, more as it scales). Do not assume it is on.');
+  L.push('Hits-to-kill: green (much weaker) = possibly one hit. Orange (near her level) = several exchanges; do not one-shot. Red / higher-level = many hits; needs tactics, weak points, or allies.');
+  L.push('No one-shotting a higher-level, orange, or red mob. A rare LUK/SEN weak-point crit may (rarely) drop an orange if the fiction supports it; never a red. Mobs fight back.');
+  for(const mob of mobs){
+    const P=num(player.level,1);
+    const M=mob.level;
+    const color=Number.isFinite(Number(M))? (mobThreatColor(M,P)||'orange') : (mob.colorHint||'unknown');
+    const dmg=suggestedMobHit(player,{level:Number.isFinite(Number(M))?M:P});
+    const hint=hitsToKillHint(player,mob);
+    const rank=mob.rank?(' '+mob.rank+'-rank'):'';
+    L.push('- '+mob.name+(M!=null&&M!==''?' Lv.'+M:'')+rank+' ['+color+']: '+hint+'. If it lands a hit, emit <system_event>{"hp":-N}</system_event> with N typically '+dmg.low+'–'+dmg.high+' (about '+dmg.typical+' for a solid blow) given her VIT; graze less, heavy more. The app applies HP.');
+  }
+  return L.join('\n');
+}
+
+function combatGuideForTurn(player,messages,uptoIndex){
+  const mobs=collectLiveMobs(messages,uptoIndex);
+  if(!mobs.length)return '';
+  return '\n\n'+combatGuideBlock(player,mobs);
+}
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -1925,7 +2079,7 @@ function buildContext(uptoIndex,continuation,instruction){
     (w.summary?'\n\nSTORY SO FAR: '+w.summary:'')+
     '\n\nHunter rank by level: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
     (isAwakened()?'\n\nRIGHT NOW: System is awake. Windows only when there is something to tell her; most replies have none. Occasional (sparing) voice of '+(c.patronName||c.patronType||'Sól')+'.':'')+
-    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.');
+    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex);
   const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
   const recent=hist.slice(-Math.max(2,num(S.settings.contextMessages,40)));
   const out=[{role:'system',content:sys}];
