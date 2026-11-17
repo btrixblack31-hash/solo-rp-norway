@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -78,6 +78,10 @@ label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px;letter-sp
 .mob-orange{--mob-fg:#ffbf3a;--mob-glow:rgba(255,191,58,.55)}
 .mob-red{--mob-fg:#ff4f6d;--mob-glow:rgba(255,79,109,.55)}
 .mob-unknown{--mob-fg:#9eb4d0;--mob-glow:rgba(79,195,255,.28)}
+.grant-exp{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.grant-exp label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.grant-exp input[type=number]{width:100%;min-height:44px;padding:6px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+
 
 .swipe{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
 .composer{position:sticky;bottom:0;background:rgba(5,8,16,.95);border-top:1px solid var(--line);padding:8px 0 10px;margin-top:6px}
@@ -497,7 +501,7 @@ Second person is only for addressing her as the reader of the environment (what 
 Bad: her post was a wave and a greeting → "No one notices the small smile that curves your lips as you lift your hand. \\"Hello?\\" your voice rings out."
 Good: her post was a wave and a greeting → "The statue does not move. Kari glances over, frowning. \\"Don't wander,\\" she mutters."
 
-system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
+system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. After awakening, when she kills a monster or creature on-screen, you MUST include exp_gain in that same <system_update> (scale by the mob's level versus hers: less if it was much weaker, more if it was stronger) and a brief <system>[Notification]\nYou have killed NAME. EXP +X</system>. Never skip EXP for an on-screen kill. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
 When a named NPC dies on-screen (including the opening raid), include npcDeaths:[{name,cause}] in that same system_update. This is world tracking, not a System window — do not write it as a status box or <system> notice. Do not reuse deceased people as living characters; memories and mentions are fine.
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
 System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
@@ -574,7 +578,8 @@ function deepMerge(base,over){if(Array.isArray(base)||typeof base!=='object'||ba
 
 
 /* ================= SYSTEM AWAKENING ================= */
-const AWAKEN_RE=/qualifications to be a Player|you have become a Player|you accepted the System|the System has been (unlocked|awakened)/i;
+const AWAKEN_RE=/qualifications to be a Player|you have become a Player|you accepted the System|the System has been (unlocked|awakened)|Daily Quest(?: has been)? (?:issued|assigned)|\[Daily Quest: Preparation|you have been (?:chosen|revived) as a Player/i;
+const SOL_REBIRTH_RE=/\bS[oó]l\b[^.\n]{0,180}\b(reviv(?:e[ds]?|al)|rebirth|returns? (?:you|her) to life|breathes? life|brings? (?:you|her) back)\b|\b(reviv(?:e[ds]?|al)|rebirth|returns? (?:you|her) to life|breathes? life|brings? (?:you|her) back)[^.\n]{0,180}\bS[oó]l\b/i;
 const SYSTEM_VOICE_ADDENDUM=`SYSTEM VISIBILITY AND VOICE
 - The System stays HIDDEN until it awakens (the patron — default Sól — revives her at the end of the double dungeon, or hidden guidance says she is chosen). Until then: no <system> tags, no <system_update>, no status/daily/quest windows, and do not mention the System as if she can see it.
 - After it awakens, System windows appear ONLY when there is something to tell her (quest, reward, level up, skill, item, warning, penalty, a canonical choice). Most replies have NO System window, as in canon.
@@ -593,15 +598,25 @@ function updatesIndicateAwakening(u){
   if(u.notification&&AWAKEN_RE.test(String(u.notification)))return true;
   return false;
 }
+function strongAwakeningText(text){
+  const t=String(text||'');
+  if(AWAKEN_RE.test(t))return true;
+  if(typeof SOL_REBIRTH_RE!=='undefined'&&SOL_REBIRTH_RE.test(t))return true;
+  return false;
+}
 function wouldAwaken(text,updates,openingActive){
-  if(AWAKEN_RE.test(text||''))return true;
+  if(strongAwakeningText(text||''))return true;
   const ups=updates||[];if(ups.some(updatesIndicateAwakening))return true;
   if(!openingActive&&(ups.length||/<system>/i.test(text||'')))return true;
   return false;
 }
 function inferSystemAwakened(s){
   s=s||{};const blob=narratorTexts(s).join('\n');
-  if(AWAKEN_RE.test(blob)||/system_awakened"\s*:\s*true/.test(blob))return true;
+  // Strong story evidence wins even mid-opening (do not treat leftover EXP or a spurious window as awakening).
+  if(strongAwakeningText(blob)||/system_awakened"\s*:\s*true/.test(blob))return true;
+  if(/<system>\s*\[Player Status\]/i.test(blob))return true;
+  if(/You have killed\b[\s\S]{0,80}EXP\s*\+/i.test(blob))return true;
+  if(s.flags&&s.flags.systemAwakened)return true; // never demote a save already marked awake
   if(s.world&&s.world.openingActive)return false; // mid-opening: leftover EXP/HP from a bad update is not an awakening
   const p=s.player||{};
   if((p.level||1)>1||(p.job&&p.job!=='None')||(p.titles&&p.titles.length)||(p.companions&&p.companions.length))return true;
@@ -633,8 +648,10 @@ function preAwakenUpdates(updates,cleanText){
 }
 function repairUnawakenedSave(s){
   if(!s||!s.flags)return s;
-  const truly=inferSystemAwakened(s);
+  const already=!!s.flags.systemAwakened;
+  const truly=already||inferSystemAwakened(s);
   s.flags.systemAwakened=truly;
+  if(truly&&s.world&&s.world.openingActive&&(already||strongAwakeningText(narratorTexts(s).join('\n'))))s.world.openingActive=false;
   const msgs=s.messages||[];
   if(!truly){
     for(let i=msgs.length-1;i>=0;i--){
@@ -657,7 +674,7 @@ function firstAwakeningIndex(s){
     const m=msgs[i];if(!m||m.role!=='narrator')continue;
     const a=(m.alts&&m.alts[m.sel])||(m.alts&&m.alts[0]);if(!a)continue;
     const parsed=parseSystemUpdates(a.text);
-    if(AWAKEN_RE.test(a.text||'')||(parsed.updates||[]).some(updatesIndicateAwakening))return i;
+    if(strongAwakeningText(a.text||'')||(parsed.updates||[]).some(updatesIndicateAwakening))return i;
   }
   // If already flagged but no explicit awakening post (custom start / migrated progress), treat as always-on
   if(s&&s.flags&&s.flags.systemAwakened&&!(s.world&&s.world.openingActive))return 0;
@@ -865,6 +882,112 @@ function scrubFakeMaxSave(s){
   }
   return s;
 }
+
+// EXP for a killed mob (canon-ish, modest). If the mob level is unknown, treat it as even with her.
+//   base = 10 + 6 * mobLevel
+//   multiplier vs her level P:
+//     mobLevel <= P-5: 0.25 (min 1)
+//     mobLevel <= P-2: 0.5
+//     mobLevel >= P+5: 1.5
+//     mobLevel >= P+3: 1.25
+//     else: 1
+function expForMobKill(mobLevel,playerLevel){
+  const p=Math.max(1,Number(playerLevel)||1);
+  const m=Number(mobLevel);const M=Number.isFinite(m)&&m>0?m:p;
+  let exp=10+6*M;
+  const diff=M-p;
+  if(diff<=-5)exp*=0.25;
+  else if(diff<=-2)exp*=0.5;
+  else if(diff>=5)exp*=1.5;
+  else if(diff>=3)exp*=1.25;
+  return Math.max(1,Math.round(exp));
+}
+function hasExpDelta(updates){
+  for(const u of (updates||[])){
+    if(!u||typeof u!=='object')continue;
+    if(num(u.exp_gain))return true;
+    if(u.exp!=null&&num(u.exp))return true;
+    if(u.set&&typeof u.set==='object'&&(num(u.set.exp)||num(u.set.exp_gain)))return true;
+  }
+  return false;
+}
+function escapeRe(s){return String(s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function detectTaggedMobKills(text){
+  const raw=String(text||'').replace(/<system_update>[\s\S]*?(<\/system_update>|$)/gi,' ');
+  const tags=[];const re=/\[\[mob:([^\]]+)\]\]/gi;let m;
+  while((m=re.exec(raw)))tags.push(parseMobTag(m[1]));
+  if(!tags.length)return [];
+  const prose=raw.replace(/\[\[mob:([^\]]+)\]\]/gi,(_,inner)=>' '+parseMobTag(inner).name+' ');
+  const KILL=/\b(?:killed|slain|slays|slew|slaughters?|finishes? off|has fallen|lies? dead|is dead|are dead|died|dies|collapses?(?:,? (?:dead|lifeless|still))?|goes? still|stopped moving|lifeless|corpse|you have (?:killed|slain)|fatal(?:ly)?|killing blow|finishing blow)\b/i;
+  if(!KILL.test(prose))return [];
+  function vetoed(name){
+    const n=escapeRe(name);
+    if(!n)return false;
+    return new RegExp('(?:almost|nearly|tried to|would have|failed to|did not|didn\'t).{0,36}'+n+'|'+n+'.{0,36}(?:almost|nearly|survives|still alive|isn\'t dead|is not dead)','i').test(prose);
+  }
+  function namedInKill(tag){
+    const name=tag.name||'';
+    const last=(name.split(/\s+/).filter(w=>w.length>=3).pop())||name;
+    const nameRe=new RegExp('\\b'+escapeRe(name)+'\\b','i');
+    const lastRe=new RegExp('\\b'+escapeRe(last)+'\\b','i');
+    return prose.split(/(?<=[.!?])\s+|\n+/).some(s=>KILL.test(s)&&(nameRe.test(s)||lastRe.test(s)));
+  }
+  let out;
+  if(tags.length===1)out=vetoed(tags[0].name)?[]:tags.slice();
+  else out=tags.filter(tag=>!vetoed(tag.name)&&namedInKill(tag));
+  const seen=new Set();
+  return out.filter(tag=>{const k=String(tag.name||'').toLowerCase();if(!k||seen.has(k))return false;seen.add(k);return true;});
+}
+function killExpFallback(text,updates,player,cfg){
+  if(hasExpDelta(updates))return {exp:0,notices:[],notes:[]};
+  const kills=detectTaggedMobKills(text);
+  if(!kills.length)return {exp:0,notices:[],notes:[]};
+  const pLevel=player&&player.level||1;
+  const notices=[],notes=[];let exp=0;
+  for(const k of kills){
+    const amt=expForMobKill(k.level,pLevel);
+    exp+=amt;
+    notices.push('You have killed '+k.name+'. EXP +'+amt);
+    notes.push('EXP +'+amt);
+  }
+  return {exp,notices,notes};
+}
+function killNoticeWindows(notices){
+  return (notices||[]).map(n=>sysWindow('[Notification]\n'+n)).join('');
+}
+function mergePlayerPatches(a,b){
+  if(!a)return b||null;if(!b)return a;
+  const out=clone(a);out.nums=out.nums||{};out.strs=out.strs||{};out.stats=out.stats||{};
+  for(const k in (b.nums||{}))out.nums[k]=(out.nums[k]||0)+b.nums[k];
+  for(const k in (b.strs||{}))out.strs[k]=b.strs[k];
+  for(const k in (b.stats||{}))out.stats[k]=(out.stats[k]||0)+b.stats[k];
+  return out;
+}
+function backfillKillExp(s){
+  if(!s||!s.flags||!s.flags.systemAwakened)return s;
+  const start=firstAwakeningIndex(s);
+  if(start<0)return s;
+  const cfg=s.settings||{};
+  const msgs=s.messages||[];
+  for(let i=Math.max(0,start);i<msgs.length;i++){
+    const m=msgs[i];if(!m||m.role!=='narrator')continue;
+    for(const a of (m.alts||[])){
+      if(!a||a.killExpAwarded)continue;
+      const parsed=parseSystemUpdates(a.text||'');
+      if(hasExpDelta(parsed.updates)||(a.patch&&a.patch.nums&&num(a.patch.nums.exp))){a.killExpAwarded=true;continue;}
+      const fb=killExpFallback(a.text,parsed.updates,s.player,cfg);
+      if(!fb.exp)continue;
+      const before=clone(s.player);
+      const notes=applyUpdate(s.player,{exp_gain:fb.exp},cfg);
+      repairDerivedStats(s.player,cfg);
+      a.patch=mergePlayerPatches(a.patch,diffPlayer(before,s.player));
+      a.notes=visibleNotes((a.notes||[]).concat(notes));
+      a.killNotices=(a.killNotices||[]).concat(fb.notices);
+      a.killExpAwarded=true;
+    }
+  }
+  return s;
+}
 function applyTextToPlayer(p,text,cfg,opts){
   const before=clone(p);let {updates,errors}=parseSystemUpdates(text);const notes=[];
   const first=opts&&opts.firstAwakening;
@@ -872,8 +995,17 @@ function applyTextToPlayer(p,text,cfg,opts){
   if(first)updates=updates.map(sanitizeFirstAwakeningUpdate);
   if(rebirth)updates=updates.map(u=>{if(!u||typeof u!=='object')return u;const o=Object.assign({},u);delete o.exp_gain;delete o.exp;delete o.level_up;return o;});
   for(const u of updates)notes.push(...applyUpdate(p,u,cfg));
+  let killNotices=[];
+  if(!rebirth){
+    const fb=killExpFallback(text,updates,p,cfg);
+    if(fb.exp){
+      notes.push(...applyUpdate(p,{exp_gain:fb.exp},cfg));
+      killNotices=fb.notices;
+    }
+  }
   if(rebirth){deriveMax(p,cfg);p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;clampPlayer(p);}
-  return {patch:(updates.length?diffPlayer(before,p):null),notes,errors};
+  const changed=updates.length||killNotices.length;
+  return {patch:(changed?diffPlayer(before,p):null),notes,errors,killNotices};
 }
 function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
 
@@ -1000,7 +1132,7 @@ const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|
 // No level: use narrator green|orange|yellow|amber|red (yellow/amber → orange); else unknown.
 const MOB_GREEN_BELOW=5;
 const MOB_RED_ABOVE=3;
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,expForMobKill,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -1078,6 +1210,10 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
     const sp=s.settings.systemPrompt||'';
     if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
     s.flags.mobTags1=true;
+  }
+  if(!s.flags.killExpBackfill1){
+    if(s.flags.systemAwakened||inferSystemAwakened(s)){s.flags.systemAwakened=true;backfillKillExp(s);}
+    s.flags.killExpBackfill1=true;
   }
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
@@ -1282,13 +1418,13 @@ function renderMsg(m,i){
   const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
   return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator '+swipe+'<span class="tools">'+
     '<button class="icon" data-act="regen" title="Redo (new alternative)">↻ redo</button><button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
-    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+(a.streaming||!allow?'':changesWindow(a.notes,a.errors)))+'</div></div>';
+    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+(a.streaming||!allow?'':killNoticeWindows(a.killNotices)+changesWindow(a.notes,a.errors)))+'</div></div>';
 }
 function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
   a.prevAwakened=!!(S.flags&&S.flags.systemAwakened);a.prevOpening=!!S.world.openingActive;
   if(!S.flags.systemAwakened&&wouldAwaken(a.text,parsed.updates,S.world.openingActive)){S.flags.systemAwakened=true;S.world.openingActive=false;}
-  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);}
+  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];if((a.killNotices||[]).length)a.killExpAwarded=true;}
   else{
     const keep=preAwakenUpdates(parsed.updates,parsed.clean);const before=clone(S.player);const notes=[];
     for(const u of keep)notes.push(...applyUpdate(S.player,u,cfg()));
@@ -1532,7 +1668,8 @@ function renderSystem(){
     h+='<div class="stat points"><span class="k" style="width:auto">Available Points</span>'+field('points',p.points,'number')+'</div></div>';
     h+='<h3>Titles</h3>'+(p.titles.length?p.titles.map((t,i)=>'<span class="tag" style="margin-right:4px">'+esc(t)+' <button class="icon" data-deltitle="'+i+'">×</button></span>').join(''):'<span class="muted">None</span>')+
       ' <button class="btn small" id="addTitle">+ Title</button>';
-    h+='<div class="muted" style="margin-top:8px">Every field is editable. Redo/delete only reverts changes a narrator post applied; your manual edits stay.</div></div>';
+    h+='<div class="muted" style="margin-top:8px">Every field is editable. Redo/delete only reverts changes a narrator post applied; your manual edits stay.</div>';
+    h+='<div class="grant-exp"><div class="muted" style="margin-bottom:6px">Grant EXP if a kill did not award any. Level-ups apply automatically (+5 free points, +1 all stats, HP/MP from the formulas).</div><div class="row" style="align-items:flex-end;gap:8px;flex-wrap:wrap"><div style="flex:0 0 110px"><label for="grantExpAmt">Amount</label><input type="number" id="grantExpAmt" min="1" step="1" value="20" inputmode="numeric"></div><button class="btn small primary" id="grantExpBtn" style="min-height:44px">Grant EXP</button></div></div></div>';
   }else if(sysTab==='skills'){
     h+='<div class="syswin"><span class="title">Skills</span>'+(p.skills.length?'':'<div class="muted">No skills yet.</div>')+p.skills.map((s,i)=>
       '<div class="list-item"><div class="head">'+li('skills',i,'name',s.name,'style="flex:2 1 160px"')+'<select data-list="skills" data-i="'+i+'" data-k="type" style="flex:0 0 110px">'+['Active','Passive'].map(o=>'<option'+(s.type===o?' selected':'')+'>'+o+'</option>').join('')+'</select>'+
@@ -1583,6 +1720,17 @@ function onSysClick(e){
   if(t.dataset.plus){if(p.points>0){p.stats[t.dataset.plus]++;p.points--;deriveMax(p,cfg());clampPlayer(p);save();renderSystem();}return;}
   if(t.dataset.deltitle!==undefined){p.titles.splice(+t.dataset.deltitle,1);save();renderSystem();return;}
   if(t.id==='addTitle'){const n=prompt('Title name');if(n){p.titles.push(n);save();renderSystem();}return;}
+  if(t.id==='grantExpBtn'){
+    const el=$('#grantExpAmt');const n=Math.floor(num(el&&el.value,0));
+    if(!(n>0)){toast('Enter an EXP amount greater than 0.');return;}
+    const notes=applyUpdate(p,{exp_gain:n},cfg());
+    repairDerivedStats(p,cfg());
+    const ups=notes.filter(x=>/^LEVEL UP/.test(x));
+    syslog('Granted EXP +'+n+(ups.length?'; '+ups.join('; '):'')+'.');
+    toast(notes.filter(isMechanicalNote).join(' · ')||('EXP +'+n));
+    renderSystem();renderHud();
+    return;
+  }
   if(t.dataset.dellist){if(!confirm('Delete?'))return;p[t.dataset.dellist].splice(+t.dataset.i,1);save();renderSystem();return;}
   if(t.dataset.addlist){const L=t.dataset.addlist;p[L].push(L==='skills'?normSkill({name:'New Skill'}):L==='quests'?normQuest({name:'New Quest'}):normItem({name:'New Item'}));save();renderSystem();return;}
   if(t.dataset.buy!==undefined){const s=S.shop[+t.dataset.buy];if(!s||p.gold<s.price)return;p.gold-=s.price;
