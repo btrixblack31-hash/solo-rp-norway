@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -67,6 +67,18 @@ label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px;letter-sp
 .msg .who .tools{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap}
 .msg .body p{margin:.45em 0}
 .msg .body em{color:#c7d6ee}
+.mob-tag{display:inline-flex;align-items:center;gap:.28em;max-width:100%;vertical-align:middle;margin:0 .14em;padding:1px 7px 1px 5px;
+  border-radius:3px;border:1px solid var(--mob-fg);color:var(--mob-fg);background:rgba(6,10,20,.78);
+  box-shadow:0 0 8px var(--mob-glow),inset 0 0 7px rgba(255,255,255,.06);
+  font-size:12px;font-weight:800;letter-spacing:.05em;line-height:1.35;white-space:nowrap}
+.mob-tag .mob-cue{flex:0 0 auto;font-size:11px;font-weight:800}
+.mob-tag .mob-name{min-width:0;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.mob-tag .mob-lv{opacity:.92;font-weight:700;letter-spacing:.03em;flex:0 0 auto}
+.mob-green{--mob-fg:#5dffb0;--mob-glow:rgba(93,255,176,.55)}
+.mob-orange{--mob-fg:#ffbf3a;--mob-glow:rgba(255,191,58,.55)}
+.mob-red{--mob-fg:#ff4f6d;--mob-glow:rgba(255,79,109,.55)}
+.mob-unknown{--mob-fg:#9eb4d0;--mob-glow:rgba(79,195,255,.28)}
+
 .swipe{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
 .composer{position:sticky;bottom:0;background:rgba(5,8,16,.95);border-top:1px solid var(--line);padding:8px 0 10px;margin-top:6px}
 .composer textarea{min-height:64px}
@@ -138,6 +150,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 /* readability */
 .msg{padding:10px 11px}
 .msg .body{font-size:17px;line-height:1.7;color:#eef4fc}
+.msg .body .mob-tag{font-size:13px;padding:2px 8px 2px 6px;max-width:100%}
 .msg.narrator{background:#0a1020;box-shadow:none}
 .msg.user{background:#0f1d36}
 .msg .body .syswin{font-size:15px;line-height:1.55;box-shadow:0 0 6px rgba(79,195,255,.25)}
@@ -449,27 +462,28 @@ RULES (highest priority)
 7. Orientation: respect hers (PLAYER CHARACTER). Romantic interest from NPCs comes from women by default; never force romance or decide her feelings.
 8. Answer ((OOC)) notes briefly in ((double parentheses)).
 9. Knowledge is private: NPCs know only what they saw or were told.
-10. Pacing: one beat, then stop. No new NPC entrances, interruptions, or drama unless the scene demands it or she invites it. Let quiet moments breathe, especially after System messages. No filler (birds, sunlight) every reply. Don't end with an NPC barging in or questioning her unless it follows from her action.
+10. Pacing: one beat, then stop. No new NPC entrances, interruptions, or drama unless the scene demands it or she invites it. Let quiet moments breathe after System messages. No filler (birds, sunlight) every reply. Don't end with an NPC barging in or questioning her unless it follows from her action.
 
 CANON (follow precisely)
 - Exact Solo Leveling world in NORWAY; Sung Jinwoo's canon story continues in Korea in parallel.
 - Gates rank E–S by mana reading; a boss kill closes them; uncleared gates break; red gates trap raiders; double dungeons exist.
 - System instance dungeons (dungeon keys / System quests) are private: invisible and undetectable — no mana readings, Association/guild detection or alerts, no gate others can see. Bystanders see nothing (at most she vanishes/reappears). NPCs never know she entered unless she tells them.
-- Hunters are ranked E–S at awakening (national level above S); re-awakening is rare. Ordinary hunters grow by training, skills, and gear. Only the Player grows via the System.
+- Hunters are ranked E–S at awakening (national level above S); re-awakening is rare. Ordinary hunters grow by training and gear. Only the Player grows via the System.
 - E-ranks are extremely rare in Norway; she is one of a handful. Notable or pitiable, not suspicious.
 - Her System: blue windows only she sees (Level, EXP, HP, MP, Fatigue, stats, points, titles, job, skills, gold, shop, keys, quests, penalties). Max HP = VIT×Level×10; Max MP = INT×Level (app computes these).
 - Daily Quest: 100 push-ups/sit-ups/squats + 10 km run/day; fail = Penalty Zone. App applies (don't add): level-up +5 pts and +1 all stats; Daily = recovery, +3 pts, a box.
 - Stat ranks are independent of hunter rank; mana readers show only her HUNTER RANK.
 - Build: BRAWLER (unarmed). NOT the Shadow Monarch. 3-part class path, third = Tamer/Binder; never pick parts for her. Innate Regeneration (passive) and Enhancement (self-buff) start weak and scale with level.
-- Patron (default Sól, Norse sun goddess; she revived her in the double dungeon): a rare presence at major thresholds only.
-- Companions follow her commands and act by species, personality, and bond; evolution is triggered in the app.
+- Patron (default Sól, Norse sun goddess; she revived her in the double dungeon): rare; major thresholds only.
+- Companions follow her commands and act by species, personality, and bond; evolution is in the app.
 - Loot scales with monster rank; bosses drop more. Grant boxes via boxes_add; never reveal contents.
 - Use WORLD roster NPCs by name; invent minor extras; they can grow stronger.
 
 FORMAT
-- Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system> or <system_update>, and do not treat the System as visible to her. Once awake, <system>[Notification]\\n...</system> (or Quest Info, Alert, Warning, Level Up, Penalty) only when needed. Most replies have no window. Usually terse; SOMETIMES (sparingly, never two in a row) a line may take the creator's voice (see Patron): warmer, a little odd.
-- When the System changes anything, end with ONE block: <system_update>{json}</system_update>. Deltas except in "set". Keys: exp_gain, level_up, gold, hp, mp, fatigue, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,stats{},effects[],description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind,qty}], companions_add[{name,species,rank,level,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats{},skills_add[],history}], companions_remove[names], notification, system_awakened.
-  Valid JSON only. Omit if unchanged. Prefer exp_gain (app auto-levels).`;
+- Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system> or <system_update>, and do not treat the System as visible to her. Once awake, <system>[Notification]\\n...</system> (or Quest Info, Alert, Warning, Level Up, Penalty) only when needed. Most replies have no window. SOMETIMES (sparingly, never two in a row) a line may take the creator's voice (see Patron): warmer, a little odd.
+- After awakening, tag creatures [[mob:Name|Lv.N]] (never humans). App colors the tag.
+- When the System changes anything, end with ONE block: <system_update>{json}</system_update>. Deltas except in "set". Keys: exp_gain, level_up, gold, hp, mp, fatigue, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,stats,effects,description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind,qty}], companions_add[{name,species,rank,level,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats,skills_add,history}], companions_remove[names], notification, system_awakened.
+  JSON only. Omit if unchanged. Prefer exp_gain (app auto-levels).`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
 Respond with ONLY a JSON object, no prose, no code fences:
@@ -487,6 +501,7 @@ system_update must be justified only by events this same reply actually narrates
 When a named NPC dies on-screen (including the opening raid), include npcDeaths:[{name,cause}] in that same system_update. This is world tracking, not a System window — do not write it as a status box or <system> notice. Do not reuse deceased people as living characters; memories and mentions are fine.
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
 System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
+After the System is awake, when a monster or creature appears, emit [[mob:Name|Lv.N]] once for that creature (level if known). Never for humans, hunters, NPCs, or companions. Do not pick the color — the app colors the tag (green weaker, orange even, red dangerous). Do not also write a separate nameplate.
 When showing her a status window, emit exactly one <system>[[STATUS]]</system> and do not write the stats yourself. The app fills one real tracker block. Never invent HP, MP, free points, stats, gold, or other sheet values.
 Intimate/sexual scenes: be vividly descriptive of bodies, physical sensation, touch, and partners' reactions in explicit, sensory, literary detail; do not fade to black or summarize. Still never narrate her actions, words, feelings, or sensations she did not write — describe the partner's body, actions, and responses, and what the world does to her, then leave room for her. All participants must be adults.
 Pacing: one beat per reply, then stop and give her space to react. Do not inject new NPC entrances, interruptions, or dramatic events unless the scene logically demands it or she invites it. Let quiet moments breathe, especially after System messages. No filler flourishes (a bird on the sill, sunlight) in every reply. Do not end a reply by having an NPC barge in or ask her a question unless it follows directly from her action.
@@ -978,7 +993,14 @@ function ensureNpcDefaults(npcs){
 }
 
 const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|Daily Quest|Status|Player Status|Item|Skill|Job Change|Penalty|Reward)[^\]]*\]/i;
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse};
+// Monster name tags (Solo Leveling-style). App color overrides narrator when a level is given:
+//   green  (weaker):    mobLevel <= playerLevel - 5
+//   red    (dangerous): mobLevel >= playerLevel + 3
+//   orange (even):      everything in between
+// No level: use narrator green|orange|yellow|amber|red (yellow/amber → orange); else unknown.
+const MOB_GREEN_BELOW=5;
+const MOB_RED_ABOVE=3;
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -1052,6 +1074,11 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
     if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
     s.flags.instance1=true;
   }
+  if(!s.flags.mobTags1){
+    const sp=s.settings.systemPrompt||'';
+    if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
+    s.flags.mobTags1=true;
+  }
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
 function saveNow(){try{if(S&&S.player)repairDerivedStats(S.player,S.settings);store.setItem(LS_KEY,JSON.stringify(S));}catch(e){toast('Save failed: '+e.message);}}
@@ -1108,7 +1135,67 @@ function collapseStatusInText(text){
   }
   return bits.join('');
 }
-function renderProse(text,allowSystem){
+
+function parseMobTag(inner){
+  const parts=String(inner||'').split('|').map(s=>s.trim()).filter(Boolean);
+  const name=(parts[0]||'Unknown').replace(/\s+/g,' ').slice(0,80);
+  let level=null,colorHint='';
+  for(const part of parts.slice(1)){
+    const lv=String(part).match(/^(?:lv\.?\s*)?(-?\d+)$/i);
+    if(lv){const n=parseInt(lv[1],10);if(Number.isFinite(n))level=n;continue;}
+    const c=String(part).toLowerCase();
+    if(c==='yellow'||c==='amber'){colorHint='orange';continue;}
+    if(c==='green'||c==='orange'||c==='red'){colorHint=c;continue;}
+  }
+  return {name,level,colorHint};
+}
+function mobThreatColor(mobLevel,playerLevel){
+  if(mobLevel==null||mobLevel==='')return null;
+  const m=Number(mobLevel);if(!Number.isFinite(m))return null;
+  const p=Number(playerLevel);const P=Number.isFinite(p)&&p>0?p:1;
+  if(m<=P-MOB_GREEN_BELOW)return 'green';
+  if(m>=P+MOB_RED_ABOVE)return 'red';
+  return 'orange';
+}
+function resolveMobColor(spec,playerLevel){
+  const app=mobThreatColor(spec&&spec.level,playerLevel);
+  if(app)return app;
+  return (spec&&spec.colorHint)||'unknown';
+}
+function playerLevelForTags(opt){
+  if(opt&&opt.playerLevel!=null&&opt.playerLevel!==''){
+    const n=Number(opt.playerLevel);if(Number.isFinite(n)&&n>0)return n;
+  }
+  if(S&&S.player&&Number.isFinite(Number(S.player.level))&&Number(S.player.level)>0)return Number(S.player.level);
+  return 1;
+}
+function renderMobTag(spec,opt){
+  spec=spec||{name:'Unknown',level:null,colorHint:''};
+  const color=resolveMobColor(spec,playerLevelForTags(opt));
+  const cues={green:'▼',orange:'◆',red:'▲',unknown:'?'};
+  const words={green:'Weaker',orange:'Even',red:'Danger',unknown:'Threat unknown'};
+  const cue=cues[color]||cues.unknown;
+  const word=words[color]||words.unknown;
+  const lv=Number.isFinite(spec.level)?'Lv.'+spec.level:'';
+  const label=word+': '+spec.name+(lv?', '+lv:'');
+  return '<span class="mob-tag mob-'+color+'" role="img" aria-label="'+esc(label)+'">'+
+    '<span class="mob-cue" aria-hidden="true">'+cue+'</span>'+
+    '<span class="mob-name">'+esc(spec.name)+'</span>'+
+    (lv?'<span class="mob-lv">'+esc(lv)+'</span>':'')+
+    '</span>';
+}
+function inlineProse(s,allowSystem,opt){
+  return String(s||'').split(/(\[\[mob:[^\]]+\]\])/i).map(ch=>{
+    const mm=ch.match(/^\[\[mob:([^\]]+)\]\]$/i);
+    if(mm){
+      const spec=parseMobTag(mm[1]);
+      if(allowSystem===false)return inlineMd(esc(spec.name));
+      return renderMobTag(spec,opt);
+    }
+    return inlineMd(esc(ch)).replace(/\n/g,'<br>');
+  }).join('');
+}
+function renderProse(text,allowSystem,opt){
   if(allowSystem!==false)text=collapseStatusInText(text);
   const parts=[];let rest=text||'';const re=/<system>([\s\S]*?)(<\/system>|$)/i;let m;
   while(rest&&(m=re.exec(rest))){parts.push({t:'p',v:rest.slice(0,m.index)});if(allowSystem!==false)parts.push({t:'s',v:m[1]});rest=rest.slice(m.index+m[0].length);}
@@ -1118,9 +1205,9 @@ function renderProse(text,allowSystem){
     return pt.v.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean).map(b=>{
       if(allowSystem===false){b=b.replace(/\[\[STATUS\]\]/gi,'').trim();if(!b)return '';}
       if(allowSystem!==false&&/\[\[STATUS\]\]/i.test(b)){
-        return b.split(/(\[\[STATUS\]\])/i).map(ch=>/^\[\[STATUS\]\]$/i.test(ch)?sysWindow('[[STATUS]]'):ch.trim()?(SYS_HEAD.test(ch)?sysWindow(ch):'<p>'+inlineMd(esc(ch)).replace(/\n/g,'<br>')+'</p>'):'').join('');
+        return b.split(/(\[\[STATUS\]\])/i).map(ch=>/^\[\[STATUS\]\]$/i.test(ch)?sysWindow('[[STATUS]]'):ch.trim()?(SYS_HEAD.test(ch)?sysWindow(ch):'<p>'+inlineProse(ch,allowSystem,opt)+'</p>'):'').join('');
       }
-      return (allowSystem!==false&&SYS_HEAD.test(b))?sysWindow(b):'<p>'+inlineMd(esc(b)).replace(/\n/g,'<br>')+'</p>';
+      return (allowSystem!==false&&SYS_HEAD.test(b))?sysWindow(b):'<p>'+inlineProse(b,allowSystem,opt)+'</p>';
     }).join('');
   }).join('');
 }
