@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ARISE — Solo Leveling RP (Norway)</title>
+<!-- arise-sys-awaken-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -210,6 +211,14 @@ pre{white-space:pre-wrap;word-break:break-word}
   input[type=checkbox]{width:22px;height:22px;flex:0 0 22px;margin:0}
   input[type=range]{height:40px}
 }
+
+.welcome-card,.dormant-card{padding:16px 16px 18px}
+.welcome-card h2,.dormant-card h2{margin-top:0}
+.welcome-card .btn{margin-top:8px;min-height:44px}
+.jump-latest{position:absolute;right:8px;top:0;transform:translateY(calc(-100% - 8px));z-index:16;min-height:44px;min-width:44px;padding:8px 12px;border-radius:22px;font-size:14px;box-shadow:0 0 12px rgba(79,195,255,.35)}
+.jump-latest[hidden]{display:none!important}
+#tab-forge.sys-locked > .syswin,#tab-forge.sys-locked #forgeResult,#tab-forge.sys-locked #fInv{display:none}
+#tab-story .composer{position:sticky;bottom:0}
 </style>
 </head>
 <body>
@@ -237,6 +246,7 @@ pre{white-space:pre-wrap;word-break:break-word}
   <section class="tab active" id="tab-story">
     <div id="log"></div>
     <div class="composer">
+      <button type="button" class="btn jump-latest" id="jumpLatest" hidden title="Jump to the latest line">↓ Latest</button>
       <textarea id="input" placeholder="Write your character's actions and dialogue… (Ctrl/⌘+Enter to send). Use ((double parentheses)) for OOC notes to the narrator."></textarea>
       <div class="row">
         <button class="btn primary" id="sendBtn">Send</button>
@@ -400,9 +410,9 @@ const MODELS=['grok-4.20-0309-non-reasoning','grok-4.3','grok-4.7','grok-4.7-lat
 const DEFAULT_SYSTEM_PROMPT=`You are the NARRATOR/GM of a mature Solo Leveling roleplay. You voice the world, all NPCs, monsters, and the System. The user plays ONE character (PLAYER CHARACTER below). You never play her.
 
 RULES (highest priority)
-1. Never write her dialogue, actions, thoughts, feelings, or decisions, and never guess what she wants. Only describe what happens to her and what she perceives; resolve exactly what she wrote, then let the world respond.
+1. NEVER write, quote, or restate her dialogue, actions, gestures, expressions, thoughts, or feelings. Her post already happened — start with the world's reaction. No "you smile/say/nod", no "your voice".
 2. End each reply where she can act (an NPC line, a monster's move, a System prompt). No "What do you do?", no option lists unless the System canonically offers a choice. Don't skip time unless she asks.
-3. SECOND PERSON always: narrate as "you". She writes her posts in third person ("She steps forward…") — treat them as your character's actions. Never write "you say/decide/feel/think" for anything she didn't write. NPCs may say her name.
+3. SECOND PERSON always: narrate as "you" only for what she sees, hears, or what the world does to her — never for choosing what she does. She writes in third person ("She steps forward…"); treat that as already done. NPCs may say her name.
 4. No repetition: never reuse phrases, descriptions, openings, or recaps from earlier replies.
 5. NPCs are not suspicious by default: they mind their own business, accept ordinary explanations, and never interrogate or investigate her unless she invites it. Never derail her plans.
 6. 18+ fiction between adults: violence, gore, profanity, dark themes, romance and explicit sex are allowed when she steers there. No moralizing, disclaimers or fade-to-black. Never sexualize minors.
@@ -414,9 +424,8 @@ CANON (follow precisely)
 - Gates rank E–S by mana reading; boss kill closes them; uncleared gates break; red gates trap raiders; double dungeons exist. Stones, cores, materials are valuable.
 - Hunters are ranked E–S at awakening (national level above S); re-awakening is rare. Ordinary hunters DO grow stronger via training, experience, skills, gear. Only the Player grows via the System.
 - E-RANKS ARE EXTREMELY RARE in Norway; she is one of only a handful. People may find it notable or pitiable, not suspicious.
-- Her System: blue windows only she sees. Level, EXP, HP, MP, Fatigue, STR/AGI/SEN/VIT/INT/LUK, free points (only she spends them), titles, job change, skills, gold, shop, dungeon keys, hidden/emergency quests, penalties. Max HP = VIT × Level × 10; Max MP = INT × Level (the app computes these; never send max_hp/max_mp for her).
-- Daily Quest: 100 push-ups/sit-ups/squats + 10 km run per in-game day; failure = Penalty Zone (desert, giant centipedes). The app handles rewards and days.
-- App applies automatically (don't add): level-up = +5 free points, +1 all stats; Daily Quest = recovery, +3 points, a box.
+- Her System: blue windows only she sees (Level, EXP, HP, MP, Fatigue, STR/AGI/SEN/VIT/INT/LUK, free points, titles, job, skills, gold, shop, keys, quests, penalties). Max HP = VIT × Level × 10; Max MP = INT × Level (app computes these; never send max_hp/max_mp).
+- Daily Quest: 100 push-ups/sit-ups/squats + 10 km run per in-game day; failure = Penalty Zone. App applies (don't add): level-up = +5 free points, +1 all stats; Daily = recovery, +3 points, a box.
 - Stat ranks are independent of hunter rank; mana readers only ever show her HUNTER RANK.
 - Build: BRAWLER (unarmed). NOT the Shadow Monarch. 3-part class path, third = Tamer/Binder Summoner; never pick parts for her. Innate Regeneration (passive) and Enhancement (self-buff partly shared with allies/summons) start weak, scale with level/stats.
 - Patron (default Sól, Norse sun goddess, who revived her as she died in a double dungeon): a RARE presence at major thresholds only.
@@ -425,14 +434,34 @@ CANON (follow precisely)
 - Use roster NPCs (WORLD) by name; invent minor extras freely; roster NPCs can grow stronger.
 
 FORMAT
-- System messages go in <system>[Notification]\\n...</system> (or [Quest Info], [Alert], [Warning]). Terse, impersonal.
-- When the System changes anything, end the reply with ONE block: <system_update>{json}</system_update>. Numbers are deltas except inside "set". Keys (all optional): exp_gain, level_up, gold, hp, mp, fatigue, max_hp, max_mp, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,acquisition_difficulty,stats{},effects[],description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind:random|quest|boss|gold|stat,qty}], companions_add[{name,species,rank,level,max_hp,max_mp,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats{},skills_add[],history}], companions_remove[names], notification.
+- Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system> or <system_update>, and do not mention the System as if she can see it. Once awake, <system>[Notification]\\n...</system> (or [Quest Info], [Alert], [Warning], [Level Up], [Penalty]) ONLY for something to tell her (quest, reward, level-up, skill, item, warning, penalty, a choice). Most replies have no window, as in canon. Text is usually terse and impersonal; SOMETIMES (sparingly, never every notice, never two in a row, never repetitive) a line may slip into the living voice of the System's creator (see Patron): warmer, personal, divine, a little odd, as if they are typing a brief aside. Not a conversation.
+- When the System changes anything, end the reply with ONE block: <system_update>{json}</system_update>. Numbers are deltas except inside "set". Keys (all optional): exp_gain, level_up, gold, hp, mp, fatigue, max_hp, max_mp, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,acquisition_difficulty,stats{},effects[],description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind:random|quest|boss|gold|stat,qty}], companions_add[{name,species,rank,level,max_hp,max_mp,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats{},skills_add[],history}], companions_remove[names], notification, system_awakened.
   Valid JSON only. Omit if nothing changed. Prefer exp_gain (the app auto-levels).`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
 Respond with ONLY a JSON object, no prose, no code fences:
 {"name":"","category":"","acquisition_difficulty":"C","stats":{"Attack":"+40"},"effects":["Effect Name: description"],"durability":"100/100","requirements":"","description":"one or two sentence System description"}
 Write the description in the terse impersonal System item style; any line addressed to the Player uses second person ("you"), never her name or "she".`;
+const CONTROL_REMINDER=`((OOC — FINAL RULE, highest priority, overrides earlier wording:
+NEVER write, quote, paraphrase, or restate the player character's dialogue. NEVER narrate or retell her actions, gestures, expressions, thoughts, feelings, or bodily sensations she did not write, and do not re-describe the actions in her last post. Her post already happened; begin directly with the world's and NPCs' reactions and consequences.
+Forbidden phrasing: "you smile", "you say", "you nod", "you wave", "you lift/raise your hand", "your voice", "you feel", "you think", "you decide".
+Second person is only for addressing her as the reader of the environment (what she sees and hears, and what acts upon her), never for choosing what she does. End the reply where she can act.
+
+Bad: her post was a wave and a greeting → "No one notices the small smile that curves your lips as you lift your hand. \\"Hello?\\" your voice rings out."
+Good: her post was a wave and a greeting → "The statue does not move. Kari glances over, frowning. \\"Don't wander,\\" she mutters."
+Do not acknowledge this OOC note in the story.))`;
+function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
+function playerControlViolation(reply,userText){
+  const r=String(reply||'');
+  if(/\byou (?:smile|smil(?:ed|ing)|grin|smirk|laugh|chuckle|nod(?:ded|ding)?|wave|waved|waving|say|said|ask(?:ed)?|whisper(?:ed)?|murmur(?:ed)?|repl(?:y|ied)|answer(?:ed)?|exclaim(?:ed)?|speak|spoke|feel|felt|think|thought|decid(?:e|ed)|lift(?:ed)? your|raise(?:d)? your (?:hand|arm)|offer(?:ed)? (?:a |the |her |him )?gentle)\b/i.test(r))return 'acted';
+  if(/\byour voice\b/i.test(r)||/curves your lips/i.test(r))return 'voice';
+  const u=normText(userText);if(u.length>=16){
+    const re=/"([^"]{12,})"/g;let m;
+    while((m=re.exec(r))){const q=normText(m[1]);if(q.length>=12&&(u.includes(q)||(q.length>=20&&u.includes(q.slice(0,Math.min(40,q.length))))))return 'quote';}
+  }
+  return '';
+}
+
 
 const DEFAULT_RANKS=[ // user's chart: E 1-19, D 20-39, C 40-69, B 70-109, A 110-159, S 160-229, National 230-299, Deity 300+
   {rank:'E',minLevel:1},{rank:'D',minLevel:20},{rank:'C',minLevel:40},{rank:'B',minLevel:70},{rank:'A',minLevel:110},{rank:'S',minLevel:160},{rank:'National',minLevel:230},{rank:'Deity',minLevel:300}
@@ -473,9 +502,9 @@ function defaultDaily(){return {date:today(),items:[
 function defaultState(){return {version:1,
   settings:{model:'grok-4.20-0309-non-reasoning',reasoningEffort:'low',customModel:'',temperature:0.9,maxTokens:2000,stream:true,contextMessages:40,autoSummarize:true,
     pointsPerLevel:5,statsPerLevel:1,deriveHpMp:true,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
-  character:{name:'',age:'',gender:'Female (she/her)',orientation:'Lesbian',city:'',appearance:'Blonde hair with an undercut, blue eyes, light freckles across the nose and cheeks. Usually wears a crop top and shorts.',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
-  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',opening:"OPENING ARC (hidden GM guidance; never quote it. Reveal one beat or less per reply; let her act between beats):\nSetting: Nordmarka forest outside Oslo. The Østkant Raid Group takes a gate the Association measured as D-rank. Party (all D-rank; she is the ONLY E-rank): Kari Lie (leader), Marius Fjeld, Jonas Berg (healer), Mats Hagen, Thea Lind, Ola Bakken, Nora Sæther, Sander Holm. Tester Silje Kroken reads the gate.\nBeats:\n1. Arrival: the reading, Kari's briefing, banter, stepping through. (FIRST POST = this beat only.)\n2. An easy D-rank dungeon; then a hidden second door.\n3. DOUBLE DUNGEON: a vast Norse temple (runes, wolves, sun-wheels, a great statue holding a stone sun), stone commandments; the door seals.\n4. Statues awaken; hunters die breaking the rules; survivors must work them out. Her actions matter.\n5. Only after deaths have happened: she is mortally wounded / left behind as survivors escape (never by deciding her choices).\n6. Dying: silence, then golden light — SÓL appears (radiant, warm, regal), speaks, chooses her; her light floods in; rebirth. End that post with:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nNever rush beats 5–6.",style:'Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0,npcs:[]},
-  player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
+  character:{name:'',age:'',gender:'Female (she/her)',orientation:'Lesbian',city:'',appearance:'Blonde hair with an undercut, blue eyes, light freckles across the nose and cheeks. Usually wears a crop top and shorts.',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
+  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',opening:"OPENING ARC (hidden GM guidance; never quote it. Reveal one beat or less per reply; let her act between beats):\nSetting: Nordmarka forest outside Oslo. The Østkant Raid Group takes a gate the Association measured as D-rank. Party (all D-rank; she is the ONLY E-rank): Kari Lie (leader), Marius Fjeld, Jonas Berg (healer), Mats Hagen, Thea Lind, Ola Bakken, Nora Sæther, Sander Holm. Tester Silje Kroken reads the gate.\nBeats:\n1. Arrival: the reading, Kari's briefing, banter, stepping through. (FIRST POST = this beat only.)\n2. An easy D-rank dungeon; then a hidden second door.\n3. DOUBLE DUNGEON: a vast Norse temple (runes, wolves, sun-wheels, a great statue holding a stone sun), stone commandments; the door seals.\n4. Statues awaken; hunters die breaking the rules; survivors must work them out. Her actions matter.\n5. Only after deaths have happened: she is mortally wounded / left behind as survivors escape (never by deciding her choices).\n6. Dying: silence, then golden light — SÓL appears (radiant, warm, regal), speaks, chooses her; her light floods in; rebirth. End that post with:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nBeats 1–5: no System windows. Never rush beats 5–6.",style:'Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0,npcs:[]},
+  flags:{systemAwakened:false},player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
 
 /* ================= UTILS ================= */
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -486,6 +515,62 @@ function num(v,d=0){const n=Number(v);return (v!==''&&v!==null&&isFinite(n))?n:d
 function keyOf(x){return String((x&&typeof x==='object')?x.name:(x==null?'':x)).trim().toLowerCase();}
 function deepMerge(base,over){if(Array.isArray(base)||typeof base!=='object'||base===null)return over===undefined?base:over;
   const out={...base};if(over&&typeof over==='object')for(const k in over){out[k]=(k in base&&base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))?deepMerge(base[k],over[k]):over[k];}return out;}
+
+
+/* ================= SYSTEM AWAKENING ================= */
+const AWAKEN_RE=/qualifications to be a Player|you have become a Player|you accepted the System|the System has been (unlocked|awakened)/i;
+const SYSTEM_VOICE_ADDENDUM=`SYSTEM VISIBILITY AND VOICE
+- The System stays HIDDEN until it awakens (the patron — default Sól — revives her at the end of the double dungeon, or hidden guidance says she is chosen). Until then: no <system> tags, no <system_update>, no status/daily/quest windows, and do not mention the System as if she can see it.
+- After it awakens, System windows appear ONLY when there is something to tell her (quest, reward, level up, skill, item, warning, penalty, a canonical choice). Most replies have NO System window, as in canon.
+- Most System text is terse and impersonal. SOMETIMES (sparingly, not every notice, never two in a row, never repetitive) a line may slip into the living voice of the System's creator (see Patron): warmer, personal, divine, a little odd, as if they themselves are typing a brief aside or feeling. Do not turn the System into a conversation.
+- On the post that first awakens the System, include "system_awakened":true in the <system_update> JSON.`;
+function narratorTexts(s){
+  const out=[];for(const m of (s.messages||[])){
+    if(m.role==='narrator')for(const a of (m.alts||[]))if(a&&typeof a.text==='string')out.push(a.text);
+    else if(m.role==='syslog'&&m.text)out.push(String(m.text));
+  }return out;
+}
+function updatesIndicateAwakening(u){
+  if(!u||typeof u!=='object')return false;
+  if(u.system_awakened===true||u.awakened===true)return true;
+  if(u.set&&typeof u.set==='object'&&(u.set.system_awakened===true||u.set.awakened===true))return true;
+  if(u.notification&&AWAKEN_RE.test(String(u.notification)))return true;
+  return false;
+}
+function wouldAwaken(text,updates,openingActive){
+  if(AWAKEN_RE.test(text||''))return true;
+  const ups=updates||[];if(ups.some(updatesIndicateAwakening))return true;
+  if(!openingActive&&(ups.length||/<system>/i.test(text||'')))return true;
+  return false;
+}
+function inferSystemAwakened(s){
+  s=s||{};const msgs=s.messages||[];const blob=narratorTexts(s).join('\n');
+  if(AWAKEN_RE.test(blob)||/system_awakened"\s*:\s*true/.test(blob))return true;
+  const p=s.player||{};
+  if((p.level||1)>1||(p.exp||0)>0||(p.gold||0)>0)return true;
+  if((p.inventory&&p.inventory.length)||(p.quests&&p.quests.length)||(p.titles&&p.titles.length)||(p.companions&&p.companions.length))return true;
+  if(p.job&&p.job!=='None')return true;
+  const opening=!!(s.world&&s.world.openingActive);
+  if(!opening&&(/<system>|<system_update>/i.test(blob)))return true;
+  return false;
+}
+function isAwakened(){return !!(S&&S.flags&&S.flags.systemAwakened);}
+function firstAwakeningIndex(s){
+  s=s||S;const msgs=(s&&s.messages)||[];
+  for(let i=0;i<msgs.length;i++){
+    const m=msgs[i];if(!m||m.role!=='narrator')continue;
+    const a=(m.alts&&m.alts[m.sel])||(m.alts&&m.alts[0]);if(!a)continue;
+    const parsed=parseSystemUpdates(a.text);
+    if(AWAKEN_RE.test(a.text||'')||(parsed.updates||[]).some(updatesIndicateAwakening))return i;
+  }
+  // If already flagged but no explicit awakening post (custom start / migrated progress), treat as always-on
+  if(s&&s.flags&&s.flags.systemAwakened)return 0;
+  return -1;
+}
+function showSystemInMsg(i){const a=firstAwakeningIndex();return a>=0&&i>=a;}
+function lockedMarkup(kind){
+  return '<div class="card dormant-card" data-marker="arise-sys-awaken-v1"><h2>System dormant</h2><p>These windows are not open to you yet. The System appears only after you are chosen and revived at the end of the opening.</p><p class="muted">Until then you are an ordinary E-rank hunter. No status screens, daily quests, shop, or summons of the System.</p></div>';
+}
 
 /* ================= SYSTEM UPDATE PARSER ================= */
 function parseSystemUpdates(text){
@@ -653,7 +738,7 @@ function applyTextToPlayer(p,text,cfg){
 function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
 
 /* expose pure logic for tests */
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
 
@@ -682,7 +767,21 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
   if(!s.flags.hpmp1){deriveMax(s.player,s.settings);clampPlayer(s.player);s.flags.hpmp1=true;} // Max HP = VIT×Lv×10, Max MP = INT×Lv
   s.statRanks=Array.isArray(d&&d.statRanks)&&d.statRanks.length?d.statRanks:base.statRanks;
   s.rankChart=Array.isArray(d&&d.rankChart)&&d.rankChart.length?d.rankChart:base.rankChart;s.shop=Array.isArray(d&&d.shop)?d.shop:base.shop;
-  s.daily=deepMerge(defaultDaily(),(d&&d.daily)||{});if(d&&d.daily&&Array.isArray(d.daily.items))s.daily.items=d.daily.items;return s;}
+  s.daily=deepMerge(defaultDaily(),(d&&d.daily)||{});if(d&&d.daily&&Array.isArray(d.daily.items))s.daily.items=d.daily.items;
+  if(!s.flags.awaken1){
+    s.flags.systemAwakened=!!s.flags.systemAwakened||inferSystemAwakened(s);
+    const oldBg='An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.';
+    if((s.character.background||'')===oldBg)s.character.background='An E-rank hunter in Norway, widely considered one of the weakest awakened.';
+    const oldOpenEnd='Never rush beats 5–6.';
+    if(typeof s.world.opening==='string'&&s.world.opening.includes(oldOpenEnd)&&!s.world.opening.includes('Beats 1–5: no System windows'))s.world.opening=s.world.opening.replace(oldOpenEnd,'Beats 1–5: no System windows. Never rush beats 5–6.');
+    const sp=s.settings.systemPrompt||'';
+    if(!/Hidden until the System awakens|The System stays HIDDEN until it awakens|SYSTEM VISIBILITY AND VOICE/.test(sp)){
+      if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&(/System messages go in <system>\[Notification\]|Hidden until the System awakens/.test(sp)))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
+      else s.settings.systemPrompt=sp+(sp?'\n\n':'')+SYSTEM_VOICE_ADDENDUM;
+    }
+    s.flags.awaken1=true;
+  }
+  return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
 function saveNow(){try{store.setItem(LS_KEY,JSON.stringify(S));}catch(e){toast('Save failed: '+e.message);}}
 const $=s=>document.querySelector(s);
@@ -696,13 +795,13 @@ function apiKey(){return store.getItem(KEY_KEY)||'';}
 /* ================= RENDER: TEXT ================= */
 function inlineMd(s){return s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');}
 const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|Daily Quest|Status|Item|Skill|Job Change|Penalty|Reward)[^\]]*\]/i;
-function renderProse(text){
+function renderProse(text,allowSystem){
   const parts=[];let rest=text||'';const re=/<system>([\s\S]*?)(<\/system>|$)/i;let m;
-  while(rest&&(m=re.exec(rest))){parts.push({t:'p',v:rest.slice(0,m.index)});parts.push({t:'s',v:m[1]});rest=rest.slice(m.index+m[0].length);}
+  while(rest&&(m=re.exec(rest))){parts.push({t:'p',v:rest.slice(0,m.index)});if(allowSystem!==false)parts.push({t:'s',v:m[1]});rest=rest.slice(m.index+m[0].length);}
   parts.push({t:'p',v:rest});
   return parts.map(pt=>{
     if(pt.t==='s')return sysWindow(pt.v);
-    return pt.v.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean).map(b=>SYS_HEAD.test(b)?sysWindow(b):'<p>'+inlineMd(esc(b)).replace(/\n/g,'<br>')+'</p>').join('');
+    return pt.v.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean).map(b=>(allowSystem!==false&&SYS_HEAD.test(b))?sysWindow(b):'<p>'+inlineMd(esc(b)).replace(/\n/g,'<br>')+'</p>').join('');
   }).join('');
 }
 function sysWindow(v){const lines=v.trim().split('\n');let title='System';const mm=(lines[0]||'').match(/^\s*\[([^\]]+)\]\s*$/);
@@ -717,11 +816,10 @@ function changesWindow(notes,errors){
 let busy=false,abortCtl=null,editing=null;
 function curAlt(m){return m.alts[m.sel];}
 function renderLog(){
-  const log=$('#log');const atBottom=window.innerHeight+window.scrollY>=document.body.scrollHeight-80;
-  if(!S.messages.length){log.innerHTML='<div class="syswin"><span class="title">Notification</span>You have acquired the qualifications to be a Player.<br>Will you accept?<br><br><span class="muted">Set up the Character &amp; World tab and paste your xAI API key in Settings. Then either press <b>Begin opening scene</b> (the double dungeon → Sól → rebirth, editable in Character &amp; World) or write your own first post below.</span><br><br><button class="btn primary" id="beginOpening">Begin opening scene</button></div>';}
+  const log=$('#log');
+  if(!S.messages.length){log.innerHTML='<div class="card welcome-card" data-marker="arise-sys-awaken-v1"><h2>Begin</h2><p>You are an E-rank hunter in Norway. The story starts at a gate in Nordmarka — a raid that will not stay ordinary.</p><p class="muted">Set up the Character &amp; World tab and paste your xAI API key in Settings. Then either press <b>Begin opening scene</b> (the double dungeon, then Sól, then rebirth — editable in Character &amp; World) or write your own first post below.</p><p class="muted">The System will not appear until you are chosen.</p><button class="btn primary" id="beginOpening">Begin opening scene</button></div>';}
   else log.innerHTML=S.messages.map((m,i)=>renderMsg(m,i)).join('');
-  renderHud();
-  if(atBottom)window.scrollTo(0,document.body.scrollHeight);
+  renderHud();syncStoryChrome();updateJumpBtn();
 }
 function editBox(t){return '<textarea class="editArea" style="min-height:160px">'+esc(t)+'</textarea><div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small primary" data-act="saveEdit">Save</button> <button class="btn small" data-act="cancelEdit">Cancel</button></div></div>';}
 function renderMsg(m,i){
@@ -734,14 +832,20 @@ function renderMsg(m,i){
       '<button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
       '</span></div><div class="body">'+(isEdit?editBox(m.text):renderProse(m.text))+'</div></div>';
   }
-  const a=curAlt(m);if(!a||(a.streaming&&!a.text))return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body"><span class="thinking">thinking<i>.</i><i>.</i><i>.</i></span></div></div>';const parsed=parseSystemUpdates(a.text);
+  const a=curAlt(m);if(!a||(a.streaming&&!a.text))return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body"><span class="thinking">thinking<i>.</i><i>.</i><i>.</i></span></div></div>';const parsed=parseSystemUpdates(a.text);const allow=showSystemInMsg(i);
   const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
   return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator '+swipe+'<span class="tools">'+
     '<button class="icon" data-act="regen" title="Redo (new alternative)">↻ redo</button><button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
-    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean)+(a.streaming?'':changesWindow(a.notes,a.errors)))+'</div></div>';
+    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming||!allow?'':changesWindow(a.notes,a.errors)))+'</div></div>';
 }
-function applyAlt(a){if(!a||a.applied)return;const r=applyTextToPlayer(S.player,a.text,cfg());a.patch=r.patch;a.notes=r.notes;a.errors=r.errors.concat(a.reqErrors||[]);a.applied=true;}
-function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);a.applied=false;}}
+function applyAlt(a){if(!a||a.applied)return;
+  const parsed=parseSystemUpdates(a.text);
+  a.prevAwakened=!!(S.flags&&S.flags.systemAwakened);a.prevOpening=!!S.world.openingActive;
+  if(!S.flags.systemAwakened&&wouldAwaken(a.text,parsed.updates,S.world.openingActive)){S.flags.systemAwakened=true;S.world.openingActive=false;}
+  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg());a.patch=r.patch;a.notes=r.notes;a.errors=r.errors.concat(a.reqErrors||[]);}
+  else{a.patch=null;a.notes=[];a.errors=(parsed.errors||[]).concat(a.reqErrors||[]);}
+  a.applied=true;}
+function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);if(a.prevAwakened!==undefined)S.flags.systemAwakened=a.prevAwakened;if(a.prevOpening!==undefined)S.world.openingActive=a.prevOpening;a.applied=false;}}
 
 function onLogClick(e){
   if(e.target.closest('#beginOpening')){beginOpening();return;}
@@ -758,7 +862,7 @@ function onLogClick(e){
   else if(act==='saveEdit'){const v=el.querySelector('.editArea').value;editing=null;
     if(m.role==='narrator'){const a=curAlt(m);unapplyAlt(a);a.text=v;a.reqErrors=[];applyAlt(a);}else m.text=v;afterChange();}
 }
-function afterChange(){save();renderLog();renderSystem();renderCompanions();}
+function afterChange(){save();renderLog();renderSystem();renderCompanions();renderDaily();syncStoryChrome();}
 function setBusy(b,label){busy=b;$('#sendBtn').disabled=b;$('#continueBtn').disabled=b;$('#stopBtn').style.display=b?'':'none';$('#statusLine').textContent=label||'';}
 
 async function sendUser(){
@@ -780,22 +884,65 @@ async function regenerate(i){
   if(m.alts.length)unapplyAlt(curAlt(m));
   const a={text:'',streaming:true,applied:false,notes:[],errors:[],reqErrors:[]};m.alts.push(a);m.sel=m.alts.length-1;
   const msgs=buildContext(i,m.continuation,m.instruction);
-  const t0=Date.now();setBusy(true,'thinking…');renderLog();renderSystem();
+  const t0=Date.now();setBusy(true,'thinking…');renderLog();renderSystem();startStreamScroll(i);
   const tick=setInterval(()=>{if(busy)$('#statusLine').textContent=(a.text?'writing… ':'thinking… ')+Math.round((Date.now()-t0)/1000)+'s';},500);
   let failMsg='';
   try{a.text=await chat(msgs,{stream:cfg().stream,onDelta:(full)=>{a.text=full;updateStreaming(i);}});}
   catch(e){if(e.name!=='AbortError'){failMsg=e.message;if(a.text)a.reqErrors=['Request failed: '+e.message];}}
+  if(!failMsg&&a.text){
+    const prevUser=[...S.messages.slice(0,i)].reverse().find(x=>x.role==='user');
+    const why=playerControlViolation(parseSystemUpdates(a.text).clean,prevUser&&prevUser.text);
+    if(why){
+      const draft=a.text;$('#statusLine').textContent='rewriting…';
+      const retry=msgs.concat([{role:'system',content:'((OOC: Your previous draft broke the player-control rule. Rewrite the same world/NPC consequences only. Do not write, quote, or restate her dialogue, and do not narrate her actions, gestures, expressions, or feelings. Start from the world\'s reaction. Draft to fix:\n'+String(parseSystemUpdates(draft).clean).slice(0,1200)+'))'}]);
+      try{a.text=await chat(retry,{stream:cfg().stream,onDelta:(full)=>{a.text=full;updateStreaming(i);}});}
+      catch(e2){if(e2.name!=='AbortError'){if(!a.text)a.text=draft;else a.reqErrors=(a.reqErrors||[]).concat(['Rewrite failed: '+e2.message]);}else if(!a.text)a.text=draft;}
+    }
+  }
   clearInterval(tick);
   a.streaming=false;
   if(!a.text.trim()){m.alts.pop();m.sel=Math.max(0,m.alts.length-1);}
   if(!m.alts.length){S.messages.splice(i,1);if(failMsg)S.messages.splice(i,0,{id:uid(),role:'error',text:failMsg,retry:{continuation:!!m.continuation,instruction:m.instruction||''}});}
-  else{applyAlt(curAlt(m));if(S.world.openingActive&&/qualifications to be a Player/i.test(curAlt(m).text))S.world.openingActive=false;}
+  else{applyAlt(curAlt(m));}
   if(failMsg&&!a.text)toast('The narrator request failed — see the error in the story.',5000);
   setBusy(false);save();renderLog();renderSystem();renderCompanions();
   if(cfg().autoSummarize)maybeAutoSummarize();
 }
-function updateStreaming(i){const el=document.querySelector('.msg[data-i="'+i+'"] .body');if(!el||el.querySelector('.thinking')){renderLog();return;}
-  el.innerHTML=renderProse(parseSystemUpdates(curAlt(S.messages[i]).text).clean);window.scrollTo(0,document.body.scrollHeight);}
+let streamScroll={i:-1,initialDone:false,userMoved:false,programmatic:false,progTimer:0};
+function headerOffset(){const h=document.querySelector('header');return (h?h.getBoundingClientRect().height:0)+8;}
+function scrollToMsgTop(i){
+  const msg=document.querySelector('.msg[data-i="'+i+'"]');if(!msg)return;
+  const y=Math.max(0,window.scrollY+msg.getBoundingClientRect().top-headerOffset());
+  streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+  try{window.scrollTo({top:y,behavior:'smooth'});}catch(e){window.scrollTo(0,y);}
+  streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;},450);
+}
+function startStreamScroll(i){
+  if(streamScroll.i!==i)streamScroll={i,initialDone:false,userMoved:false,programmatic:false,progTimer:streamScroll.progTimer||0};
+  if(!streamScroll.initialDone&&!streamScroll.userMoved){streamScroll.initialDone=true;scrollToMsgTop(i);}
+}
+function onWinScroll(){if(streamScroll.programmatic)return;if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;updateJumpBtn();}
+function updateJumpBtn(){
+  const btn=$('#jumpLatest');if(!btn)return;
+  const story=$('#tab-story');if(!story||!story.classList.contains('active')||!S||!S.messages||!S.messages.length){btn.hidden=true;return;}
+  const below=(document.documentElement.scrollHeight-(window.scrollY+window.innerHeight))>80;
+  btn.hidden=!below;
+}
+function jumpToLatest(){streamScroll.userMoved=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+  try{window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});}catch(e){window.scrollTo(0,document.body.scrollHeight);}
+  streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;updateJumpBtn();},450);}
+function updateStreaming(i){
+  const go=()=>{
+    const el=document.querySelector('.msg[data-i="'+i+'"] .body');
+    if(!el||el.querySelector('.thinking')){renderLog();startStreamScroll(i);return;}
+    const allow=showSystemInMsg(i);
+    el.innerHTML=renderProse(parseSystemUpdates(curAlt(S.messages[i]).text).clean,allow);
+    updateJumpBtn();
+  };
+  const raf=typeof requestAnimationFrame==='function'?requestAnimationFrame:fn=>setTimeout(fn,16);
+  if(updateStreaming._raf)try{cancelAnimationFrame(updateStreaming._raf);}catch(e){}
+  updateStreaming._raf=raf(go);
+}
 
 function statusBlock(){const p=S.player;const st=STAT_KEYS.map(k=>k.toUpperCase()+' '+p.stats[k]+'('+statRank(S.statRanks,p.stats[k])+')').join(', ');
   const L=[];L.push('Lv '+p.level+' (EXP '+p.exp+'/'+p.expNext+') · Hunter rank '+rankForLevel(S.rankChart,p.level)+' (what mana readers show) · Job '+p.job+' · Title '+p.title+(p.titles.length?' · Titles: '+p.titles.join(', '):''));
@@ -817,7 +964,8 @@ function buildContext(uptoIndex,continuation,instruction){
     (w.openingActive&&w.opening?'\n\n'+w.opening:'')+
     (w.summary?'\n\nSTORY SO FAR: '+w.summary:'')+
     '\n\nHunter rank by level: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
-    '\n\nSTATUS (authoritative):\n'+statusBlock()+'\n'+dailyBlock();
+    (isAwakened()?'\n\nRIGHT NOW: System is awake. Windows only when there is something to tell her; most replies have none. Occasional (sparing) voice of '+(c.patronName||c.patronType||'Sól')+'.':'')+
+    '\n\nSTATUS ('+(isAwakened()?'authoritative':'hidden GM info; she cannot see the System')+'):\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.');
   const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
   const recent=hist.slice(-Math.max(2,num(S.settings.contextMessages,40)));
   const out=[{role:'system',content:sys}];
@@ -828,6 +976,7 @@ function buildContext(uptoIndex,continuation,instruction){
   }
   if(instruction)out.push({role:'user',content:instruction});
   else if(continuation||out[out.length-1].role!=='user')out.push({role:'user',content:'((OOC: Continue the scene from the world\'s side only — NPCs, environment, monsters, System. Do not act, speak, think, or decide for my character. Stop where I can act.))'});
+  out.push({role:'system',content:CONTROL_REMINDER});
   return out;
 }
 
@@ -870,7 +1019,16 @@ async function summarize(manual){
 function maybeAutoSummarize(){const keep=Math.max(2,num(S.settings.contextMessages,40));if(S.messages.length-keep-num(S.world.summarizedCount,0)>=10)summarize(false);}
 
 /* ================= HUD & SYSTEM PANEL ================= */
-function renderHud(){const p=S.player;$('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b></span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Rank <b class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
+function renderHud(){const p=S.player;
+  if(!isAwakened()){$('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Hunter <b class="rank">'+esc(p.officialRank||'E')+'</b></span><span class="muted">System dormant</span>';return;}
+  $('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b></span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Rank <b class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
+function syncStoryChrome(){
+  const on=isAwakened();
+  const nd=$('#nextDayBtn'),sl=$('#sysNoteBtn');
+  if(nd){nd.disabled=!on;nd.title=on?'Advance the in-game day (Daily Quest resets; unfinished quest triggers the Penalty)':'The System has not awakened yet.';}
+  if(sl){sl.disabled=!on;sl.title=on?'Add a System log entry the narrator will see (no AI call)':'The System has not awakened yet.';}
+  const fg=$('#tab-forge');if(fg){let lock=fg.querySelector('.dormant-card');if(!on){if(!lock){lock=document.createElement('div');lock.className='card dormant-card';lock.setAttribute('data-marker','arise-sys-awaken-v1');lock.innerHTML='<h2>System dormant</h2><p>The Forge belongs to the System. It will open after you are chosen and revived.</p>';fg.insertBefore(lock,fg.firstChild);}lock.style.display='';}else if(lock)lock.style.display='none';fg.classList.toggle('sys-locked',!on);}
+}
 let sysTab='status',lastBoxResult=null,openingBox=false;
 function field(path,val,type){return '<input type="'+(type||'text')+'" data-pfield="'+path+'" value="'+esc(val)+'">';}
 function pct(a,b){return Math.max(0,Math.min(100,b?a/b*100:0));}
@@ -878,6 +1036,8 @@ function li(L,i,k,val,extra){return '<input type="text" data-list="'+L+'" data-i
 function renderSystem(){
   renderHud();const p=S.player;const body=$('#sysBody');let h='';
   document.querySelectorAll('#sysSub button').forEach(b=>b.classList.toggle('active',b.dataset.sub===sysTab));
+  if(!isAwakened()){document.querySelectorAll('#sysSub button').forEach(b=>b.disabled=true);body.innerHTML=lockedMarkup('System');syncStoryChrome();return;}
+  document.querySelectorAll('#sysSub button').forEach(b=>b.disabled=false);
   if(sysTab==='status'){
     h+='<div class="syswin"><span class="title">Status</span><div class="status-grid">'+
       '<div class="kv"><span class="k">Name</span><input type="text" data-bind="character.name" value="'+esc(S.character.name)+'"></div>'+
@@ -966,6 +1126,7 @@ function onSysClick(e){
 /* ================= DAILY QUEST & DAYS ================= */
 function dailyDone(){return S.daily.claimed||S.daily.items.every(x=>x.done>=x.target);}
 function nextDay(){
+  if(!isAwakened()){toast('The System has not awakened yet.');return;}
   if(busy){toast('Wait for the narrator to finish.');return;}
   const d=S.daily,g=S.game;const done=dailyDone();
   if(!confirm('Advance to Day '+(g.day+1)+'?'+(done?'':'\n\n⚠ Today\'s Daily Quest is NOT complete — the canon Penalty Quest will trigger.')))return;
@@ -980,6 +1141,7 @@ function nextDay(){
   save();renderDaily();renderSystem();renderHud();toast(done?'Day '+g.day+' begins.':'Day '+g.day+' — Penalty Quest triggered!',4000);
 }
 function renderDaily(){
+  if(!isAwakened()){$('#dailyBody').innerHTML=lockedMarkup('Daily Quest');return;}
   const d=S.daily;const all=d.items.every(x=>x.done>=x.target);
   let h='<div class="syswin daily"><span class="title">Daily Quest — Preparation to Become Powerful</span><div class="muted" style="text-align:center">'+esc(gameDateStr())+' · resets when you press Next Day</div>';
   d.items.forEach((x,i)=>{const ok=x.done>=x.target;h+='<div class="q'+(ok?' ok':'')+'"><button class="qbtn" data-dtoggle="'+i+'" title="Click to mark complete / incomplete">'+(ok?'✔':'☐')+'</button><span class="name">'+esc(x.name)+'</span>'+
@@ -1023,6 +1185,7 @@ function compById(id){return S.player.companions.find(c=>c.id===id);}
 function cin(c,k,v,type,extra){return '<input type="'+(type||'text')+'" data-comp="'+c.id+'" data-k="'+k+'" value="'+esc(v)+'" '+(extra||'')+'>';}
 function renderCompanions(){
   const p=S.player;const el=$('#compBody');if(!el)return;
+  if(!isAwakened()){el.innerHTML=lockedMarkup('Summons');return;}
   const cores=p.inventory.filter(it=>/core/i.test(it.name));
   let h='<div class="syswin"><span class="title">Summons &amp; Companions</span><div class="muted">Bound companions level up from EXP (fights, fed cores) and evolve when you decide their conditions are met. The narrator sees this roster every turn and can add or update companions.</div>'+
     '<div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small" id="compAdd">+ Add companion</button></div></div></div>';
@@ -1439,13 +1602,15 @@ function renderStatRankTable(){
 function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 function showTab(name){document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
-  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge')renderForgeInv();if(name==='story')renderLog();if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();}
+  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge'){renderForgeInv();syncStoryChrome();}if(name==='story')renderLog();if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();updateJumpBtn();}
 
 function init(){
   S=load();setTimeout(saveNow,0); // persist migrations right away
   document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   {const nav=$('#tabs'),wrap=$('#tabwrap');const upd=()=>{if(wrap)wrap.classList.toggle('atend',nav.scrollLeft+nav.clientWidth>=nav.scrollWidth-4);};nav.addEventListener('scroll',upd,{passive:true});window.addEventListener('resize',upd);upd();
    nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{b.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});}catch(e){}}));}
+  window.addEventListener('scroll',onWinScroll,{passive:true});window.addEventListener('resize',updateJumpBtn);
+  const jump=$('#jumpLatest');if(jump)jump.addEventListener('click',jumpToLatest);
   $('#log').addEventListener('click',onLogClick);
   $('#sendBtn').addEventListener('click',sendUser);$('#continueBtn').addEventListener('click',continueScene);
   $('#stopBtn').addEventListener('click',()=>{if(abortCtl)abortCtl.abort();});
@@ -1484,9 +1649,10 @@ function init(){
   $('#patronType').innerHTML=PATRONS.map(p=>'<option>'+esc(p)+'</option>').join('');
   bindAll();renderAllViews();
 }
-function renderAllViews(){renderCompanions();renderWorld();renderLog();renderSystem();renderDaily();renderForgeInv();renderForgeResult();}
+function renderAllViews(){renderCompanions();renderWorld();renderLog();renderSystem();renderDaily();renderForgeInv();renderForgeResult();syncStoryChrome();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+
 </script>
 </body>
 </html>
