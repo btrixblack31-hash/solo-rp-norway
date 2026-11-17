@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 arise-scroll-v3 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -17,7 +17,7 @@
 :root{--chrome-h:96px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
 html,body{margin:0;min-height:100%;min-height:100dvh;height:auto;background:radial-gradient(ellipse at top,#0b1530 0%,var(--bg) 60%) fixed;color:var(--text);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;font-size:15px;line-height:1.55}
-html{overflow-x:hidden;overflow-anchor:none}
+html{overflow-x:hidden;overflow-anchor:none;overscroll-behavior-y:contain}
 body,#log,#sysBody,#dailyBody,.tab,#tab-story,#tab-system{overflow-anchor:none}
 body{padding-top:var(--chrome-h);padding-bottom:0}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -147,6 +147,7 @@ body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:55vh;z-i
   background:radial-gradient(ellipse at 20% 30%,rgba(54,241,205,.16),transparent 55%),radial-gradient(ellipse at 70% 20%,rgba(123,92,255,.16),transparent 55%),radial-gradient(ellipse at 50% 60%,rgba(79,195,255,.10),transparent 60%);
   filter:blur(18px);animation:aurora 18s ease-in-out infinite alternate}
 @keyframes aurora{0%{transform:translateX(-4%) skewX(-6deg)}100%{transform:translateX(4%) skewX(6deg)}}
+@media(prefers-reduced-motion:reduce){body::before,.tabhint{animation:none}}
 .logo,h2,.syswin .title,nav.tabs button{font-family:"Cinzel","Pirata One",Georgia,serif}
 .logo{font-family:"Pirata One","Cinzel",Georgia,serif;font-size:24px;letter-spacing:.18em}
 .logo small,.syswin .title::before,.syswin .title::after,h2::before{font-family:'Noto Sans Runic','Segoe UI Historic','Segoe UI Symbol',sans-serif}
@@ -191,7 +192,11 @@ img,video,pre{max-width:100%}
 pre{white-space:pre-wrap;word-break:break-word}
 .msg .body{overflow-wrap:anywhere}
 @media(max-width:700px){
-  html,body{font-size:16px}
+  html,body{font-size:16px;background-attachment:scroll}
+  header{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(5,8,16,.98)}
+  body::before{display:none;animation:none;filter:none}
+  #log>.msg{content-visibility:auto;contain-intrinsic-size:auto 720px}
+  #log>.msg:nth-last-child(-n+6){content-visibility:visible;contain-intrinsic-size:auto}
   input[type=text],input[type=number],input[type=password],select,textarea{font-size:16px;min-height:44px;padding:8px 10px}
   textarea{min-height:88px}
   .btn{min-height:44px;padding:8px 14px;font-size:16px}
@@ -3370,23 +3375,46 @@ async function regenerate(i){
 function headerOffset(){const h=document.querySelector('header');return (h?h.getBoundingClientRect().height:0)+8;}
 function scrollToMsgTop(i){/* no auto-scroll: only ↑ Top / ↓ Latest move the page */}
 function startStreamScroll(i){streamScroll.i=i;}
-function syncChrome(){
-  const header=document.querySelector('header');const root=document.documentElement;
-  const compact=window.scrollY>16;
-  const was=root.classList.contains('chrome-compact');
-  const prev=parseFloat(getComputedStyle(root).getPropertyValue('--chrome-h'))||0;
-  if(was!==compact)root.classList.toggle('chrome-compact',compact);
-  const h=header?Math.round(header.getBoundingClientRect().height):0;
-  root.style.setProperty('--chrome-h',h+'px');
-  if(was!==compact&&prev&&!streamScroll.programmatic&&window.scrollY>0){
-    const delta=h-prev;
-    if(delta){streamScroll.programmatic=true;window.scrollBy(0,delta);clearTimeout(streamScroll.progTimer);
-      streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;},50);}
-  }
-  const topBtn=$('#jumpTop');if(topBtn)topBtn.hidden=window.scrollY<80;
-  updateJumpBtn();
+let chromeRaf=0,lastChromeH=-1,scrollWorkMs=0,scrollWorkN=0;
+function scheduleChrome(force){
+  if(force){if(chromeRaf){try{cancelAnimationFrame(chromeRaf);}catch(e){}chromeRaf=0;}syncChrome(true);return;}
+  if(chromeRaf)return;
+  chromeRaf=requestAnimationFrame(()=>{chromeRaf=0;syncChrome(false);});
 }
-function onWinScroll(){if(scrollLock||streamScroll.programmatic){syncChrome();return;}if(Date.now()-lastUserInputAt<2000)lastMomentumAt=Date.now();rememberTabScroll(activeTabName());syncChrome();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;}
+function syncChrome(force){
+  const t0=(typeof performance!=='undefined'&&performance.now)?performance.now():0;
+  const y=window.pageYOffset||window.scrollY||0;
+  const compact=y>16;
+  const root=document.documentElement;
+  const was=root.classList.contains('chrome-compact');
+  let measure=!!force;
+  if(was!==compact){
+    root.classList.toggle('chrome-compact',compact);
+    measure=true;
+  }
+  if(measure){
+    const header=document.querySelector('header');
+    const prev=lastChromeH>0?lastChromeH:0;
+    const h=header?Math.round(header.getBoundingClientRect().height):0;
+    if(h!==lastChromeH){lastChromeH=h;root.style.setProperty('--chrome-h',h+'px');}
+    if(was!==compact&&prev&&!(streamScroll&&streamScroll.programmatic)&&y>0){
+      const delta=h-prev;
+      if(delta){streamScroll.programmatic=true;window.scrollBy(0,delta);clearTimeout(streamScroll.progTimer);
+        streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;},50);}
+    }
+  }
+  const topBtn=$('#jumpTop');if(topBtn){const hide=y<80;if(topBtn.hidden!==hide)topBtn.hidden=hide;}
+  updateJumpBtn();
+  if(t0){scrollWorkMs+=(performance.now()-t0);scrollWorkN++;}
+}
+function onWinScroll(){
+  if(!(scrollLock||(streamScroll&&streamScroll.programmatic))){
+    if(Date.now()-lastUserInputAt<2000)lastMomentumAt=Date.now();
+    rememberTabScroll(activeTabName());
+    if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;
+  }
+  scheduleChrome(false);
+}
 function updateJumpBtn(){
   const btn=$('#jumpLatest');if(!btn)return;
   const story=$('#tab-story');if(!story||!story.classList.contains('active')||!S||!S.messages||!S.messages.length){btn.hidden=true;return;}
@@ -4331,19 +4359,19 @@ function showTab(name){
 
 if(typeof window!=='undefined'){
   window.SoloRP=window.SoloRP||{};
-  Object.assign(window.SoloRP,{renderLog,showTab,afterChange,updateStreaming,startStreamScroll,jumpToTop,jumpToLatest,rememberStoryScroll,restoreStoryScroll,restoreTabScroll,rememberTabScroll,renderSystem,getStoryScrollY:()=>tabScrollY.story||storyScrollY||0,getTabScrollY:(n)=>tabScrollY[scrollKey(n)]||0,getState:()=>S,activeTabName,scrollKey,setHeldScrollY});
+  Object.assign(window.SoloRP,{renderLog,showTab,afterChange,updateStreaming,startStreamScroll,jumpToTop,jumpToLatest,rememberStoryScroll,restoreStoryScroll,restoreTabScroll,rememberTabScroll,renderSystem,getStoryScrollY:()=>tabScrollY.story||storyScrollY||0,getTabScrollY:(n)=>tabScrollY[scrollKey(n)]||0,getState:()=>S,activeTabName,scrollKey,setHeldScrollY,syncChrome,scheduleChrome,getScrollPerf:()=>({ms:scrollWorkMs,n:scrollWorkN,avg:scrollWorkN?scrollWorkMs/scrollWorkN:0})});
 }
 function init(){
   S=load();setTimeout(saveNow,0); // persist migrations right away
   document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   {const nav=$('#tabs'),wrap=$('#tabwrap');const upd=()=>{if(wrap)wrap.classList.toggle('atend',nav.scrollLeft+nav.clientWidth>=nav.scrollWidth-4);};nav.addEventListener('scroll',upd,{passive:true});window.addEventListener('resize',upd);upd();
    nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{const r=b.getBoundingClientRect(),nr=nav.getBoundingClientRect();const left=nav.scrollLeft+(r.left+r.right)/2-(nr.left+nr.right)/2;nav.scrollLeft=Math.max(0,left);}catch(e){}}));}
-  window.addEventListener('scroll',onWinScroll,{passive:true});window.addEventListener('resize',syncChrome);
-  ['wheel','touchstart','touchmove','pointerdown'].forEach(ev=>document.addEventListener(ev,markUserScrollIntent,{passive:true,capture:true}));
+  window.addEventListener('scroll',onWinScroll,{passive:true});window.addEventListener('resize',()=>scheduleChrome(true),{passive:true});
+  ['wheel','touchstart','pointerdown'].forEach(ev=>document.addEventListener(ev,markUserScrollIntent,{passive:true,capture:true}));
   const jump=$('#jumpLatest');if(jump)jump.addEventListener('click',jumpToLatest);
   const jumpTop=$('#jumpTop');if(jumpTop)jumpTop.addEventListener('click',jumpToTop);
-  if(window.visualViewport){visualViewport.addEventListener('resize',syncChrome);visualViewport.addEventListener('scroll',syncChrome);}
-  syncChrome();
+  if(window.visualViewport){visualViewport.addEventListener('resize',()=>scheduleChrome(true),{passive:true});}
+  syncChrome(true);
   $('#log').addEventListener('click',onLogClick);
   $('#sendBtn').addEventListener('click',sendUser);$('#continueBtn').addEventListener('click',continueScene);
   $('#stopBtn').addEventListener('click',()=>{if(abortCtl)abortCtl.abort();});
