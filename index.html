@@ -143,6 +143,7 @@ nav.tabs::-webkit-scrollbar{display:none}
     <button data-tab="system">System</button>
     <button data-tab="daily">Daily Quest</button>
     <button data-tab="summons">Summons</button>
+    <button data-tab="world">World &amp; NPCs</button>
     <button data-tab="forge">Forge</button>
     <button data-tab="character">Character &amp; World</button>
     <button data-tab="settings">Settings</button>
@@ -184,6 +185,9 @@ nav.tabs::-webkit-scrollbar{display:none}
   <!-- SUMMONS -->
   <section class="tab" id="tab-summons"><div id="compBody"></div></section>
 
+  <!-- WORLD -->
+  <section class="tab" id="tab-world"><div id="worldBody"></div></section>
+
   <!-- FORGE -->
   <section class="tab" id="tab-forge">
     <div class="syswin"><span class="title">Forge — Item Creation</span>
@@ -212,6 +216,7 @@ nav.tabs::-webkit-scrollbar{display:none}
         <div><label>Name</label><input type="text" data-bind="character.name"></div>
         <div><label>Age</label><input type="text" data-bind="character.age"></div>
         <div><label>Gender / pronouns</label><input type="text" data-bind="character.gender"></div>
+        <div><label>Sexual orientation</label><input type="text" data-bind="character.orientation"></div>
         <div><label>Home city (Norway)</label><input type="text" data-bind="character.city"></div>
       </div>
       <label>Appearance</label><textarea data-bind="character.appearance"></textarea>
@@ -317,6 +322,7 @@ const DEFAULT_SYSTEM_PROMPT=`You are the NARRATOR and GAME MASTER of a mature, i
 4. NO REPETITION. Never reuse sentences, signature phrases, descriptions, or openings from earlier replies. Do not recap what just happened or restate her post back to her. Vary sentence structure, imagery, and pacing every turn.
 5. NPCs are NOT suspicious by default. Hunters, Association staff, guild members, family, and strangers mind their own business, are busy with their own lives, and accept ordinary explanations. They do not interrogate her, probe her secret, stalk her, investigate her growth, or keep asking questions unless the user explicitly invites that kind of plot. Never derail or obstruct what she is trying to do with contrived suspicion, gatekeeping, or nagging.
 6. Mature content: this is 18+ fiction between consenting adults. Violence, gore, profanity, dark themes, romance, and explicit sexual content are allowed when the user steers there. Do not moralize, add disclaimers, fade to black, or refuse in-fiction. Never sexualize minors; all romantic/sexual characters are adults.
+6b. ORIENTATION: respect the player character's sexual orientation as given under PLAYER CHARACTER (default: lesbian). Romantic or flirtatious interest from NPCs comes by default from women; men do not pursue her romantically unless she steers there. Never force romance, and never decide her feelings or responses — offer chemistry, let her choose.
 7. SECOND PERSON, ALWAYS. Narrate in second person, addressing the player character as "you" ("Frost bites at your knuckles.", "The window flickers in front of you."). Never refer to her by name or as "she/her" in narration (NPCs may say her name in dialogue). The user writes her own posts in THIRD PERSON ("She steps forward and…"); treat those posts as your character's actions and respond in second person. Converting to second person is NOT permission to act for her: never write "you say/you decide/you feel/you think" for anything she did not write — only describe what happens to you, what you perceive from outside, and how the world responds.
 8. Stay in-world. No out-of-character commentary unless the user writes OOC in ((double parentheses)); answer OOC briefly in ((double parentheses)).
 
@@ -325,7 +331,8 @@ const DEFAULT_SYSTEM_PROMPT=`You are the NARRATOR and GAME MASTER of a mature, i
 - Gates: dimensional portals ranked E, D, C, B, A, S by their measured mana (magic power) reading, taken by Association equipment at the gate. Inside are dungeons with monsters and a boss; killing the boss closes the gate. Gates left uncleared eventually cause a DUNGEON BREAK (monsters pour out). Red gates are anomalous: once entered, the exit closes and the inside becomes an isolated, far more dangerous environment until the cause is resolved. Double dungeons and hidden areas exist. Mana crystals / magic stones from monsters are valuable; monster materials are crafted into gear.
 - Hunters: awakened humans ranked E to S by the Hunter Association when they awaken; national-level hunters exceed S. Classes include Fighter, Mage, Assassin, Tanker, Healer, Ranger, etc. Re-awakening (a second awakening that raises one's rank) is extremely rare but real.
 - IMPORTANT CANON: ordinary hunters DO grow stronger. Their base rank rarely changes, but they improve through training, combat experience, skill mastery, better items, and teamwork (Cha Hae-in, Baek Yoonho, Choi Jong-in, Woo Jinchul, Yoo Jinho all become more capable over the story). Never portray other hunters as frozen or unable to improve. What makes the Player unique is that she grows through the SYSTEM: levels, ability points, quests, rewards — far beyond normal limits.
-- Organizations: each country has its own Hunter Association/Bureau (Norway has its own; invent plausible Norwegian staff and guilds), guilds bid on raids, raid teams use porters, the Association handles gate-break emergencies and rank re-measurement, and there is international hunter politics (Thomas Andre, Liu Zhigang, Goto Ryuji, etc. exist in canon). The Norwegian hunter scene is original but must obey canon rules.
+- NORWAY ROSTER: a world roster (Association, Norway's seven S-ranks, guilds, hunters, civilians) is provided each turn. Use those characters by name and personality when they fit; invent minor extras freely. Roster NPCs are not suspicious of her by default, have their own lives and goals, and — like canon hunters — can grow stronger over time.
+- Organizations: each country has its own Hunter Association/Bureau (Norway's is detailed in the roster), guilds bid on raids, raid teams use porters, the Association handles gate-break emergencies and rank re-measurement, and there is international hunter politics (Thomas Andre, Liu Zhigang, Goto Ryuji, etc. exist in canon). The Norwegian hunter scene is original but must obey canon rules.
 - The Player and the SYSTEM: she is a "Player" like Jinwoo. The System shows blue holographic windows only she can see: Status, Skills, Inventory, Quest Log, Shop, Notifications, Alerts. Canon mechanics: Level, EXP, HP, MP, Fatigue, stats STR / AGI / SEN (Sense) / VIT / INT / LUK (Luck), Available Ability Points she assigns herself, Titles with effects, Job and a Job Change quest, Skills (Passive/Active, skill levels, MP costs, cooldowns), Gold from kills/quests spent in the Shop, Inventory (items, keys, random boxes), Instance Dungeons via dungeon keys, emergency quests, hidden quests, penalties.
 - DAILY QUEST "Preparation to Become Powerful": 100 push-ups, 100 sit-ups, 100 squats, 10 km run, every day. Completing it rewards Status Recovery, +3 free Ability Points, and a Random Box. Failing it by midnight sends her to the PENALTY ZONE (canon: a desert survival trial against giant centipedes for a set time). The System is impersonal, terse, sometimes ominous; it does not chat.
 - Leveling: the Player's level rises only through the System (EXP from kills/quests). Level-ups canonically restore her condition. HOUSE RULES (the app applies these automatically — do NOT add them yourself in system_update): every level-up grants 5 free Ability Points to allocate AND +1 to every stat (STR, AGI, SEN, VIT, INT, LUK); completing the Daily Quest grants 3 free Ability Points (plus Full Recovery and a reward box of her choice). Only she distributes Ability Points — never spend them for her.
@@ -414,8 +421,8 @@ function defaultDaily(){return {date:today(),items:[
 function defaultState(){return {version:1,
   settings:{model:'grok-4.7',customModel:'',temperature:0.9,maxTokens:2000,stream:true,contextMessages:40,autoSummarize:true,
     pointsPerLevel:5,statsPerLevel:1,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
-  character:{name:'',age:'',gender:'Female (she/her)',city:'',appearance:'',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
-  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',opening:"OPENING SCENE (narrate this as the first post in SECOND PERSON — address her as \"you\"; never write her dialogue, actions, thoughts, or choices — describe only the world, NPCs, and what happens to you):\nNorway. You, an E-rank hunter, have joined a low-rank raid party on what was measured as a D-rank gate. Inside, the party discovers a hidden second dungeon — a DOUBLE DUNGEON: a vast ancient temple with towering statues and commandments carved in stone, mirroring the canon Cartenon Temple horror but with a Norse aesthetic (runes, carved wolves and sun-wheels, a great statue holding a stone sun). The statues awaken; hunters die following and breaking the temple's rules. At the climax you are mortally wounded and left behind as the survivors escape. As you lie dying, the temple goes silent and a warm golden light breaks through the stone: the goddess SÓL appears, radiant, warm, and regal, and speaks to you. Sól chooses you, and her light floods into you as you are reborn. End the scene with the canon System window:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nPace it across the post; give her openings to act or speak during the dungeon if natural, but you may carry the scene to Sól's arrival since she is dying. Stop after the notification.",style:'Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0},
+  character:{name:'',age:'',gender:'Female (she/her)',orientation:'Lesbian',city:'',appearance:'Blonde hair with an undercut, blue eyes, light freckles across the nose and cheeks. Usually wears a crop top and shorts.',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
+  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',opening:"OPENING SCENE (narrate this as the first post in SECOND PERSON — address her as \"you\"; never write her dialogue, actions, thoughts, or choices — describe only the world, NPCs, and what happens to you):\nNorway. You, an E-rank hunter, have joined the Østkant Raid Group on what was measured as a D-rank gate in the forest of Nordmarka outside Oslo. The raid party (use these roster characters): Kari Lie (D-rank Fighter, raid leader), Marius Fjeld (D-rank earth-mage, vice-leader), Jonas Berg (D-rank healer), Mats Hagen (E-rank Fighter), Thea Lind (E-rank Ranger), Ola Bakken (E-rank Tanker), Nora Sæther (E-rank buffer), Sander Holm (E-rank Assassin), plus an Association surveillance check by tester Silje Kroken at the gate. Inside, the party discovers a hidden second dungeon — a DOUBLE DUNGEON: a vast ancient temple with towering statues and commandments carved in stone, mirroring the canon Cartenon Temple horror but with a Norse aesthetic (runes, carved wolves and sun-wheels, a great statue holding a stone sun). The statues awaken; hunters die following and breaking the temple's rules. At the climax you are mortally wounded and left behind as the survivors escape. As you lie dying, the temple goes silent and a warm golden light breaks through the stone: the goddess SÓL appears, radiant, warm, and regal, and speaks to you. Sól chooses you, and her light floods into you as you are reborn. End the scene with the canon System window:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nPace it across the post; give her openings to act or speak during the dungeon if natural, but you may carry the scene to Sól's arrival since she is dying. Stop after the notification.",style:'Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0,npcs:[]},
   player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
 
 /* ================= UTILS ================= */
@@ -600,12 +607,14 @@ const store=(()=>{try{const t='__srp';window.localStorage.setItem(t,'1');window.
   catch(e){const m={};setTimeout(()=>toast('Browser storage is blocked here — progress will NOT persist. Use Export to save, or open the file in Chrome/Edge/Firefox.',8000),500);
     return {getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v);},removeItem:k=>{delete m[k];}};}})();
 let S;
-function load(){try{const raw=store.getItem(LS_KEY);if(raw)return migrate(JSON.parse(raw));}catch(e){console.warn(e);}return defaultState();}
+function load(){try{const raw=store.getItem(LS_KEY);return migrate(raw?JSON.parse(raw):{});}catch(e){console.warn(e);}return migrate({});}
 function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
   s.player=deepMerge(defaultPlayer(),(d&&d.player)||{});
   ['inventory','skills','quests','titles','companions'].forEach(k=>{if(!Array.isArray(s.player[k]))s.player[k]=[];});
   s.player.companions=s.player.companions.map(normCompanion);
-  if(!s.flags)s.flags={};if(!s.flags.secondPerson){if(!/SECOND PERSON/.test(s.settings.systemPrompt||''))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT===s.settings.systemPrompt?s.settings.systemPrompt:(s.settings.systemPrompt+'\n\n'+'8. SECOND PERSON, ALWAYS. Narrate in second person, addressing the player character as "you" ("Frost bites at your knuckles.", "The window flickers in front of you."). Never refer to her by name or as "she/her" in narration (NPCs may say her name in dialogue). The user writes her own posts in THIRD PERSON ("She steps forward and…"); treat those posts as your character\'s actions and respond in second person. Converting to second person is NOT permission to act for her: never write "you say/you decide/you feel/you think" for anything she did not write — only describe what happens to you, what you perceive from outside, and how the world responds.');if(/^Third-person, past tense/.test(s.world.style||''))s.world.style=base.world.style;if(/^OPENING SCENE \(narrate this as the first post; never/.test(s.world.opening||''))s.world.opening=base.world.opening;s.flags.secondPerson=true;}if(!s.flags.sol){if(s.character.patronType==='The Architect'&&!s.character.patronName){Object.assign(s.character,{patronType:base.character.patronType,patronName:base.character.patronName,patronDesc:base.character.patronDesc});}s.flags.sol=true;}if(!s.flags.innate){innateSkills().forEach(sk=>{if(!s.player.skills.some(x=>keyOf(x)===keyOf(sk)))s.player.skills.push(sk);});s.flags.innate=true;}
+  if(!s.flags)s.flags={};if(!s.character.orientation)s.character.orientation=base.character.orientation;if(!String(s.character.appearance||'').trim())s.character.appearance=base.character.appearance;
+  if(!Array.isArray(s.world.npcs))s.world.npcs=[];if((s.flags.worldPack||0)<WORLD_PACK_VERSION){mergeWorldPack(s.world.npcs);if(/^OPENING SCENE/.test(s.world.opening||'')&&!/Kari Lie/.test(s.world.opening))s.world.opening=base.world.opening;s.flags.worldPack=WORLD_PACK_VERSION;}
+  if(!s.flags.secondPerson){if(!/SECOND PERSON/.test(s.settings.systemPrompt||''))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT===s.settings.systemPrompt?s.settings.systemPrompt:(s.settings.systemPrompt+'\n\n'+'8. SECOND PERSON, ALWAYS. Narrate in second person, addressing the player character as "you" ("Frost bites at your knuckles.", "The window flickers in front of you."). Never refer to her by name or as "she/her" in narration (NPCs may say her name in dialogue). The user writes her own posts in THIRD PERSON ("She steps forward and…"); treat those posts as your character\'s actions and respond in second person. Converting to second person is NOT permission to act for her: never write "you say/you decide/you feel/you think" for anything she did not write — only describe what happens to you, what you perceive from outside, and how the world responds.');if(/^Third-person, past tense/.test(s.world.style||''))s.world.style=base.world.style;if(/^OPENING SCENE \(narrate this as the first post; never/.test(s.world.opening||''))s.world.opening=base.world.opening;s.flags.secondPerson=true;}if(!s.flags.sol){if(s.character.patronType==='The Architect'&&!s.character.patronName){Object.assign(s.character,{patronType:base.character.patronType,patronName:base.character.patronName,patronDesc:base.character.patronDesc});}s.flags.sol=true;}if(!s.flags.innate){innateSkills().forEach(sk=>{if(!s.player.skills.some(x=>keyOf(x)===keyOf(sk)))s.player.skills.push(sk);});s.flags.innate=true;}
   s.messages=Array.isArray(d&&d.messages)?d.messages:[];
   s.messages.forEach(m=>{if(m.role==='narrator'){m.alts=(m.alts||[]).filter(a=>a&&typeof a.text==='string');m.alts.forEach(a=>a.streaming=false);m.sel=Math.min(m.sel||0,Math.max(0,m.alts.length-1));}});
   s.messages=s.messages.filter(m=>m.role!=='narrator'||m.alts.length);
@@ -729,9 +738,9 @@ function gameDateStr(){const g=S.game;let s='Day '+g.day;const t=Date.parse(g.st
 function dailyBlock(){const d=S.daily;return 'In-game time: '+gameDateStr()+'. Daily Quest progress today: '+d.items.map(x=>x.name+' '+x.done+'/'+x.target+(x.unit?' '+x.unit:'')).join(', ')+(d.claimed?' — COMPLETED and reward claimed today.':' — not yet complete.');}
 function buildContext(uptoIndex,continuation){
   const c=S.character,w=S.world;
-  const sys=S.settings.systemPrompt+'\n\n=== PLAYER CHARACTER (the user plays her; you NEVER control her) ===\nName: '+(c.name||'(unnamed)')+'\nAge: '+c.age+'\nGender: '+c.gender+'\nHome: '+(c.city||'Norway')+'\nAppearance: '+c.appearance+'\nBackground: '+c.background+(c.extra?'\nOther facts: '+c.extra:'')+'\nCombat build: '+(c.build||'')+'\nClass name: '+(c.className||S.player.job||'(none yet)')+'\nClass path plan: '+(c.classPlan||'')+
+  const sys=S.settings.systemPrompt+'\n\n=== PLAYER CHARACTER (the user plays her; you NEVER control her) ===\nName: '+(c.name||'(unnamed)')+'\nAge: '+c.age+'\nGender: '+c.gender+'\nSexual orientation: '+(c.orientation||'Lesbian')+'\nHome: '+(c.city||'Norway')+'\nAppearance: '+c.appearance+'\nBackground: '+c.background+(c.extra?'\nOther facts: '+c.extra:'')+'\nCombat build: '+(c.build||'')+'\nClass name: '+(c.className||S.player.job||'(none yet)')+'\nClass path plan: '+(c.classPlan||'')+
     '\n\n=== THE SYSTEM\'S CREATOR / PATRON ===\nType: '+(c.patronType||'The Architect')+(c.patronName?'\nName: '+c.patronName:'')+(c.patronDesc?'\nDescription: '+c.patronDesc:'')+
-    '\n\n=== WORLD NOTES ===\n'+w.notes+'\n\n=== NARRATION STYLE ===\n'+w.style+
+    '\n\n=== WORLD NOTES ===\n'+w.notes+worldContext(uptoIndex)+'\n\n=== NARRATION STYLE ===\n'+w.style+
     (w.summary?'\n\n=== STORY SO FAR (summary of older posts) ===\n'+w.summary:'')+
     '\n\n=== LEVEL → HUNTER RANK CHART ===\n'+S.rankChart.map(r=>r.rank+': Lv '+r.minLevel+'+').join('; ')+
     '\n=== STAT RANK THRESHOLDS (per stat, independent of hunter rank) ===\n'+S.statRanks.map(r=>r.rank+': '+(r.max==null||r.max===''?'above previous':'up to '+r.max)).join('; ')+
@@ -1031,6 +1040,231 @@ function onCompClick(e){
 }
 function initCompanions(){const el=$('#compBody');el.addEventListener('input',onCompInput);el.addEventListener('change',e=>{onCompInput(e);if(e.target.dataset.comp&&e.target.type==='number')renderCompanions();});el.addEventListener('click',onCompClick);}
 
+/* ================= NORWAY WORLD PACK ================= */
+const WORLD_PACK_VERSION=1;
+// [name, gender, rank, class, city, affiliation, role, desc, romance]
+const PACK_S=[
+ ['Sigrid Haldorsen','F','S','Mage (light/storm)','Oslo','Nordlys Guild','Guild Master','Norway\'s most famous hunter; 38, silver-blonde, composed national icon whose storms clear A-rank gates alone. Rumored to be close to national level.',false],
+ ['Torgeir Brekke','M','S','Fighter (great-axe)','Bergen','Jernulv Guild','Guild Master','Bear-built berserker with a red beard; drinks hard, fights harder, adored by Bergen for holding the line in two dungeon breaks.',false],
+ ['Ingrid Aune','F','S','Healer-Mage','Trondheim','Fjellvakt Guild','Guild Master','One of the world\'s rare S-rank healers; calm and maternal, keeps whole raids alive, politically influential in the Storting.',false],
+ ['Ravn Johansen','M','S','Assassin','Tromsø','Midnattsol Guild','Guild Master','Unreadable Arctic predator in a black parka; speaks rarely, moves like a shadow on snow; his guild obeys him absolutely.',false],
+ ['Henrik Dahl','M','S','Tanker','Stavanger','Svartstål Guild','Guild Master','Oil-heir and S-rank tank in tailored suits; businessman first, generous to anyone who makes him money, ruthless to anyone who costs him.',false],
+ ['Astrid Lunde','F','S','Ranger','Oslo','Freelance','Independent S-rank','Wild freelance S-rank who refuses every guild offer; scar across one brow, rides a battered motorcycle, openly lesbian, blunt and funny.',true],
+ ['Magnus Strand','M','S','Fighter','Oslo','Norwegian Hunter Association','Special Response S-rank','The Association\'s own S-rank; stoic ex-police officer called in for dungeon breaks and red gates. Few words, absolute reliability.',false]
+];
+const PACK_ASSOC=[
+ ['Arne Kvalheim','M','A (retired)','Administrator','Oslo','Norwegian Hunter Association','Chairman (Oslo HQ)','Former A-rank; silver-haired, measured, fights politicians to protect hunters\' interests. Runs the Association from its glass HQ in Bjørvika.',false],
+ ['Eli Fossum','F','—','Administrator','Oslo','Norwegian Hunter Association','Deputy Director','Administrative powerhouse; strict, efficient, never forgets a form. Mother of Linnea Fossum.',false],
+ ['Viktor Sand','M','C (retired)','Assessor','Oslo','Norwegian Hunter Association','Chief Assessor','Runs rank assessments and re-measurements; meticulous, bored by routine, discreet about anomalies.',false],
+ ['Silje Kroken','F','—','Technician','Oslo','Norwegian Hunter Association','Mana-reader tester','Young technician who runs the mana readers at gates and assessments; chatty, eco-activist, flustered by high-ranks.',true],
+ ['Bjørnar Lie','M','B (retired)','Coordinator','Oslo','Norwegian Hunter Association','Gate Surveillance Team leader','Ex-B-rank who dispatches surveillance crews; gives low-ranks honest advice about which gates to skip.',false],
+ ['Ole Rasmussen','M','—','Administrator','Bergen','Norwegian Hunter Association','Bergen branch head','Gruff, perpetually rain-soaked, works hand-in-glove with Jernulv on coastal breaks.',false],
+ ['Tone Wiik','F','—','Assessor','Bergen','Norwegian Hunter Association','Field assessor (Bergen)','Quick, sarcastic, scrupulously fair gate assessor.',false],
+ ['Marte Hovland','F','—','Administrator','Trondheim','Norwegian Hunter Association','Trondheim branch head','Former Fjellvakt healer; warm, chaotic desk, razor mind.',false],
+ ['Nils Aslak Gaup','M','—','Administrator','Tromsø','Norwegian Hunter Association','Tromsø branch head','Sámi official handling Arctic gate logistics and red-gate protocols; patient and unflappable.',false],
+ ['Camilla Eide','F','—','Administrator','Stavanger','Norwegian Hunter Association','Stavanger branch head','Corporate-polished; forever negotiating permits with Svartstål.',false]
+];
+// [name, city(HQ), master, vice, specialty, reputation, recruitment, desc, size]
+const PACK_GUILDS=[
+ ['Nordlys Guild','Oslo','Sigrid Haldorsen (S)','Erlend Vik (A)','Large-scale raids on A/S gates; media and sponsorships','Norway\'s #1 guild — polished, wealthy, beloved by the public','Selective: C-rank and up; rarely scouts exceptional low-ranks','Aurora-green insignia; glass tower HQ on Aker Brygge.','major'],
+ ['Jernulv Guild','Bergen','Torgeir Brekke (S)','Hanne Solberg (A)','Frontline melee; coastal dungeon-break response','Rough, loyal, brawler culture; Bergen\'s pride','Open to D-rank and up who pass a sparring test (brawlers welcome)','"Iron Wolf"; HQ in an old Bryggen warehouse with a fighting ring.','major'],
+ ['Fjellvakt Guild','Trondheim','Ingrid Aune (S)','Kristoffer Moen (A)','Remote/mountain gates, rescue, defensive raids','Steady and trusted; government contracts','Accepts E/D as porters and support through a paid training program','"Mountain Watch"; runs a training camp outside Trondheim.','major'],
+ ['Midnattsol Guild','Tromsø','Ravn Johansen (S)','Liv Isaksen (A)','Arctic and ice-type gates; red-gate response','Elite, insular, slightly feared','Invitation only','"Midnight Sun"; black-and-gold insignia; hardly ever gives interviews.','major'],
+ ['Svartstål Guild','Stavanger','Henrik Dahl (S)','Thomas Rygg (A)','Core/material trade, gear crafting, collection contracts','Rich, profit-first, but pays fairly and on time','Hires anyone as porters/collectors, paid by haul; combat roles C-rank+','"Black Steel"; corporate HQ by the harbor, owns crafting workshops.','major'],
+ ['Østkant Raid Group','Oslo','Kari Lie (D)','Marius Fjeld (D)','Low-rank E/D gates around Oslo','Careful, fair splits, low casualty record','Always hiring E/D-ranks; no test, just show up on time','Small crew working out of a café back room in Grønland.','small'],
+ ['Gråmåke Raid Crew','Bergen','Pål Nygård (D)','—','E/D gates along the Bergen coast','Scrappy, reliable pay','Hires E/D daily, cash at the end of the raid','"Grey Gull"; meets at the fish market at dawn.','small'],
+ ['Bjørkhaug Brothers','Drammen','Eirik Bjørkhaug (D)','—','Carry and clean-up work on E/D gates','Old-school, honest','Hiring E/D for carry and clean-up work','Family crew of three brothers and whoever they trust.','small'],
+ ['Kystjegerne','Kristiansand','Håkon Sunde (D)','—','Southern-coast E/D gates','Friendly, slow-and-safe','Open to E/D-ranks, trains newcomers','"Coast Hunters"; a ragtag crew with a boat.','small']
+];
+const PACK_HUNTERS=[
+ // E-rank (20)
+ ['Mats Hagen','M','E','Fighter','Oslo','Østkant Raid Group','Peer','Lanky 24-year-old with a chipped tooth; cheerful, bad with money, trains every morning swearing he\'ll reach D-rank strength.',false],
+ ['Thea Lind','F','E','Ranger','Oslo','Østkant Raid Group','Peer','Ex-archery-club girl; quiet, sharp-eyed, freckled, presses dungeon flowers in a notebook. Shy around pretty women.',true],
+ ['Ola Bakken','M','E','Tanker','Oslo','Østkant Raid Group','Peer','Big soft-spoken ex-warehouse worker with a dented riot shield and too many snacks.',false],
+ ['Ingeborg "Inga" Rønning','F','E','Healer','Oslo','Freelance','Peer','Nursing student with a trickle of healing mana; dry humor, raids to pay tuition.',false],
+ ['Sander Holm','M','E','Assassin','Oslo','Østkant Raid Group','Friendly rival','Wiry ex-courier who talks fast and brags faster; keeps score of every kill and wants to beat yours.',false],
+ ['Emma Strøm','F','E','Mage','Bergen','Gråmåke Raid Crew','Peer','Spark-mage whose fireballs are candle-sized; stubborn, bright-pink hair, studies spell theory obsessively.',true],
+ ['Petter Aas','M','E','Fighter','Bergen','Gråmåke Raid Crew','Peer','Fisherman\'s son with rope-thick forearms; superstitious, carries a lucky cod hook.',false],
+ ['Lars Eriksen','M','E','Porter','Trondheim','Fjellvakt training program','Trainee','Earnest Fjellvakt trainee porter who writes everything in a notebook.',false],
+ ['Hedda Moe','F','E','Ranger','Trondheim','Freelance','Peer','Ex-biathlete; cool demeanor, deadly patience, black coffee by the liter.',true],
+ ['Kasper Nilsen','M','E','Porter','Stavanger','Svartstål (contract hauler)','Hauler','Svartstål core hauler and gossip hub of every Stavanger hunter bar.',false],
+ ['Synne Berntsen','F','E','Tanker','Stavanger','Freelance','Peer','Short, broad, loud; laughs during fights and headbutts goblins.',false],
+ ['Even Torp','M','E','Mage','Tromsø','Freelance','Peer','Pale, anxious frost-mage who freezes his own fingers when nervous.',false],
+ ['Aksel Haugland','M','E','Fighter','Oslo','Freelance','Rival','Rich kid who awakened low and resents it; sneers at other E-ranks, works furiously to prove himself.',false],
+ ['Nora Sæther','F','E','Support (buffer)','Oslo','Østkant Raid Group','Peer','Cheerful buffer whose humming grants a small speed boost; streams raids to a tiny online following.',false],
+ ['Jørgen Bjørkhaug','M','E','Fighter','Drammen','Bjørkhaug Brothers','Peer','Middle Bjørkhaug brother; loyal, hot-headed, questionable haircut.',false],
+ ['Tobias Hansen','M','E','Ranger','Kristiansand','Kystjegerne','Peer','Slingshot ranger who jokes constantly to hide that he\'s terrified.',false],
+ ['Selma Ødegård','F','E','Assassin','Bergen','Freelance','Rival','Silent knife-fighter with a shaved side and a sharp tongue; competitive rival who might become a friend.',true],
+ ['Viggo Brun','M','E','Porter','Tromsø','Midnattsol Guild','Porter','Grizzled 50-year-old porter who awakened late; knows Arctic gates better than most B-ranks.',false],
+ ['Frida Vold','F','E','Healer','Kristiansand','Kystjegerne','Peer','Gentle minor healer who runs a soup kitchen on weekends.',false],
+ ['Martin Kolstad','M','E','Fighter','Oslo','Freelance','Peer','Ex-boxer with a ruined knee; respects anyone who fights bare-handed.',false],
+ // D-rank (18)
+ ['Kari Lie','F','D','Fighter','Oslo','Østkant Raid Group','Low-rank raid leader','Leader of the Østkant Raid Group; 34, scarred jaw, keeps low-rank crews alive by being relentlessly careful. Pays fair splits.',false],
+ ['Jonas Berg','M','D','Healer','Oslo','Østkant Raid Group','Healer','The crew\'s healer; tired father of twins, gentle hands, gallows humor.',false],
+ ['Marius Fjeld','M','D','Mage (earth)','Oslo','Østkant Raid Group','Veteran','Earth-mage and vice-leader; cautious veteran of 60+ low-rank gates.',false],
+ ['Ida Kristiansen','F','D','Assassin','Oslo','Freelance','Info broker','Sleek, flirty freelancer in a leather jacket; trades info and favors, openly into women.',true],
+ ['Henrik "Henke" Myhre','M','D','Fighter','Oslo','Freelance','Harmless rival','Loud gym-bro who challenges everyone to arm-wrestling.',false],
+ ['Ragnhild Skaug','F','D','Tanker','Bergen','Jernulv Guild','Junior member','Iron Wolf junior tank; tall, braided, blunt, loves a fistfight.',true],
+ ['Pål Nygård','M','D','Fighter','Bergen','Gråmåke Raid Crew','Crew leader','Ex-sailor who runs the Gråmåke crew; hires E-ranks without fuss and pays daily.',false],
+ ['Eirik Bjørkhaug','M','D','Fighter','Drammen','Bjørkhaug Brothers','Crew leader','Eldest Bjørkhaug brother; old-school, honest, always hiring E/D for carry work.',false],
+ ['Maja Thorsen','F','D','Ranger','Trondheim','Fjellvakt Guild','Member','Mountain-rescue ranger; sunny, outdoorsy, freckled, drives a beat-up Volvo.',true],
+ ['Stian Holt','M','D','Assassin','Stavanger','Svartstål Guild','Collector','Smooth-talking Svartstål collector who prices loot mid-fight.',false],
+ ['Anniken Wold','F','D','Mage (wind)','Tromsø','Freelance','Peer','Wind-mage and part-time aurora tour guide; dreamy, poetic, surprisingly ruthless.',false],
+ ['Håkon Sunde','M','D','Tanker','Kristiansand','Kystjegerne','Crew leader','Runs the Kystjegerne; patient, fatherly, terrible jokes.',false],
+ ['Vilde Aasen','F','D','Healer','Bergen','Freelance','Healer for hire','Bubbly healer who charges by the hour and works every crew in Bergen.',false],
+ ['Trond Løken','M','D','Fighter','Oslo','Freelance','Petty rival','Bitter 40-year-old who thinks he\'s been passed over; grumbles at gates.',false],
+ ['Oskar Lindberg','M','D','Mage','Oslo','Nordlys Guild','Trainee','Polished Nordlys trainee; ambitious, quietly competitive with every newcomer.',false],
+ ['Sunniva Gran','F','D','Support (barrier)','Oslo','Freelance','Peer','Barrier support and former ballet dancer; graceful, aloof, warms up slowly.',true],
+ ['Rune Halvorsen','M','D','Ranger','Bodø','Freelance','Peer','Northern trapper of gate monsters; terse, kind to animals.',false],
+ ['Lene Myrvold','F','D','Fighter (kickboxer)','Fredrikstad','Freelance','Peer / sparring rival','Kickboxer who wants a sparring partner who can keep up; competitive, grins when hit.',true],
+ // C-rank (12)
+ ['Tuva Engen','F','C','Mage (lightning)','Oslo','Nordlys Guild','Member','Perfectionist lightning mage; posts training clips, mentors juniors when asked.',false],
+ ['Bjørn Tangen','M','C','Tanker','Bergen','Jernulv Guild','Veteran','Iron Wolf shield-wall veteran with beads in his beard; sings sea shanties mid-raid.',false],
+ ['Siri Haugen','F','C','Healer','Trondheim','Fjellvakt Guild','Senior medic','Senior field medic; calm under fire, strict about safety, secretly sentimental.',false],
+ ['Morten Ruud','M','C','Assassin','Stavanger','Svartstål Guild','Fixer','Svartstål\'s quiet fixer; collects debts without raising his voice.',false],
+ ['Elise Berge','F','C','Ranger (ice bow)','Tromsø','Midnattsol Guild','Sniper','Reserved ice-bow sniper with dry wit; Sámi reindeer-herding family.',true],
+ ['Kristian Aune','M','C','Fighter','Trondheim','Fjellvakt Guild','Member','Ingrid Aune\'s younger brother, straining to step out of her shadow.',false],
+ ['Hege Paulsen','F','C','Fighter','Oslo','Freelance','Raid leader','Freelance raid leader; harsh but fair, hires competent low-ranks.',false],
+ ['Simen Dahl','M','C','Mage (fire)','Stavanger','Svartstål Guild','Member','Henrik Dahl\'s nephew; spoiled but genuinely talented fire-mage.',false],
+ ['Karoline Lerberg','F','C','Assassin','Oslo','Nordlys Guild','Scout','Cool, elegant Nordlys scout who gives nothing away.',false],
+ ['Geir Solheim','M','C','Fighter','Bergen','Freelance','Fight-night host','Ex-MMA champion who runs informal hunter fight nights.',false],
+ ['Linnea Fossum','F','C','Support','Oslo','Norwegian Hunter Association','Strike-team support','Association field support; by-the-book daughter of the deputy director.',false],
+ ['Ivar Nesheim','M','C','Ranger','Ålesund','Freelance','Ferryman','Fjord-gate specialist who ferries crews to island gates in his boat.',false],
+ // B-rank (7)
+ ['Mathias Berntzen','M','B','Fighter','Oslo','Nordlys Guild','Strike captain','Nordlys strike-team captain; golden-boy looks, fair, a little vain.',false],
+ ['Kjersti Grøtte','F','B','Mage (battle)','Bergen','Jernulv Guild','Member','Chain-smoking battle-mage with scorched gloves; fiercely protective of rookies.',true],
+ ['Arvid Skjelbred','M','B','Tanker','Trondheim','Fjellvakt Guild','Member','Former soldier, mountain of a man; slow to speak, impossible to move.',false],
+ ['Marit Lyngstad','F','B','Healer','Oslo','Norwegian Hunter Association','Field healer','The Association\'s top field healer; brusque, overworked, lifesaving.',false],
+ ['Ruben Holte','M','B','Assassin','Tromsø','Midnattsol Guild','Member','Midnattsol shadow-stepper with an unsettling grin; loyal to Ravn.',false],
+ ['Vibeke Strand','F','B','Ranger (crossbow)','Stavanger','Svartstål Guild','Head of collection','Sharp businesswoman with a heavy crossbow.',false],
+ ['Daniel Østby','M','B','Fighter','Oslo','Freelance','Rival','Ambitious freelancer courted by every guild; measures himself against every rising name.',false],
+ // A-rank (6)
+ ['Erlend Vik','M','A','Fighter (lance)','Oslo','Nordlys Guild','Vice-Master','Steady, diplomatic; the guild\'s real organizer.',false],
+ ['Hanne Solberg','F','A','Fighter (brawler)','Bergen','Jernulv Guild','Vice-Master','Brass-knuckle brawler who laughs like thunder; loves a strong opponent.',true],
+ ['Kristoffer Moen','M','A','Tanker','Trondheim','Fjellvakt Guild','Vice-Master','Patient tank who coaches the trainee program.',false],
+ ['Liv Isaksen','F','A','Mage (frost)','Tromsø','Midnattsol Guild','Vice-Master','Frost-sorceress with icy manners and hidden warmth.',false],
+ ['Thomas Rygg','M','A','Ranger','Stavanger','Svartstål Guild','Vice-Master','Ex-oil engineer who calculates everything, including people.',false],
+ ['Tiril Nesse','F','A','Assassin','Oslo','Freelance','Mercenary','Lethal, bored freelance mercenary who only takes interesting jobs.',false]
+];
+const PACK_CIVILIANS=[
+ ['Gunnar Solli','M','Oslo','Landlord','Elderly landlord; grumbles about noise, fixes the radiator himself, secretly fond of his tenants.',false],
+ ['Berit Nyhus','F','Oslo','Neighbor','Retired teacher next door; leaves waffles, waters plants, minds her own business.',false],
+ ['Amir Haddad','M','Oslo','Neighbor','Night-shift taxi driver upstairs; friendly nods, loud kids.',false],
+ ['Lotte Skar','F','Oslo','Café owner (Kaffe Nord)','Tattooed forearms, perfect cinnamon buns, flirts with regulars.',true],
+ ['Sofie Hammer','F','Oslo','Barista (Kaffe Nord)','Art-student barista who doodles on cups.',true],
+ ['Knut Dahle','M','Oslo','Gym owner (Jernhallen)','Ex-national boxer running an old-school boxing/MMA gym; respects grit, trains hunters.',false],
+ ['Mari Ellingsen','F','Oslo','Muay thai coach (Jernhallen)','Tough, encouraging coach with an eye for technique.',true],
+ ['Petra Kvam','F','Oslo','Reporter (NRK Hunter Desk)','Hunter-beat reporter chasing big guild stories; ignores E-ranks unless there\'s a real scoop.',false],
+ ['Hilde Jacobsen','F','Oslo','Association clerk','Tired, kind front-desk clerk; stamps permits fast for polite people.',false],
+ ['Jens "Fjell-Jens" Moxness','M','Oslo','Black-market core dealer','Grønland back-room dealer; pays above Association rates for cores, cash only, no questions.',false],
+ ['Solveig Rustad','F','Oslo','Blacksmith / monster-material crafter','Burn-scarred hands, blunt; forges gauntlets and armor from monster parts.',true],
+ ['Eskil Rustad','M','Oslo','Smithing apprentice','Teen apprentice and hunter fanboy.',false],
+ ['Yusuf Ali','M','Oslo','Kiosk owner','Corner kiosk; knows everyone\'s coffee order.',false],
+ ['Randi Opsahl','F','Oslo','Grocery cashier','Gossipy but harmless.',false],
+ ['Dr. Kjetil Ness','M','Oslo','Hunter clinic doctor','Overworked GP who patches up hunters.',false],
+ ['Tora Bråthen','F','Oslo','Clinic nurse','No-nonsense nurse with steady hands.',false],
+ ['Sigurd Hovde','M','Oslo','Second-hand gear shop owner','Haggles hard over used hunter gear.',false],
+ ['Ane Grimstad','F','Oslo','Bartender (Ulvehiet hunter bar)','Hears everything, says little.',true],
+ ['Leif Andersen','M','Oslo','Bus driver','Recognizes regulars, hums folk songs.',false],
+ ['Elin Nordby','F','Oslo','Bookseller','Fantasy bookshop owner who collects gate lore.',false],
+ ['Stig Ulven','M','Stavanger','Licensed core buyer','Svartstål buying-office clerk; honest scales.',false],
+ ['Grete Kalstad','F','Oslo','Herbalist / potion shop','Sells low-grade potions and strong opinions.',false],
+ ['Ruth Fagerli','F','Oslo','Tattoo artist','Runic tattoo artist with a shaved head.',true],
+ ['Tor Inge Bakke','M','Oslo','Raid van driver','Drives crews to gates for cash.',false],
+ ['Nina Hauge','F','Oslo','Sports physiotherapist','Firm hands, firmer advice.',false]
+];
+function worldPack(){
+  const out=[];const mk=o=>Object.assign({id:uid(),pinned:false,romance:false,gender:'',rank:'',cls:'',city:'',affil:'',role:'',desc:''},o);
+  PACK_S.forEach(a=>out.push(mk({type:'s-rank',name:a[0],gender:a[1],rank:a[2],cls:a[3],city:a[4],affil:a[5],role:a[6],desc:a[7],romance:a[8]})));
+  PACK_ASSOC.forEach(a=>out.push(mk({type:'association',name:a[0],gender:a[1],rank:a[2],cls:a[3],city:a[4],affil:a[5],role:a[6],desc:a[7],romance:a[8]})));
+  PACK_GUILDS.forEach(a=>out.push(mk({type:'guild',name:a[0],city:a[1],master:a[2],vice:a[3],role:a[4],reputation:a[5],recruitment:a[6],desc:a[7],size:a[8]})));
+  PACK_HUNTERS.forEach(a=>out.push(mk({type:'hunter',name:a[0],gender:a[1],rank:a[2],cls:a[3],city:a[4],affil:a[5],role:a[6],desc:a[7],romance:a[8]})));
+  PACK_CIVILIANS.forEach(a=>out.push(mk({type:'civilian',name:a[0],gender:a[1],city:a[2],role:a[3],desc:a[4],romance:a[5]})));
+  return out;
+}
+function mergeWorldPack(list){const have=new Set(list.map(e=>keyOf(e)));let added=0;for(const e of worldPack()){if(!have.has(keyOf(e))){list.push(e);added++;}}return added;}
+
+/* ---- compact context for the narrator ---- */
+function npcLine(e){
+  if(e.type==='guild')return e.name+' ['+(e.size==='small'?'small crew':'major guild')+'] HQ '+e.city+'; master '+e.master+(e.vice&&e.vice!=='—'?', vice '+e.vice:'')+'; '+e.role+'; rep: '+e.reputation+'; recruiting: '+e.recruitment;
+  const bits=[e.gender,e.rank&&e.rank!=='—'?e.rank+'-rank':'',e.cls].filter(Boolean).join(' ');
+  return e.name+' ('+[bits,e.city,e.affil,e.role].filter(Boolean).join(', ')+') — '+e.desc+(e.romance?' [possible romance option]':'');
+}
+function worldSummary(){
+  const W=S.world.npcs||[];const by=t=>W.filter(e=>e.type===t);
+  const assoc=by('association');const chair=assoc.find(e=>/chairman/i.test(e.role));
+  const branches=assoc.filter(e=>/branch head/i.test(e.role)).map(e=>e.city+': '+e.name).join('; ');
+  let s='Norwegian Hunter Association — HQ Oslo'+(chair?' (Chairman '+chair.name+')':'')+(branches?'; branches: '+branches:'')+'.';
+  s+='\nNorway\'s S-ranks ('+by('s-rank').length+'): '+by('s-rank').map(e=>e.name+' ('+[e.cls,e.affil,e.city].join(', ')+')').join('; ')+'.';
+  s+='\nGuilds:\n'+by('guild').map(e=>'- '+e.name+': '+e.city+', '+(e.size==='small'?'small crew led by ':'master ')+e.master+'; '+e.role+'; recruiting: '+e.recruitment).join('\n');
+  return s;
+}
+function relevantNpcs(uptoIndex){
+  const W=S.world.npcs||[];const msgs=S.messages.slice(Math.max(0,uptoIndex-8),uptoIndex);
+  const text=msgs.map(m=>m.role==='narrator'?(curAlt(m)?parseSystemUpdates(curAlt(m).text).clean:''):m.text).join('\n')+'\n'+($('#input')?$('#input').value:'');
+  const picked=new Map();
+  W.filter(e=>e.pinned).forEach(e=>picked.set(e.id,e));
+  for(const e of W){if(e.type==='guild')continue;const full=e.name.replace(/\s*"[^"]*"\s*/,' ').replace(/^Dr\.\s*/,'').trim();const first=full.split(/\s+/)[0];
+    const nick=(e.name.match(/"([^"]+)"/)||[])[1];
+    const esc2=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    if(new RegExp('\\b'+esc2(full)+'\\b','i').test(text)||(first.length>=3&&new RegExp('\\b'+esc2(first)+'\\b').test(text))||(nick&&new RegExp('\\b'+esc2(nick)+'\\b').test(text)))picked.set(e.id,e);}
+  const cities=[...new Set(W.map(e=>e.city).filter(Boolean))].filter(c=>new RegExp('\\b'+c+'\\b','i').test(text)||keyOf(c)===keyOf(S.character.city));
+  for(const c of cities){let n=0;for(const e of W){if(n>=8)break;if(e.city===c&&e.type!=='guild'&&e.type!=='s-rank'&&!picked.has(e.id)&&(e.type==='civilian'||e.type==='hunter'&&/^[EDC]$/.test(e.rank))){picked.set(e.id,e);n++;}}}
+  return [...picked.values()].slice(0,30);
+}
+function worldContext(uptoIndex){
+  const rel=relevantNpcs(uptoIndex);
+  return '\n\n=== NORWAY HUNTER WORLD (roster; use these characters, invent minor extras freely) ===\n'+worldSummary()+
+    (rel.length?'\n\nScene-relevant NPCs:\n'+rel.map(e=>'- '+npcLine(e)).join('\n'):'');
+}
+
+/* ---- World tab UI ---- */
+let worldFilter={q:'',type:'',rank:'',city:'',romance:false,pinned:false},worldOpen=null;
+function renderWorld(){
+  const el=$('#worldBody');if(!el)return;const W=S.world.npcs||[];
+  const cnt=t=>W.filter(e=>e.type===t).length;const hr=r=>W.filter(e=>e.type==='hunter'&&e.rank===r).length;
+  const cities=[...new Set(W.map(e=>e.city).filter(Boolean))].sort();
+  const f=worldFilter;const q=f.q.toLowerCase();
+  const list=W.filter(e=>(!f.type||e.type===f.type)&&(!f.rank||e.rank===f.rank)&&(!f.city||e.city===f.city)&&(!f.romance||e.romance)&&(!f.pinned||e.pinned)&&(!q||JSON.stringify(e).toLowerCase().includes(q)));
+  let h='<div class="syswin"><span class="title">Norway — World &amp; NPCs</span><div class="muted">'+W.length+' entries · S-ranks '+cnt('s-rank')+' · Guilds '+W.filter(e=>e.type==='guild'&&e.size!=='small').length+' major + '+W.filter(e=>e.type==='guild'&&e.size==='small').length+' small · Hunters '+cnt('hunter')+' (E '+hr('E')+', D '+hr('D')+', C '+hr('C')+', B '+hr('B')+', A '+hr('A')+') · Association '+cnt('association')+' · Civilians '+cnt('civilian')+'</div>'+
+   '<div class="muted" style="margin-top:4px">The narrator always gets the Association, S-rank and guild summary. Characters named in recent posts, people in cities you mention, and anyone you pin are sent in full.</div>'+
+   '<div class="row" style="margin-top:8px"><div style="flex:3 1 200px"><input type="text" id="wq" placeholder="Search names, guilds, roles, descriptions…" value="'+esc(f.q)+'"></div>'+
+   '<div><select id="wtype"><option value="">All types</option>'+['s-rank','association','guild','hunter','civilian'].map(t=>'<option'+(f.type===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>'+
+   '<div><select id="wrank"><option value="">Any rank</option>'+['E','D','C','B','A','S'].map(t=>'<option'+(f.rank===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>'+
+   '<div><select id="wcity"><option value="">Any city</option>'+cities.map(t=>'<option'+(f.city===t?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></div></div>'+
+   '<div class="row" style="margin-top:6px;align-items:center"><label style="flex:0 0 auto"><input type="checkbox" id="wrom" '+(f.romance?'checked':'')+'> Romance options</label><label style="flex:0 0 auto"><input type="checkbox" id="wpin" '+(f.pinned?'checked':'')+'> Pinned</label>'+
+   '<div style="flex:0 0 auto"><button class="btn small" id="wadd">+ Add NPC</button> <button class="btn small" id="wmerge">Restore missing pack entries</button></div><span class="muted">'+list.length+' shown</span></div></div>';
+  h+=list.map(e=>{const open=worldOpen===e.id;
+    return '<div class="list-item" data-wid="'+e.id+'"><div class="head"><button class="icon" data-wpin="'+e.id+'" title="Pin: always send to narrator">'+(e.pinned?'📌':'📍')+'</button><b>'+esc(e.name)+'</b>'+
+     (e.rank&&e.rank!=='—'?'<span class="tag">'+esc(e.rank)+'</span>':'')+'<span class="tag">'+esc(e.type)+'</span>'+(e.romance?'<span class="tag" style="border-color:#a0507a;color:#ff9fd0">♥</span>':'')+
+     '<span class="muted">'+esc([e.cls,e.city,e.affil,e.role].filter(Boolean).join(' · '))+'</span><span style="margin-left:auto"></span><button class="icon" data-wedit="'+e.id+'">'+(open?'▲':'✎')+'</button><button class="icon" data-wdel="'+e.id+'">🗑</button></div>'+
+     '<div class="muted" style="margin-top:3px">'+esc(e.type==='guild'?('Master '+e.master+' · Vice '+e.vice+' · '+e.reputation+' · Recruiting: '+e.recruitment+' · '+e.desc):e.desc)+'</div>'+
+     (open?worldEditor(e):'')+'</div>';}).join('');
+  el.innerHTML=h;
+}
+function worldEditor(e){
+  const fi=(k,l)=>'<div><label>'+l+'</label><input type="text" data-wf="'+e.id+'" data-k="'+k+'" value="'+esc(e[k]||'')+'"></div>';
+  return '<div class="row">'+fi('name','Name')+'<div><label>Type</label><select data-wf="'+e.id+'" data-k="type">'+['s-rank','association','guild','hunter','civilian'].map(t=>'<option'+(e.type===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>'+fi('rank','Rank')+fi('gender','Gender')+'</div>'+
+    '<div class="row">'+fi('cls','Class')+fi('city','City')+fi('affil','Affiliation')+fi('role','Role')+'</div>'+
+    (e.type==='guild'?'<div class="row">'+fi('master','Master')+fi('vice','Vice-master')+fi('reputation','Reputation')+fi('recruitment','Recruitment')+fi('size','Size (major/small)')+'</div>':'')+
+    '<label>Description</label><textarea data-wf="'+e.id+'" data-k="desc">'+esc(e.desc)+'</textarea><label><input type="checkbox" data-wf="'+e.id+'" data-k="romance" '+(e.romance?'checked':'')+'> Possible romance option</label>';
+}
+function initWorld(){
+  const el=$('#worldBody');
+  el.addEventListener('input',e=>{const t=e.target;
+    if(t.id==='wq'){worldFilter.q=t.value;const pos=t.selectionStart;renderWorld();const n=$('#wq');n.focus();n.setSelectionRange(pos,pos);return;}
+    if(t.dataset.wf){const x=S.world.npcs.find(n=>n.id===t.dataset.wf);if(!x)return;x[t.dataset.k]=t.type==='checkbox'?t.checked:t.value;save();}});
+  el.addEventListener('change',e=>{const t=e.target;const map={wtype:'type',wrank:'rank',wcity:'city'};
+    if(map[t.id]){worldFilter[map[t.id]]=t.value;renderWorld();}else if(t.id==='wrom'){worldFilter.romance=t.checked;renderWorld();}else if(t.id==='wpin'){worldFilter.pinned=t.checked;renderWorld();}
+    else if(t.dataset.wf&&(t.tagName==='SELECT'||t.type==='checkbox')){const x=S.world.npcs.find(n=>n.id===t.dataset.wf);if(x){x[t.dataset.k]=t.type==='checkbox'?t.checked:t.value;save();renderWorld();}}});
+  el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;const W=S.world.npcs;
+    if(b.id==='wadd'){const n={id:uid(),type:'hunter',name:'New NPC',gender:'',rank:'E',cls:'',city:S.character.city||'Oslo',affil:'',role:'',desc:'',romance:false,pinned:false};W.unshift(n);worldOpen=n.id;save();renderWorld();return;}
+    if(b.id==='wmerge'){const a=mergeWorldPack(W);save();renderWorld();toast(a?'Restored '+a+' missing entries.':'Nothing missing.');return;}
+    if(d.wpin){const x=W.find(n=>n.id===d.wpin);x.pinned=!x.pinned;save();renderWorld();return;}
+    if(d.wedit){worldOpen=worldOpen===d.wedit?null:d.wedit;renderWorld();return;}
+    if(d.wdel){if(!confirm('Delete this entry?'))return;S.world.npcs=W.filter(n=>n.id!==d.wdel);save();renderWorld();return;}});
+}
+
 /* ================= FORGE ================= */
 let forgeItem=null,forgeReq=null;
 function renderForgeInv(){const inv=S.player.inventory;$('#fInv').innerHTML=inv.length?inv.map((it,i)=>'<label style="display:inline-flex;gap:4px;margin:2px 10px 2px 0;color:var(--text)"><input type="checkbox" data-fmat="'+i+'"> '+esc(it.name)+' (×'+it.qty+')</label>').join(''):'Inventory is empty.';}
@@ -1123,7 +1357,7 @@ function renderStatRankTable(){
 function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 function showTab(name){document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
-  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge')renderForgeInv();if(name==='story')renderLog();if(name==='summons')renderCompanions();if(name==='settings'||name==='character')bindAll();}
+  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge')renderForgeInv();if(name==='story')renderLog();if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();}
 
 function init(){
   S=load();
@@ -1157,7 +1391,7 @@ function init(){
   $('#importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(confirm('Replace your current save with this file?')){S=migrate(d);saveNow();bindAll();renderAllViews();toast('Save imported.');}}catch(err){toast('Import failed: '+err.message);}e.target.value='';});
   $('#clearStory').addEventListener('click',()=>{if(confirm('Delete all story posts? Stats are kept.')){S.messages=[];S.world.summarizedCount=0;saveNow();renderLog();}});
   $('#resetAll').addEventListener('click',()=>{if(confirm('Reset EVERYTHING (story, stats, character, settings)? Export first if unsure. Your API key is kept.')){S=defaultState();saveNow();bindAll();renderAllViews();}});
-  initCompanions();
+  initCompanions();initWorld();
   $('#nextDayBtn').addEventListener('click',nextDay);
   $('#statRankTable').addEventListener('input',e=>{const t=e.target;if(t.dataset.srank===undefined)return;const r=S.statRanks[+t.dataset.srank];if(t.dataset.k==='max')r.max=t.value===''?null:num(t.value,r.max);else r.rank=t.value;save();});
   $('#statRankTable').addEventListener('click',e=>{const t=e.target.closest('[data-delsrank]');if(!t)return;S.statRanks.splice(+t.dataset.delsrank,1);save();renderStatRankTable();});
@@ -1166,7 +1400,7 @@ function init(){
   $('#patronType').innerHTML=PATRONS.map(p=>'<option>'+esc(p)+'</option>').join('');
   bindAll();renderAllViews();
 }
-function renderAllViews(){renderCompanions();renderLog();renderSystem();renderDaily();renderForgeInv();renderForgeResult();}
+function renderAllViews(){renderCompanions();renderWorld();renderLog();renderSystem();renderDaily();renderForgeInv();renderForgeResult();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
