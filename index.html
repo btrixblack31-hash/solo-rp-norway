@@ -130,6 +130,86 @@ h2::before{content:"ᚱ ";color:var(--aurora1);opacity:.8}
 .qbtn:hover{box-shadow:0 0 8px var(--glow)}
 .q.ok .name{color:var(--green);text-decoration:line-through;text-decoration-color:rgba(93,255,176,.5)}
 nav.tabs::-webkit-scrollbar{display:none}
+
+/* readability */
+.msg{padding:10px 11px}
+.msg .body{font-size:17px;line-height:1.7;color:#eef4fc}
+.msg.narrator{background:#0a1020;box-shadow:none}
+.msg.user{background:#0f1d36}
+.msg .body .syswin{font-size:15px;line-height:1.55;box-shadow:0 0 6px rgba(79,195,255,.25)}
+.msg .body p{margin:.6em 0}
+.thinking{color:var(--glow2);font-style:italic;letter-spacing:.05em}
+.thinking i{animation:blink 1.2s infinite;font-style:normal}.thinking i:nth-child(2){animation-delay:.2s}.thinking i:nth-child(3){animation-delay:.4s}
+@media(max-width:700px){main{padding:8px 6px}.msg.user{margin-left:4%}.msg{padding:9px 10px}body::before{opacity:.5}}
+
+/* ===== mobile-first layer ===== */
+.tabwrap{position:relative;max-width:1100px;margin:0 auto}
+.tabhint{display:none}
+nav.tabs button{min-height:44px}
+.kv input,.stat input{min-width:0;text-overflow:ellipsis}
+input[type=text]{text-overflow:ellipsis}
+.stats-list .stat .srank{flex:0 0 auto}
+table{display:block;overflow-x:auto;max-width:100%}
+img,video,pre{max-width:100%}
+pre{white-space:pre-wrap;word-break:break-word}
+.msg .body{overflow-wrap:anywhere}
+@media(max-width:700px){
+  html,body{font-size:16px}
+  body{overflow-x:hidden}
+  input[type=text],input[type=number],input[type=password],select,textarea{font-size:16px;min-height:44px;padding:8px 10px}
+  textarea{min-height:88px}
+  .btn{min-height:44px;padding:8px 14px;font-size:16px}
+  .btn.small{min-height:40px;min-width:40px;padding:6px 10px;font-size:15px}
+  .icon{min-width:40px;min-height:40px;font-size:16px}
+  .qbtn{width:44px;height:44px;font-size:20px}
+  label{font-size:14px}
+  .muted{font-size:14px}
+  .tag{font-size:13px;padding:2px 8px}
+  td,th{font-size:15px;padding:8px 6px}
+  h2{font-size:16px}h3{font-size:14px}
+  .syswin{padding:10px 10px}.syswin .title{font-size:14px;letter-spacing:.12em}
+  .card{padding:10px}
+  /* compact header */
+  .runes{display:none}
+  header::after{height:8px;background-size:28px 8px}
+  .topbar{padding:4px 8px;gap:8px}
+  .logo{font-size:19px;letter-spacing:.1em;flex:0 0 auto}.logo small{display:none}
+  .hud{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:8px;font-size:14px;white-space:nowrap;min-width:0}
+  .hud::-webkit-scrollbar{display:none}
+  /* tabs: horizontal scroll with a visible hint */
+  nav.tabs{padding:0 30px 0 4px;scroll-snap-type:x proximity}
+  nav.tabs button{padding:8px 12px;font-size:15px;scroll-snap-align:start}
+  .tabhint{display:flex;align-items:center;justify-content:flex-end;position:absolute;right:0;top:0;bottom:0;width:44px;padding-right:6px;pointer-events:none;
+    background:linear-gradient(90deg,rgba(5,8,16,0),rgba(5,8,16,.95) 60%);color:var(--glow);font-size:26px;text-shadow:0 0 8px var(--glow);animation:nudge 1.6s ease-in-out infinite}
+  .tabwrap.atend .tabhint{opacity:0}
+  @keyframes nudge{50%{transform:translateX(3px)}}
+  /* one stat per row: [label][value][rank][+] */
+  .status-grid{grid-template-columns:1fr}
+  .stats-list .stat{display:grid;grid-template-columns:48px minmax(0,1fr) auto 44px;gap:8px;align-items:center;padding:3px 0}
+  .stats-list .stat .k{width:auto;font-size:16px}
+  .stats-list .stat input{width:100%}
+  .stats-list .stat .btn{width:44px;min-height:44px;font-size:20px;padding:0}
+  .stats-list .stat.points{grid-template-columns:minmax(0,1fr) 110px}
+  .kv{flex-wrap:wrap}
+  .kv span.k{min-width:96px;font-size:14px}
+  .stats-list .srank{font-size:13px;min-width:64px;padding:4px 6px}
+  .kv input{flex:1 1 0}
+  .kv .muted{flex-basis:100%}
+  .composer .row{gap:6px}
+  .composer .row>*{flex:1 1 calc(50% - 6px)}
+  .msg .who{font-size:13px;flex-wrap:wrap}
+  .msg .who .tools{gap:0}
+  .swipe{font-size:14px}
+  .row>*{flex-basis:140px;min-width:0}
+  .subtabs button{min-height:44px}
+  .daily .q input[type=number]{width:90px}
+  .itemcard .meta{font-size:15px}
+  .tabwrap{overflow:hidden}
+  .row>label{flex:1 1 100% !important}
+  label:has(>input[type=checkbox]){display:flex;align-items:center;gap:10px;min-height:44px;font-size:15px;color:var(--text)}
+  input[type=checkbox]{width:22px;height:22px;flex:0 0 22px;margin:0}
+  input[type=range]{height:40px}
+}
 </style>
 </head>
 <body>
@@ -138,6 +218,7 @@ nav.tabs::-webkit-scrollbar{display:none}
     <div class="logo">SYSTEM<small>ᚾᛟᚱᛞ</small></div>
     <div class="hud" id="hud"></div>
   </div>
+  <div class="tabwrap" id="tabwrap">
   <nav class="tabs" id="tabs">
     <button data-tab="story" class="active">Story</button>
     <button data-tab="system">System</button>
@@ -148,6 +229,7 @@ nav.tabs::-webkit-scrollbar{display:none}
     <button data-tab="character">Character &amp; World</button>
     <button data-tab="settings">Settings</button>
   </nav>
+  <span class="tabhint" aria-hidden="true">›</span></div>
   <div class="runes">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ · ᚺ ᚾ ᛁ ᛃ ᛇ ᛈ ᛉ ᛊ · ᛏ ᛒ ᛖ ᛗ ᛚ ᛜ ᛞ ᛟ</div>
 </header>
 <main>
@@ -255,6 +337,7 @@ nav.tabs::-webkit-scrollbar{display:none}
       </div>
       <div class="row">
         <div><label>Temperature: <span id="tempVal"></span></label><input type="range" min="0" max="2" step="0.05" id="temp" style="width:100%"></div>
+        <div><label>Reasoning effort (only for grok-4.5/4.6/4.7)</label><select data-bind="settings.reasoningEffort"><option>low</option><option>medium</option><option>high</option></select></div>
         <div><label>Max output tokens</label><input type="number" data-bind="settings.maxTokens" data-num></div>
         <div><label>Recent posts sent each turn</label><input type="number" data-bind="settings.contextMessages" data-num></div>
       </div>
@@ -282,6 +365,7 @@ nav.tabs::-webkit-scrollbar{display:none}
       </div>
       <div class="row" style="margin-top:8px">
         <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.autoLevel" data-bool> Auto level-up when EXP reaches the bar</label>
+        <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.deriveHpMp" data-bool> Auto Max HP = VIT × Level × 10, Max MP = INT × Level</label>
         <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.levelRestore" data-bool> Level-up fully restores HP/MP and clears fatigue (canon)</label>
         <label style="flex:0 0 auto"><input type="checkbox" data-bind="settings.boxFlavor" data-bool> Ask Grok to name gear / rune stones from opened boxes</label>
       </div>
@@ -311,71 +395,39 @@ nav.tabs::-webkit-scrollbar{display:none}
 'use strict';
 /* ================= CONSTANTS & DEFAULTS ================= */
 const LS_KEY='soloRP.save.v1', KEY_KEY='soloRP.apiKey', API='https://api.x.ai/v1';
-const MODELS=['grok-4.7','grok-4.7-latest','grok-4.6','grok-4.5','grok-4.3','grok-4.20-0309-reasoning','grok-4.20-0309-non-reasoning'];
+const MODELS=['grok-4.20-0309-non-reasoning','grok-4.3','grok-4.7','grok-4.7-latest','grok-4.6','grok-4.5','grok-4.20-0309-reasoning'];
 
-const DEFAULT_SYSTEM_PROMPT=`You are the NARRATOR and GAME MASTER of a mature, interactive Solo Leveling roleplay. You voice the world, every NPC, every monster, and the System itself. The user plays exactly ONE character (described under PLAYER CHARACTER). You never play her.
+const DEFAULT_SYSTEM_PROMPT=`You are the NARRATOR/GM of a mature Solo Leveling roleplay. You voice the world, all NPCs, monsters, and the System. The user plays ONE character (PLAYER CHARACTER below). You never play her.
 
-=== ABSOLUTE RULES (highest priority) ===
-1. NEVER write the player character's dialogue, actions, thoughts, feelings, reactions, or decisions. Do not describe her moving, speaking, deciding, nodding, smiling, wincing, agreeing, or "feeling" anything unless the user already wrote it in her post. You may describe what happens TO her and what she perceives from outside (a blow lands, the cold bites, a window appears in front of her) — but never how she responds.
-2. NEVER assume or guess what she wants or intends. Do not finish her actions for her, do not skip ahead past moments where she would choose, do not fast-forward time unless she asks. Resolve exactly what she wrote, then let the world respond.
-3. End every reply at a point where her character can act — on an open moment, an NPC line, a monster's move, or a System prompt. Do not end with "What do you do?" and do not list options unless the System itself canonically offers a choice.
-4. NO REPETITION. Never reuse sentences, signature phrases, descriptions, or openings from earlier replies. Do not recap what just happened or restate her post back to her. Vary sentence structure, imagery, and pacing every turn.
-5. NPCs are NOT suspicious by default. Hunters, Association staff, guild members, family, and strangers mind their own business, are busy with their own lives, and accept ordinary explanations. They do not interrogate her, probe her secret, stalk her, investigate her growth, or keep asking questions unless the user explicitly invites that kind of plot. Never derail or obstruct what she is trying to do with contrived suspicion, gatekeeping, or nagging.
-6. Mature content: this is 18+ fiction between consenting adults. Violence, gore, profanity, dark themes, romance, and explicit sexual content are allowed when the user steers there. Do not moralize, add disclaimers, fade to black, or refuse in-fiction. Never sexualize minors; all romantic/sexual characters are adults.
-6b. ORIENTATION: respect the player character's sexual orientation as given under PLAYER CHARACTER (default: lesbian). Romantic or flirtatious interest from NPCs comes by default from women; men do not pursue her romantically unless she steers there. Never force romance, and never decide her feelings or responses — offer chemistry, let her choose.
-7. SECOND PERSON, ALWAYS. Narrate in second person, addressing the player character as "you" ("Frost bites at your knuckles.", "The window flickers in front of you."). Never refer to her by name or as "she/her" in narration (NPCs may say her name in dialogue). The user writes her own posts in THIRD PERSON ("She steps forward and…"); treat those posts as your character's actions and respond in second person. Converting to second person is NOT permission to act for her: never write "you say/you decide/you feel/you think" for anything she did not write — only describe what happens to you, what you perceive from outside, and how the world responds.
-8. Stay in-world. No out-of-character commentary unless the user writes OOC in ((double parentheses)); answer OOC briefly in ((double parentheses)).
+RULES (highest priority)
+1. Never write her dialogue, actions, thoughts, feelings, or decisions, and never guess what she wants. Only describe what happens to her and what she perceives; resolve exactly what she wrote, then let the world respond.
+2. End each reply where she can act (an NPC line, a monster's move, a System prompt). No "What do you do?", no option lists unless the System canonically offers a choice. Don't skip time unless she asks.
+3. SECOND PERSON always: narrate as "you". She writes her posts in third person ("She steps forward…") — treat them as your character's actions. Never write "you say/decide/feel/think" for anything she didn't write. NPCs may say her name.
+4. No repetition: never reuse phrases, descriptions, openings, or recaps from earlier replies.
+5. NPCs are not suspicious by default: they mind their own business, accept ordinary explanations, and never interrogate or investigate her unless she invites it. Never derail her plans.
+6. 18+ fiction between adults: violence, gore, profanity, dark themes, romance and explicit sex are allowed when she steers there. No moralizing, disclaimers or fade-to-black. Never sexualize minors.
+7. Orientation: respect hers (PLAYER CHARACTER). Romantic interest from NPCs comes from women by default; never force romance or decide her feelings.
+8. Answer ((OOC)) notes briefly in ((double parentheses)).
 
-=== CANON: SOLO LEVELING (follow precisely) ===
-- Setting: the exact canon Solo Leveling world (web novel / manhwa). About ten years ago gates began appearing worldwide and some humans "awakened" as hunters. Sung Jinwoo is living his canon story in Seoul, Korea, in parallel and on the canon timeline. The player is in NORWAY. Jinwoo and other canon characters only appear or are referenced as canon allows and as the user steers; do not drag the story to Korea.
-- Gates: dimensional portals ranked E, D, C, B, A, S by their measured mana (magic power) reading, taken by Association equipment at the gate. Inside are dungeons with monsters and a boss; killing the boss closes the gate. Gates left uncleared eventually cause a DUNGEON BREAK (monsters pour out). Red gates are anomalous: once entered, the exit closes and the inside becomes an isolated, far more dangerous environment until the cause is resolved. Double dungeons and hidden areas exist. Mana crystals / magic stones from monsters are valuable; monster materials are crafted into gear.
-- Hunters: awakened humans ranked E to S by the Hunter Association when they awaken; national-level hunters exceed S. Classes include Fighter, Mage, Assassin, Tanker, Healer, Ranger, etc. Re-awakening (a second awakening that raises one's rank) is extremely rare but real.
-- IMPORTANT CANON: ordinary hunters DO grow stronger. Their base rank rarely changes, but they improve through training, combat experience, skill mastery, better items, and teamwork (Cha Hae-in, Baek Yoonho, Choi Jong-in, Woo Jinchul, Yoo Jinho all become more capable over the story). Never portray other hunters as frozen or unable to improve. What makes the Player unique is that she grows through the SYSTEM: levels, ability points, quests, rewards — far beyond normal limits.
-- NORWAY ROSTER: a world roster (Association, Norway's seven S-ranks, guilds, hunters, civilians) is provided each turn. Use those characters by name and personality when they fit; invent minor extras freely. Roster NPCs are not suspicious of her by default, have their own lives and goals, and — like canon hunters — can grow stronger over time.
-- Organizations: each country has its own Hunter Association/Bureau (Norway's is detailed in the roster), guilds bid on raids, raid teams use porters, the Association handles gate-break emergencies and rank re-measurement, and there is international hunter politics (Thomas Andre, Liu Zhigang, Goto Ryuji, etc. exist in canon). The Norwegian hunter scene is original but must obey canon rules.
-- The Player and the SYSTEM: she is a "Player" like Jinwoo. The System shows blue holographic windows only she can see: Status, Skills, Inventory, Quest Log, Shop, Notifications, Alerts. Canon mechanics: Level, EXP, HP, MP, Fatigue, stats STR / AGI / SEN (Sense) / VIT / INT / LUK (Luck), Available Ability Points she assigns herself, Titles with effects, Job and a Job Change quest, Skills (Passive/Active, skill levels, MP costs, cooldowns), Gold from kills/quests spent in the Shop, Inventory (items, keys, random boxes), Instance Dungeons via dungeon keys, emergency quests, hidden quests, penalties.
-- DAILY QUEST "Preparation to Become Powerful": 100 push-ups, 100 sit-ups, 100 squats, 10 km run, every day. Completing it rewards Status Recovery, +3 free Ability Points, and a Random Box. Failing it by midnight sends her to the PENALTY ZONE (canon: a desert survival trial against giant centipedes for a set time). The System is impersonal, terse, sometimes ominous; it does not chat.
-- Leveling: the Player's level rises only through the System (EXP from kills/quests). Level-ups canonically restore her condition. HOUSE RULES (the app applies these automatically — do NOT add them yourself in system_update): every level-up grants 5 free Ability Points to allocate AND +1 to every stat (STR, AGI, SEN, VIT, INT, LUK); completing the Daily Quest grants 3 free Ability Points (plus Full Recovery and a reward box of her choice). Only she distributes Ability Points — never spend them for her.
-- HER BUILD & CLASS (given under PLAYER CHARACTER): she is NOT the Shadow Monarch and has no shadow extraction/Necromancer abilities. She is a BRAWLER — unarmed martial arts / taijutsu-style close combat. Her class path is a 3-part class she unlocks over time (e.g. via Job Change quests); its eventual third part is a Tamer/Binder Summoner who binds monsters as companions. Use the class name/plan she has set; never pick the remaining parts for her.
-- INNATE ABILITIES (listed in her Skills): Regeneration (passive natural healing) and Enhancement (active self-buff that also shares a percentage of the buff with her allies and summons). They were weak at E-rank and scale with her level, skill level, and stats (VIT for Regeneration; INT/MP for Enhancement). Portray their strength proportionately.
-- COMPANIONS / SUMMONS: her bound companions are listed in CURRENT STATUS with species, rank, level, stats, skills, bond, and evolution stage. Voice them consistently with their species, personality, and bond; they act on her commands and their own nature but never make her decisions. Companions gain EXP and kill counts in fights and can evolve when their conditions are met (the user triggers evolution in the app; example chain: Goblin → Goblina (female hobgoblin) → Goblin Knight → Goblin Queen). Binding a new companion only happens when she chooses to and has the means.
-- STAT RANKS: each of her stats has its own rank (E, D, C, B, A, S, National, Deity) independent of her Hunter Rank, shown in CURRENT STATUS (e.g. she can be an E-rank hunter with B-rank Vitality). Narrate her physical capability per stat accordingly. Mana readers, Association measuring equipment, and other hunters' senses only ever detect her HUNTER RANK (from her level, given in CURRENT STATUS) — never her stat ranks. Her Hunter Rank changes only as her level crosses the thresholds in the LEVEL → RANK CHART.
-- THE SYSTEM'S CREATOR / PATRON: the entity behind her System is given under PLAYER CHARACTER (by default the Norse sun goddess Sól, who revived her as she died in a double dungeon and made her a Player). Sól is a RARE presence — she appears only at major thresholds (near-death, rebirth-level moments, dreams) and never speaks or decides for the Player. Otherwise let its nature subtly flavor System messages, quests, and hidden lore, but never have it override canon mechanics or explain itself unprompted.
-- TIME: the story runs on an in-game day counter (given in CURRENT STATUS). The Daily Quest is per in-game day. Do not advance days yourself; the user presses "Next Day".
-- LOOT & REWARD BOXES: monsters and bosses can drop loot like canon — magic stones (mana crystals), Magic Beast cores, monster materials, equipment, Rune Stones / skill books, Instance Dungeon Keys, potions, gold, and reward boxes. Drops should be proportionate to the monster's rank and somewhat rare; bosses drop more and better. Quests may reward boxes. Grant boxes with "boxes_add" (the Player opens them herself from her Inventory; the app rolls the contents, weighted by box tier and her Luck — never describe a box's contents before she opens it). Her LUK stat should subtly favor her in drops and chance events.
-- Keep power scaling consistent with canon: an E-rank is weak, growth is earned, and monsters, gate ranks, and dangers are proportionate.
+CANON (follow precisely)
+- Exact Solo Leveling world; Sung Jinwoo lives his canon story in Korea in parallel. This story is in NORWAY.
+- Gates rank E–S by mana reading; boss kill closes them; uncleared gates break; red gates trap raiders; double dungeons exist. Stones, cores, materials are valuable.
+- Hunters are ranked E–S at awakening (national level above S); re-awakening is rare. Ordinary hunters DO grow stronger via training, experience, skills, gear. Only the Player grows via the System.
+- E-RANKS ARE EXTREMELY RARE in Norway; she is one of only a handful. People may find it notable or pitiable, not suspicious.
+- Her System: blue windows only she sees. Level, EXP, HP, MP, Fatigue, STR/AGI/SEN/VIT/INT/LUK, free points (only she spends them), titles, job change, skills, gold, shop, dungeon keys, hidden/emergency quests, penalties. Max HP = VIT × Level × 10; Max MP = INT × Level (the app computes these; never send max_hp/max_mp for her).
+- Daily Quest: 100 push-ups/sit-ups/squats + 10 km run per in-game day; failure = Penalty Zone (desert, giant centipedes). The app handles rewards and days.
+- App applies automatically (don't add): level-up = +5 free points, +1 all stats; Daily Quest = recovery, +3 points, a box.
+- Stat ranks are independent of hunter rank; mana readers only ever show her HUNTER RANK.
+- Build: BRAWLER (unarmed). NOT the Shadow Monarch. 3-part class path, third = Tamer/Binder Summoner; never pick parts for her. Innate Regeneration (passive) and Enhancement (self-buff partly shared with allies/summons) start weak, scale with level/stats.
+- Patron (default Sól, Norse sun goddess, who revived her as she died in a double dungeon): a RARE presence at major thresholds only.
+- Companions follow her commands, act by species/personality/bond; evolution is triggered in the app.
+- Loot scales with monster rank; bosses drop more. Grant boxes via boxes_add; never reveal contents.
+- Use roster NPCs (WORLD) by name; invent minor extras freely; roster NPCs can grow stronger.
 
-=== SYSTEM WINDOWS (formatting) ===
-Whenever the System speaks, wrap the window in <system>...</system> tags in canon style, e.g.
-<system>[Notification]
-You have killed an Ice Elf.
-EXP has been acquired.</system>
-Use [Quest Info], [Alert], or [Warning] headers as fits. Keep System text terse and canon-like.
-
-=== STATE TRACKING (machine-readable) ===
-The app tracks her stats. The CURRENT STATUS is given to you each turn; treat it as the truth. Whenever the System changes anything (EXP, level, gold, HP/MP/fatigue damage or recovery, stats, ability points, items gained/lost/used, skills, quests, titles, job, rank), append ONE block at the very end of your reply:
-<system_update>{ JSON }</system_update>
-JSON keys (all optional; numbers are CHANGES/deltas except inside "set"):
- "exp_gain": number   (EXP gained; the app auto-levels when the bar fills — prefer this over level_up)
- "level_up": number   (only for direct level gains not caused by EXP)
- "gold", "hp", "mp", "fatigue", "max_hp", "max_mp": number (+ or -)
- "stat_points": number (ability points awarded; never spend them)
- "stats": {"str":0,"agi":0,"sen":0,"vit":0,"int":0,"luk":0} (only System-granted stat changes)
- "set": {"job":"","title":"","official_rank":"E","hp":100,"level":5} (absolute values)
- "items_add": [{"name":"","qty":1,"category":"","acquisition_difficulty":"C","stats":{"Attack":"+20"},"effects":[""],"durability":"","description":""}]
- "items_remove": [{"name":"","qty":1}]
- "skills_add": [{"name":"","type":"Active","level":1,"mp_cost":"","cooldown":"","description":""}]
- "skills_update": [{"name":"","level":2}]
- "quests_add": [{"name":"","description":"","reward":"","deadline":""}]
- "quests_complete": ["quest name"], "quests_fail": ["quest name"]
- "titles_add": ["title"]
- "companions_add": [{"name":"","species":"","rank":"E","level":1,"hp":50,"max_hp":50,"mp":10,"max_mp":10,"stats":{"str":5,"agi":5,"sen":5,"vit":5,"int":5,"luk":5},"skills":[""],"appearance":"","personality":""}]
- "companions_update": [{"name":"companion name","exp_gain":0,"hp":0,"mp":0,"kills":0,"bond":0,"stats":{},"skills_add":[""],"history":"short event","set":{"rank":"","level":0,"species":""}}]  (numbers are deltas except in "set")
- "companions_remove": ["name"]
- "boxes_add": [{"name":"Random Box","tier":"D","kind":"random","qty":1}]  (kind: random | quest | boss | gold | stat; tier E/D/C/B/A/S)
- "notification": "short note"
-Example: <system_update>{"exp_gain":40,"gold":120,"items_add":[{"name":"Magic Stone (E)","qty":1}]}</system_update>
-Valid JSON only (no comments, no trailing commas). Omit the block if nothing changed. Never award things the canon System would not.`;
+FORMAT
+- System messages go in <system>[Notification]\\n...</system> (or [Quest Info], [Alert], [Warning]). Terse, impersonal.
+- When the System changes anything, end the reply with ONE block: <system_update>{json}</system_update>. Numbers are deltas except inside "set". Keys (all optional): exp_gain, level_up, gold, hp, mp, fatigue, max_hp, max_mp, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,acquisition_difficulty,stats{},effects[],description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind:random|quest|boss|gold|stat,qty}], companions_add[{name,species,rank,level,max_hp,max_mp,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats{},skills_add[],history}], companions_remove[names], notification.
+  Valid JSON only. Omit if nothing changed. Prefer exp_gain (the app auto-levels).`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
 Respond with ONLY a JSON object, no prose, no code fences:
@@ -419,10 +471,10 @@ function defaultDaily(){return {date:today(),items:[
   {key:'pushups',name:'Push-ups',target:100,done:0,unit:''},{key:'situps',name:'Sit-ups',target:100,done:0,unit:''},
   {key:'squats',name:'Squats',target:100,done:0,unit:''},{key:'run',name:'Running',target:10,done:0,unit:'km'}],claimed:false,history:[]};}
 function defaultState(){return {version:1,
-  settings:{model:'grok-4.7',customModel:'',temperature:0.9,maxTokens:2000,stream:true,contextMessages:40,autoSummarize:true,
-    pointsPerLevel:5,statsPerLevel:1,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
+  settings:{model:'grok-4.20-0309-non-reasoning',reasoningEffort:'low',customModel:'',temperature:0.9,maxTokens:2000,stream:true,contextMessages:40,autoSummarize:true,
+    pointsPerLevel:5,statsPerLevel:1,deriveHpMp:true,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
   character:{name:'',age:'',gender:'Female (she/her)',orientation:'Lesbian',city:'',appearance:'Blonde hair with an undercut, blue eyes, light freckles across the nose and cheeks. Usually wears a crop top and shorts.',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
-  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',opening:"OPENING SCENE (narrate this as the first post in SECOND PERSON — address her as \"you\"; never write her dialogue, actions, thoughts, or choices — describe only the world, NPCs, and what happens to you):\nNorway. You, an E-rank hunter, have joined the Østkant Raid Group on what was measured as a D-rank gate in the forest of Nordmarka outside Oslo. The raid party (use these roster characters): Kari Lie (D-rank Fighter, raid leader), Marius Fjeld (D-rank earth-mage, vice-leader), Jonas Berg (D-rank healer), Mats Hagen (E-rank Fighter), Thea Lind (E-rank Ranger), Ola Bakken (E-rank Tanker), Nora Sæther (E-rank buffer), Sander Holm (E-rank Assassin), plus an Association surveillance check by tester Silje Kroken at the gate. Inside, the party discovers a hidden second dungeon — a DOUBLE DUNGEON: a vast ancient temple with towering statues and commandments carved in stone, mirroring the canon Cartenon Temple horror but with a Norse aesthetic (runes, carved wolves and sun-wheels, a great statue holding a stone sun). The statues awaken; hunters die following and breaking the temple's rules. At the climax you are mortally wounded and left behind as the survivors escape. As you lie dying, the temple goes silent and a warm golden light breaks through the stone: the goddess SÓL appears, radiant, warm, and regal, and speaks to you. Sól chooses you, and her light floods into you as you are reborn. End the scene with the canon System window:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nPace it across the post; give her openings to act or speak during the dungeon if natural, but you may carry the scene to Sól's arrival since she is dying. Stop after the notification.",style:'Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0,npcs:[]},
+  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',opening:"OPENING ARC (hidden GM guidance; never quote it. Reveal one beat or less per reply; let her act between beats):\nSetting: Nordmarka forest outside Oslo. The Østkant Raid Group takes a gate the Association measured as D-rank. Party (all D-rank; she is the ONLY E-rank): Kari Lie (leader), Marius Fjeld, Jonas Berg (healer), Mats Hagen, Thea Lind, Ola Bakken, Nora Sæther, Sander Holm. Tester Silje Kroken reads the gate.\nBeats:\n1. Arrival: the reading, Kari's briefing, banter, stepping through. (FIRST POST = this beat only.)\n2. An easy D-rank dungeon; then a hidden second door.\n3. DOUBLE DUNGEON: a vast Norse temple (runes, wolves, sun-wheels, a great statue holding a stone sun), stone commandments; the door seals.\n4. Statues awaken; hunters die breaking the rules; survivors must work them out. Her actions matter.\n5. Only after deaths have happened: she is mortally wounded / left behind as survivors escape (never by deciding her choices).\n6. Dying: silence, then golden light — SÓL appears (radiant, warm, regal), speaks, chooses her; her light floods in; rebirth. End that post with:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nNever rush beats 5–6.",style:'Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0,npcs:[]},
   player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
 
 /* ================= UTILS ================= */
@@ -498,7 +550,7 @@ function rollBox(box,luk,rng){
   return out;
 }
 function levelUp(p,cfg,notes){
-  p.level+=1;p.points+=num(cfg.pointsPerLevel,5);const all=num(cfg.statsPerLevel,1);if(all)for(const k of STAT_KEYS)p.stats[k]=(p.stats[k]||0)+all;
+  p.level+=1;p.points+=num(cfg.pointsPerLevel,5);const all=num(cfg.statsPerLevel,1);if(all)for(const k of STAT_KEYS)p.stats[k]=(p.stats[k]||0)+all;deriveMax(p,cfg);
   if(cfg.levelRestore){p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;}
   notes.push('LEVEL UP! Lv. '+p.level+' (+'+num(cfg.pointsPerLevel,5)+' free points'+(all?', all stats +'+all:'')+')');
 }
@@ -551,9 +603,12 @@ function applyUpdate(p,u,cfg){
   for(const t of (u.titles_add||[])){const n=String(typeof t==='object'?t.name:t);if(!p.titles.includes(n)){p.titles.push(n);notes.push('Title acquired: '+n);}}
   if(u.notification)notes.push(String(u.notification));
   if(Array.isArray(u.notifications))u.notifications.forEach(x=>notes.push(String(x)));
-  clampPlayer(p);
+  deriveMax(p,cfg);clampPlayer(p);
   return notes;
 }
+function deriveMax(p,cfg){if(cfg&&cfg.deriveHpMp===false)return;const lv=Math.max(1,num(p.level,1));
+  const mh=Math.max(1,Math.round(num(p.stats.vit,0)*lv*10)),mm=Math.max(0,Math.round(num(p.stats.int,0)*lv));
+  if(mh>p.maxHp)p.hp+=mh-p.maxHp;if(mm>p.maxMp)p.mp+=mm-p.maxMp;p.maxHp=mh;p.maxMp=mm;}
 function clampPlayer(p){p.maxHp=Math.max(1,p.maxHp);p.maxMp=Math.max(0,p.maxMp);p.hp=Math.min(Math.max(0,p.hp),p.maxHp);p.mp=Math.min(Math.max(0,p.mp),p.maxMp);
   p.fatigue=Math.max(0,p.fatigue);p.points=Math.max(0,p.points);p.level=Math.max(1,p.level);p.exp=Math.max(0,p.exp);}
 
@@ -598,7 +653,7 @@ function applyTextToPlayer(p,text,cfg){
 function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
 
 /* expose pure logic for tests */
-const API_EXPORT={normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
 
@@ -612,12 +667,19 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
   s.player=deepMerge(defaultPlayer(),(d&&d.player)||{});
   ['inventory','skills','quests','titles','companions'].forEach(k=>{if(!Array.isArray(s.player[k]))s.player[k]=[];});
   s.player.companions=s.player.companions.map(normCompanion);
-  if(!s.flags)s.flags={};if(!s.character.orientation)s.character.orientation=base.character.orientation;if(!String(s.character.appearance||'').trim())s.character.appearance=base.character.appearance;
-  if(!Array.isArray(s.world.npcs))s.world.npcs=[];if((s.flags.worldPack||0)<WORLD_PACK_VERSION){mergeWorldPack(s.world.npcs);if(/^OPENING SCENE/.test(s.world.opening||'')&&!/Kari Lie/.test(s.world.opening))s.world.opening=base.world.opening;s.flags.worldPack=WORLD_PACK_VERSION;}
+  if(!s.flags)s.flags={};
+  if(!s.flags.speed1){if(s.settings.model==='grok-4.7'&&!String(s.settings.customModel||'').trim())s.settings.model=base.settings.model;s.settings.stream=true;if(!s.settings.reasoningEffort)s.settings.reasoningEffort='low';
+    if(/^You are the NARRATOR and GAME MASTER of a mature, interactive Solo Leveling roleplay/.test(s.settings.systemPrompt||'')){s.settings.systemPromptBackup=s.settings.systemPrompt;s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;}
+    if(/^OPENING SCENE/.test(s.world.opening||''))s.world.opening=base.world.opening;s.flags.speed1=true;}
+  if(/^OPENING ARC \(hidden GM guidance — never show/.test(s.world.opening||''))s.world.opening=base.world.opening;
+  if(!s.character.orientation)s.character.orientation=base.character.orientation;if(!String(s.character.appearance||'').trim())s.character.appearance=base.character.appearance;
+  if(!Array.isArray(s.world.npcs))s.world.npcs=[];if((s.flags.worldPack||0)<WORLD_PACK_VERSION){mergeWorldPack(s.world.npcs);updatePackRanks(s.world.npcs);if(/^OPENING SCENE/.test(s.world.opening||'')&&!/Kari Lie/.test(s.world.opening))s.world.opening=base.world.opening;s.flags.worldPack=WORLD_PACK_VERSION;}
   if(!s.flags.secondPerson){if(!/SECOND PERSON/.test(s.settings.systemPrompt||''))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT===s.settings.systemPrompt?s.settings.systemPrompt:(s.settings.systemPrompt+'\n\n'+'8. SECOND PERSON, ALWAYS. Narrate in second person, addressing the player character as "you" ("Frost bites at your knuckles.", "The window flickers in front of you."). Never refer to her by name or as "she/her" in narration (NPCs may say her name in dialogue). The user writes her own posts in THIRD PERSON ("She steps forward and…"); treat those posts as your character\'s actions and respond in second person. Converting to second person is NOT permission to act for her: never write "you say/you decide/you feel/you think" for anything she did not write — only describe what happens to you, what you perceive from outside, and how the world responds.');if(/^Third-person, past tense/.test(s.world.style||''))s.world.style=base.world.style;if(/^OPENING SCENE \(narrate this as the first post; never/.test(s.world.opening||''))s.world.opening=base.world.opening;s.flags.secondPerson=true;}if(!s.flags.sol){if(s.character.patronType==='The Architect'&&!s.character.patronName){Object.assign(s.character,{patronType:base.character.patronType,patronName:base.character.patronName,patronDesc:base.character.patronDesc});}s.flags.sol=true;}if(!s.flags.innate){innateSkills().forEach(sk=>{if(!s.player.skills.some(x=>keyOf(x)===keyOf(sk)))s.player.skills.push(sk);});s.flags.innate=true;}
   s.messages=Array.isArray(d&&d.messages)?d.messages:[];
   s.messages.forEach(m=>{if(m.role==='narrator'){m.alts=(m.alts||[]).filter(a=>a&&typeof a.text==='string');m.alts.forEach(a=>a.streaming=false);m.sel=Math.min(m.sel||0,Math.max(0,m.alts.length-1));}});
   s.messages=s.messages.filter(m=>m.role!=='narrator'||m.alts.length);
+  s.messages=s.messages.filter(m=>!(m.role==='syslog'&&/^(OPENING SCENE|OPENING ARC)/.test(m.text||'')));
+  if(!s.flags.hpmp1){deriveMax(s.player,s.settings);clampPlayer(s.player);s.flags.hpmp1=true;} // Max HP = VIT×Lv×10, Max MP = INT×Lv
   s.statRanks=Array.isArray(d&&d.statRanks)&&d.statRanks.length?d.statRanks:base.statRanks;
   s.rankChart=Array.isArray(d&&d.rankChart)&&d.rankChart.length?d.rankChart:base.rankChart;s.shop=Array.isArray(d&&d.shop)?d.shop:base.shop;
   s.daily=deepMerge(defaultDaily(),(d&&d.daily)||{});if(d&&d.daily&&Array.isArray(d.daily.items))s.daily.items=d.daily.items;return s;}
@@ -664,6 +726,7 @@ function renderLog(){
 function editBox(t){return '<textarea class="editArea" style="min-height:160px">'+esc(t)+'</textarea><div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small primary" data-act="saveEdit">Save</button> <button class="btn small" data-act="cancelEdit">Cancel</button></div></div>';}
 function renderMsg(m,i){
   const isEdit=editing===m.id;
+  if(m.role==='error')return '<div class="msg syslog" style="border-color:var(--red);color:#ffb3c0" data-i="'+i+'"><div class="who">Narrator error<span class="tools"><button class="icon" data-act="retryErr">↻ retry</button><button class="icon" data-act="del">🗑</button></span></div><div class="body">The request to Grok failed: '+esc(m.text)+'<br><span class="muted">Check your API key / model in Settings, then press retry.</span></div></div>';
   if(m.role==='user'||m.role==='syslog'){
     const label=m.role==='user'?(S.character.name||'You'):'System log';
     return '<div class="msg '+m.role+'" data-i="'+i+'"><div class="who">'+esc(label)+'<span class="tools">'+
@@ -671,7 +734,7 @@ function renderMsg(m,i){
       '<button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
       '</span></div><div class="body">'+(isEdit?editBox(m.text):renderProse(m.text))+'</div></div>';
   }
-  const a=curAlt(m);if(!a)return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body typing"></div></div>';const parsed=parseSystemUpdates(a.text);
+  const a=curAlt(m);if(!a||(a.streaming&&!a.text))return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body"><span class="thinking">thinking<i>.</i><i>.</i><i>.</i></span></div></div>';const parsed=parseSystemUpdates(a.text);
   const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
   return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator '+swipe+'<span class="tools">'+
     '<button class="icon" data-act="regen" title="Redo (new alternative)">↻ redo</button><button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
@@ -685,6 +748,7 @@ function onLogClick(e){
   const b=e.target.closest('[data-act]');if(!b)return;const el=b.closest('.msg');if(!el)return;const i=+el.dataset.i;const m=S.messages[i];if(!m)return;const act=b.dataset.act;
   if(busy&&!['edit','cancelEdit'].includes(act)){toast('Wait for the narrator to finish (or press Stop).');return;}
   if(act==='prev'||act==='next'){unapplyAlt(curAlt(m));m.sel=(m.sel+(act==='next'?1:-1)+m.alts.length)%m.alts.length;applyAlt(curAlt(m));afterChange();}
+  else if(act==='retryErr'){const r=m.retry||{};S.messages.splice(i,1,{id:uid(),role:'narrator',alts:[],sel:0,continuation:r.continuation,instruction:r.instruction});regenerate(i);}
   else if(act==='regen'){regenerate(i);}
   else if(act==='regenFrom'){const n=S.messages[i+1];if(n&&n.role==='narrator')regenerate(i+1);else{S.messages.splice(i+1,0,{id:uid(),role:'narrator',alts:[],sel:0});regenerate(i+1);}}
   else if(act==='del'){if(!confirm('Delete this post?'+(m.role==='narrator'?' Any stat changes it made will be reverted.':'')))return;
@@ -705,7 +769,8 @@ async function sendUser(){
   await regenerate(S.messages.length-1);
 }
 async function beginOpening(){if(busy)return;if(!apiKey()){toast('Paste your xAI API key in Settings first.');return;}
-  S.messages.push({id:uid(),role:'syslog',text:S.world.opening||'Begin the story.'});S.messages.push({id:uid(),role:'narrator',alts:[],sel:0});save();renderLog();await regenerate(S.messages.length-1);}
+  S.world.openingActive=true;
+  S.messages.push({id:uid(),role:'narrator',alts:[],sel:0,instruction:'((OOC: Begin the story with ONLY the first beat of the opening arc — arriving at the gate and stepping through. Second person. Stop where I can act.))'});save();renderLog();await regenerate(S.messages.length-1);}
 async function continueScene(){if(busy)return;if(!apiKey()){toast('Paste your xAI API key in Settings first.');return;}
   S.messages.push({id:uid(),role:'narrator',alts:[],sel:0,continuation:true});renderLog();await regenerate(S.messages.length-1);}
 
@@ -714,55 +779,65 @@ async function regenerate(i){
   if(!apiKey()){toast('Paste your xAI API key in Settings first.');if(!m.alts.length)S.messages.splice(i,1);renderLog();return;}
   if(m.alts.length)unapplyAlt(curAlt(m));
   const a={text:'',streaming:true,applied:false,notes:[],errors:[],reqErrors:[]};m.alts.push(a);m.sel=m.alts.length-1;
-  const msgs=buildContext(i,m.continuation);
-  setBusy(true,'The System is writing…');renderLog();renderSystem();
+  const msgs=buildContext(i,m.continuation,m.instruction);
+  const t0=Date.now();setBusy(true,'thinking…');renderLog();renderSystem();
+  const tick=setInterval(()=>{if(busy)$('#statusLine').textContent=(a.text?'writing… ':'thinking… ')+Math.round((Date.now()-t0)/1000)+'s';},500);
+  let failMsg='';
   try{a.text=await chat(msgs,{stream:cfg().stream,onDelta:(full)=>{a.text=full;updateStreaming(i);}});}
-  catch(e){
-    if(e.name!=='AbortError'){a.reqErrors=['Request failed: '+e.message];toast('Error: '+e.message,6000);}
-  }
+  catch(e){if(e.name!=='AbortError'){failMsg=e.message;if(a.text)a.reqErrors=['Request failed: '+e.message];}}
+  clearInterval(tick);
   a.streaming=false;
   if(!a.text.trim()){m.alts.pop();m.sel=Math.max(0,m.alts.length-1);}
-  if(!m.alts.length)S.messages.splice(i,1);else applyAlt(curAlt(m));
+  if(!m.alts.length){S.messages.splice(i,1);if(failMsg)S.messages.splice(i,0,{id:uid(),role:'error',text:failMsg,retry:{continuation:!!m.continuation,instruction:m.instruction||''}});}
+  else{applyAlt(curAlt(m));if(S.world.openingActive&&/qualifications to be a Player/i.test(curAlt(m).text))S.world.openingActive=false;}
+  if(failMsg&&!a.text)toast('The narrator request failed — see the error in the story.',5000);
   setBusy(false);save();renderLog();renderSystem();renderCompanions();
   if(cfg().autoSummarize)maybeAutoSummarize();
 }
-function updateStreaming(i){const el=document.querySelector('.msg[data-i="'+i+'"] .body');if(!el){renderLog();return;}
+function updateStreaming(i){const el=document.querySelector('.msg[data-i="'+i+'"] .body');if(!el||el.querySelector('.thinking')){renderLog();return;}
   el.innerHTML=renderProse(parseSystemUpdates(curAlt(S.messages[i]).text).clean);window.scrollTo(0,document.body.scrollHeight);}
 
-function statusBlock(){const p=S.player;
-  return JSON.stringify({name:S.character.name,level:p.level,exp:p.exp+'/'+p.expNext,job:p.job,title:p.title,titles:p.titles,hunter_rank_from_level:rankForLevel(S.rankChart,p.level)+' (this is what mana readers detect)',association_record_rank:p.officialRank,
-    stat_ranks:Object.fromEntries(STAT_KEYS.map(k=>[k,statRank(S.statRanks,p.stats[k])])),hp:p.hp+'/'+p.maxHp,mp:p.mp+'/'+p.maxMp,fatigue:p.fatigue,stats:p.stats,unspent_ability_points:p.points,gold:p.gold,
-    skills:p.skills,inventory:p.inventory.map(x=>({name:x.name,qty:x.qty,category:x.category,equipped:x.equipped,stats:x.stats,effects:x.effects})),active_quests:p.quests.filter(q=>q.status==='active'),
-    companions:p.companions.map(c=>({name:c.name,species:c.species,rank:c.rank,level:c.level,exp:c.exp+'/'+c.expNext,hp:c.hp+'/'+c.maxHp,mp:c.mp+'/'+c.maxMp,stats:c.stats,skills:c.skills,bond:c.bond,evolution_stage:c.stage,kills:c.kills,appearance:c.appearance,personality:c.personality,evolution_path:c.evolutionPath,pending_evolution_conditions:c.conditions.filter(x=>!x.done).map(x=>x.text)}))});}
+function statusBlock(){const p=S.player;const st=STAT_KEYS.map(k=>k.toUpperCase()+' '+p.stats[k]+'('+statRank(S.statRanks,p.stats[k])+')').join(', ');
+  const L=[];L.push('Lv '+p.level+' (EXP '+p.exp+'/'+p.expNext+') · Hunter rank '+rankForLevel(S.rankChart,p.level)+' (what mana readers show) · Job '+p.job+' · Title '+p.title+(p.titles.length?' · Titles: '+p.titles.join(', '):''));
+  L.push('HP '+p.hp+'/'+p.maxHp+' · MP '+p.mp+'/'+p.maxMp+' · Fatigue '+p.fatigue+' · Gold '+p.gold+' · Free points '+p.points);
+  L.push('Stats (stat rank): '+st);
+  L.push('Skills: '+(p.skills.map(s=>s.name+' Lv'+s.level+' ('+s.type+')').join('; ')||'none'));
+  L.push('Inventory: '+(p.inventory.map(x=>x.name+(x.qty>1?' ×'+x.qty:'')+(x.equipped?' [equipped]':'')).join('; ')||'empty'));
+  const q=p.quests.filter(q=>q.status==='active');if(q.length)L.push('Active quests: '+q.map(x=>x.name+(x.deadline?' (by '+x.deadline+')':'')).join('; '));
+  if(p.companions.length)L.push('Companions: '+p.companions.map(c=>c.name+' — '+c.species+', '+c.rank+'-rank Lv'+c.level+', HP '+c.hp+'/'+c.maxHp+', bond '+c.bond+', stage '+c.stage+'; skills: '+c.skills.map(x=>x.split(':')[0]).join(', ')+(c.conditions.some(x=>!x.done)?'; evolve needs: '+c.conditions.filter(x=>!x.done).map(x=>x.text).join(', '):'')).join(' | '));
+  return L.join('\n');}
 function gameDateStr(){const g=S.game;let s='Day '+g.day;const t=Date.parse(g.startDate);if(g.startDate&&!isNaN(t)){const dt=new Date(t);dt.setDate(dt.getDate()+g.day-1);s+=' ('+dt.toISOString().slice(0,10)+')';}else if(g.startDate)s+=' (story began: '+g.startDate+')';return s;}
 function dailyBlock(){const d=S.daily;return 'In-game time: '+gameDateStr()+'. Daily Quest progress today: '+d.items.map(x=>x.name+' '+x.done+'/'+x.target+(x.unit?' '+x.unit:'')).join(', ')+(d.claimed?' — COMPLETED and reward claimed today.':' — not yet complete.');}
-function buildContext(uptoIndex,continuation){
-  const c=S.character,w=S.world;
-  const sys=S.settings.systemPrompt+'\n\n=== PLAYER CHARACTER (the user plays her; you NEVER control her) ===\nName: '+(c.name||'(unnamed)')+'\nAge: '+c.age+'\nGender: '+c.gender+'\nSexual orientation: '+(c.orientation||'Lesbian')+'\nHome: '+(c.city||'Norway')+'\nAppearance: '+c.appearance+'\nBackground: '+c.background+(c.extra?'\nOther facts: '+c.extra:'')+'\nCombat build: '+(c.build||'')+'\nClass name: '+(c.className||S.player.job||'(none yet)')+'\nClass path plan: '+(c.classPlan||'')+
-    '\n\n=== THE SYSTEM\'S CREATOR / PATRON ===\nType: '+(c.patronType||'The Architect')+(c.patronName?'\nName: '+c.patronName:'')+(c.patronDesc?'\nDescription: '+c.patronDesc:'')+
-    '\n\n=== WORLD NOTES ===\n'+w.notes+worldContext(uptoIndex)+'\n\n=== NARRATION STYLE ===\n'+w.style+
-    (w.summary?'\n\n=== STORY SO FAR (summary of older posts) ===\n'+w.summary:'')+
-    '\n\n=== LEVEL → HUNTER RANK CHART ===\n'+S.rankChart.map(r=>r.rank+': Lv '+r.minLevel+'+').join('; ')+
-    '\n=== STAT RANK THRESHOLDS (per stat, independent of hunter rank) ===\n'+S.statRanks.map(r=>r.rank+': '+(r.max==null||r.max===''?'above previous':'up to '+r.max)).join('; ')+
-    '\n\n=== CURRENT STATUS (authoritative) ===\n'+statusBlock()+'\n'+dailyBlock();
-  const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='narrator'||m.alts.length);
+function buildContext(uptoIndex,continuation,instruction){
+  const c=S.character,w=S.world;const cut=(t,n)=>{t=String(t||'');return t.length>n?t.slice(0,n-1)+'…':t;};
+  const sys=S.settings.systemPrompt+
+    '\n\nPLAYER CHARACTER (you never control her): '+(c.name||'(unnamed)')+', '+[c.age,c.gender,c.orientation||'Lesbian',c.city||'Norway'].filter(Boolean).join(', ')+'.\nAppearance: '+c.appearance+'\nBackground: '+cut(c.background,400)+(c.extra?'\nOther: '+cut(c.extra,400):'')+'\nBuild: '+cut(c.build,200)+' · Class: '+(c.className||S.player.job||'none yet')+' · Plan: '+cut(c.classPlan,200)+
+    '\nPatron: '+(c.patronName||c.patronType||'The Architect')+(c.patronDesc&&!S.world.openingActive?' — '+cut(c.patronDesc,160):'')+
+    '\n\nWORLD NOTES: '+cut(w.notes,600)+worldContext(uptoIndex)+'\nSTYLE: '+cut(w.style,250)+
+    (w.openingActive&&w.opening?'\n\n'+w.opening:'')+
+    (w.summary?'\n\nSTORY SO FAR: '+w.summary:'')+
+    '\n\nHunter rank by level: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
+    '\n\nSTATUS (authoritative):\n'+statusBlock()+'\n'+dailyBlock();
+  const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
   const recent=hist.slice(-Math.max(2,num(S.settings.contextMessages,40)));
   const out=[{role:'system',content:sys}];
   for(const m of recent){
     if(m.role==='user')out.push({role:'user',content:m.text});
-    else if(m.role==='syslog'&&/^OPENING SCENE/.test(m.text))out.push({role:'user',content:'((OOC instruction from the player)) '+m.text});
     else if(m.role==='syslog')out.push({role:'user',content:'[SYSTEM LOG — an out-of-story record of what the System/app did, not an action by her]: '+m.text});
     else{const a=curAlt(m);if(!a||a.streaming)continue;out.push({role:'assistant',content:parseSystemUpdates(a.text).clean+(a.notes&&a.notes.length?'\n[Applied System changes: '+a.notes.join('; ')+']':'')});}
   }
-  if(continuation||out[out.length-1].role!=='user')out.push({role:'user',content:'((OOC: Continue the scene from the world\'s side only — NPCs, environment, monsters, System. Do not act, speak, think, or decide for my character. Stop where I can act.))'});
+  if(instruction)out.push({role:'user',content:instruction});
+  else if(continuation||out[out.length-1].role!=='user')out.push({role:'user',content:'((OOC: Continue the scene from the world\'s side only — NPCs, environment, monsters, System. Do not act, speak, think, or decide for my character. Stop where I can act.))'});
   return out;
 }
 
 /* ================= API ================= */
 async function chat(messages,{stream=false,onDelta,temperature,maxTokens}={}){
   abortCtl=new AbortController();
-  const body={model:model(),messages,temperature:temperature!=null?temperature:num(S.settings.temperature,0.9),max_tokens:maxTokens!=null?maxTokens:num(S.settings.maxTokens,2000),stream:!!stream};
-  const res=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey()},body:JSON.stringify(body),signal:abortCtl.signal});
+  const mdl=model();const body={model:mdl,messages,temperature:temperature!=null?temperature:num(S.settings.temperature,0.9),max_tokens:maxTokens!=null?maxTokens:num(S.settings.maxTokens,2000),stream:!!stream};
+  if(/^grok-4\.(5|6|7)/.test(mdl)&&S.settings.reasoningEffort)body.reasoning_effort=S.settings.reasoningEffort; // reasoning-only models: keep effort low for speed
+  if(!S.convId){S.convId=uid();save();}
+  const res=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey(),'x-grok-conv-id':S.convId},body:JSON.stringify(body),signal:abortCtl.signal});
   if(!res.ok){let t='';try{t=await res.text();}catch(e){}throw new Error('HTTP '+res.status+' '+t.slice(0,300));}
   if(!stream||!res.body){const j=await res.json();return (j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||'';}
   const reader=res.body.getReader();const dec=new TextDecoder();let buf='',full='';
@@ -780,7 +855,7 @@ function extractJSON(t){const s=t.indexOf('{'),e=t.lastIndexOf('}');if(s<0||e<=s
 let summarizing=false;
 async function summarize(manual){
   if(summarizing)return;
-  const keep=Math.max(2,num(S.settings.contextMessages,40));const hist=S.messages.filter(m=>m.role!=='narrator'||m.alts.length);
+  const keep=Math.max(2,num(S.settings.contextMessages,40));const hist=S.messages.filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
   const cutoff=hist.length-keep;const start=Math.min(num(S.world.summarizedCount,0),Math.max(0,cutoff));
   if(cutoff<=start){if(manual)toast('Nothing older than the recent window ('+keep+' posts) to summarize yet.');return;}
   if(!apiKey()){if(manual)toast('API key needed.');return;}
@@ -818,9 +893,9 @@ function renderSystem(){
       '<div><div class="kv"><span class="k">Fatigue</span>'+field('fatigue',p.fatigue,'number')+'</div><div class="bar fat"><i style="width:'+pct(p.fatigue,100)+'%"></i></div></div>'+
       '<div><div class="kv"><span class="k">EXP</span>'+field('exp',p.exp,'number')+'/'+field('expNext',p.expNext,'number')+'</div><div class="bar"><i style="width:'+pct(p.exp,p.expNext)+'%"></i></div></div>'+
       '<div class="kv"><span class="k">Gold</span>'+field('gold',p.gold,'number')+'</div>'+
-      '</div><h3>Stats</h3><div class="status-grid">';
+      '</div><h3>Stats</h3><div class="status-grid stats-list">';
     for(const s of STAT_KEYS)h+='<div class="stat"><span class="k" title="'+STAT_NAMES[s]+'">'+s.toUpperCase()+'</span>'+field('stats.'+s,p.stats[s],'number')+'<span class="srank" title="'+STAT_NAMES[s]+' rank">'+esc(statRank(S.statRanks,p.stats[s]))+'</span><button class="btn small" data-plus="'+s+'" '+(p.points>0?'':'disabled')+' title="Spend 1 ability point">+</button></div>';
-    h+='<div class="stat"><span class="k" style="width:auto">Available Points</span>'+field('points',p.points,'number')+'</div></div>';
+    h+='<div class="stat points"><span class="k" style="width:auto">Available Points</span>'+field('points',p.points,'number')+'</div></div>';
     h+='<h3>Titles</h3>'+(p.titles.length?p.titles.map((t,i)=>'<span class="tag" style="margin-right:4px">'+esc(t)+' <button class="icon" data-deltitle="'+i+'">×</button></span>').join(''):'<span class="muted">None</span>')+
       ' <button class="btn small" id="addTitle">+ Title</button>';
     h+='<div class="muted" style="margin-top:8px">Every field is editable. Redo/delete only reverts changes a narrator post applied; your manual edits stay.</div></div>';
@@ -860,7 +935,7 @@ function itemEditor(it,i){
 }
 function onSysInput(e){
   const t=e.target;const p=S.player;
-  if(t.dataset.pfield){const path=t.dataset.pfield;const cur=getPath(p,path);setPath(p,path,typeof cur==='number'?num(t.value,cur):t.value);save();renderHud();if(e.type==='change')renderSystem();return;}
+  if(t.dataset.pfield){const path=t.dataset.pfield;const cur=getPath(p,path);setPath(p,path,typeof cur==='number'?num(t.value,cur):t.value);if(e.type==='change'){if(/^(level|stats\.)/.test(path))deriveMax(p,cfg());clampPlayer(p);}save();renderHud();if(e.type==='change')renderSystem();return;}
   if(t.dataset.list){const L=t.dataset.list,i=+t.dataset.i,k=t.dataset.k;const obj=p[L][i];if(!obj)return;
     if(t.type==='checkbox')obj[k]=t.checked;else if(k==='qty'||k==='level')obj[k]=num(t.value,obj[k]);
     else if(k==='stats'){const o={};t.value.split('\n').forEach(l=>{const j=l.indexOf(':');if(j>0)o[l.slice(0,j).trim()]=l.slice(j+1).trim();});obj.stats=o;}
@@ -871,7 +946,7 @@ function syslog(text){S.messages.push({id:uid(),role:'syslog',text});save();rend
 function onSysClick(e){
   const t=e.target.closest('button');if(!t)return;const p=S.player;
   if(t.dataset.sub){sysTab=t.dataset.sub;renderSystem();return;}
-  if(t.dataset.plus){if(p.points>0){p.stats[t.dataset.plus]++;p.points--;save();renderSystem();}return;}
+  if(t.dataset.plus){if(p.points>0){p.stats[t.dataset.plus]++;p.points--;deriveMax(p,cfg());clampPlayer(p);save();renderSystem();}return;}
   if(t.dataset.deltitle!==undefined){p.titles.splice(+t.dataset.deltitle,1);save();renderSystem();return;}
   if(t.id==='addTitle'){const n=prompt('Title name');if(n){p.titles.push(n);save();renderSystem();}return;}
   if(t.dataset.dellist){if(!confirm('Delete?'))return;p[t.dataset.dellist].splice(+t.dataset.i,1);save();renderSystem();return;}
@@ -1041,7 +1116,8 @@ function onCompClick(e){
 function initCompanions(){const el=$('#compBody');el.addEventListener('input',onCompInput);el.addEventListener('change',e=>{onCompInput(e);if(e.target.dataset.comp&&e.target.type==='number')renderCompanions();});el.addEventListener('click',onCompClick);}
 
 /* ================= NORWAY WORLD PACK ================= */
-const WORLD_PACK_VERSION=1;
+const WORLD_PACK_VERSION=2;
+const PACK_V1_DESC={'Mats Hagen':'Lanky 24-year-old with a chipped tooth; cheerful, bad with money, trains every morning swearing he\'ll reach D-rank strength.'};
 // [name, gender, rank, class, city, affiliation, role, desc, romance]
 const PACK_S=[
  ['Sigrid Haldorsen','F','S','Mage (light/storm)','Oslo','Nordlys Guild','Guild Master','Norway\'s most famous hunter; 38, silver-blonde, composed national icon whose storms clear A-rank gates alone. Rumored to be close to national level.',false],
@@ -1077,27 +1153,27 @@ const PACK_GUILDS=[
  ['Kystjegerne','Kristiansand','Håkon Sunde (D)','—','Southern-coast E/D gates','Friendly, slow-and-safe','Open to E/D-ranks, trains newcomers','"Coast Hunters"; a ragtag crew with a boat.','small']
 ];
 const PACK_HUNTERS=[
- // E-rank (20)
- ['Mats Hagen','M','E','Fighter','Oslo','Østkant Raid Group','Peer','Lanky 24-year-old with a chipped tooth; cheerful, bad with money, trains every morning swearing he\'ll reach D-rank strength.',false],
- ['Thea Lind','F','E','Ranger','Oslo','Østkant Raid Group','Peer','Ex-archery-club girl; quiet, sharp-eyed, freckled, presses dungeon flowers in a notebook. Shy around pretty women.',true],
- ['Ola Bakken','M','E','Tanker','Oslo','Østkant Raid Group','Peer','Big soft-spoken ex-warehouse worker with a dented riot shield and too many snacks.',false],
- ['Ingeborg "Inga" Rønning','F','E','Healer','Oslo','Freelance','Peer','Nursing student with a trickle of healing mana; dry humor, raids to pay tuition.',false],
- ['Sander Holm','M','E','Assassin','Oslo','Østkant Raid Group','Friendly rival','Wiry ex-courier who talks fast and brags faster; keeps score of every kill and wants to beat yours.',false],
- ['Emma Strøm','F','E','Mage','Bergen','Gråmåke Raid Crew','Peer','Spark-mage whose fireballs are candle-sized; stubborn, bright-pink hair, studies spell theory obsessively.',true],
- ['Petter Aas','M','E','Fighter','Bergen','Gråmåke Raid Crew','Peer','Fisherman\'s son with rope-thick forearms; superstitious, carries a lucky cod hook.',false],
+ // E-rank is extremely rare in Norway: only 3 besides the Player. (Most former E entries re-ranked to D in pack v2.)
+ ['Mats Hagen','M','D','Fighter','Oslo','Østkant Raid Group','Peer','Lanky 24-year-old with a chipped tooth; cheerful, bad with money, trains every morning swearing he\'ll reach C-rank strength.',false],
+ ['Thea Lind','F','D','Ranger','Oslo','Østkant Raid Group','Peer','Ex-archery-club girl; quiet, sharp-eyed, freckled, presses dungeon flowers in a notebook. Shy around pretty women.',true],
+ ['Ola Bakken','M','D','Tanker','Oslo','Østkant Raid Group','Peer','Big soft-spoken ex-warehouse worker with a dented riot shield and too many snacks.',false],
+ ['Ingeborg "Inga" Rønning','F','D','Healer','Oslo','Freelance','Peer','Nursing student with a trickle of healing mana; dry humor, raids to pay tuition.',false],
+ ['Sander Holm','M','D','Assassin','Oslo','Østkant Raid Group','Friendly rival','Wiry ex-courier who talks fast and brags faster; keeps score of every kill and wants to beat yours.',false],
+ ['Emma Strøm','F','D','Mage','Bergen','Gråmåke Raid Crew','Peer','Spark-mage whose fireballs are candle-sized; stubborn, bright-pink hair, studies spell theory obsessively.',true],
+ ['Petter Aas','M','D','Fighter','Bergen','Gråmåke Raid Crew','Peer','Fisherman\'s son with rope-thick forearms; superstitious, carries a lucky cod hook.',false],
  ['Lars Eriksen','M','E','Porter','Trondheim','Fjellvakt training program','Trainee','Earnest Fjellvakt trainee porter who writes everything in a notebook.',false],
- ['Hedda Moe','F','E','Ranger','Trondheim','Freelance','Peer','Ex-biathlete; cool demeanor, deadly patience, black coffee by the liter.',true],
- ['Kasper Nilsen','M','E','Porter','Stavanger','Svartstål (contract hauler)','Hauler','Svartstål core hauler and gossip hub of every Stavanger hunter bar.',false],
- ['Synne Berntsen','F','E','Tanker','Stavanger','Freelance','Peer','Short, broad, loud; laughs during fights and headbutts goblins.',false],
+ ['Hedda Moe','F','D','Ranger','Trondheim','Freelance','Peer','Ex-biathlete; cool demeanor, deadly patience, black coffee by the liter.',true],
+ ['Kasper Nilsen','M','D','Porter','Stavanger','Svartstål (contract hauler)','Hauler','Svartstål core hauler and gossip hub of every Stavanger hunter bar.',false],
+ ['Synne Berntsen','F','D','Tanker','Stavanger','Freelance','Peer','Short, broad, loud; laughs during fights and headbutts goblins.',false],
  ['Even Torp','M','E','Mage','Tromsø','Freelance','Peer','Pale, anxious frost-mage who freezes his own fingers when nervous.',false],
- ['Aksel Haugland','M','E','Fighter','Oslo','Freelance','Rival','Rich kid who awakened low and resents it; sneers at other E-ranks, works furiously to prove himself.',false],
- ['Nora Sæther','F','E','Support (buffer)','Oslo','Østkant Raid Group','Peer','Cheerful buffer whose humming grants a small speed boost; streams raids to a tiny online following.',false],
- ['Jørgen Bjørkhaug','M','E','Fighter','Drammen','Bjørkhaug Brothers','Peer','Middle Bjørkhaug brother; loyal, hot-headed, questionable haircut.',false],
- ['Tobias Hansen','M','E','Ranger','Kristiansand','Kystjegerne','Peer','Slingshot ranger who jokes constantly to hide that he\'s terrified.',false],
- ['Selma Ødegård','F','E','Assassin','Bergen','Freelance','Rival','Silent knife-fighter with a shaved side and a sharp tongue; competitive rival who might become a friend.',true],
+ ['Aksel Haugland','M','D','Fighter','Oslo','Freelance','Rival','Rich kid who awakened low and resents it; sneers at other E-ranks, works furiously to prove himself.',false],
+ ['Nora Sæther','F','D','Support (buffer)','Oslo','Østkant Raid Group','Peer','Cheerful buffer whose humming grants a small speed boost; streams raids to a tiny online following.',false],
+ ['Jørgen Bjørkhaug','M','D','Fighter','Drammen','Bjørkhaug Brothers','Peer','Middle Bjørkhaug brother; loyal, hot-headed, questionable haircut.',false],
+ ['Tobias Hansen','M','D','Ranger','Kristiansand','Kystjegerne','Peer','Slingshot ranger who jokes constantly to hide that he\'s terrified.',false],
+ ['Selma Ødegård','F','D','Assassin','Bergen','Freelance','Rival','Silent knife-fighter with a shaved side and a sharp tongue; competitive rival who might become a friend.',true],
  ['Viggo Brun','M','E','Porter','Tromsø','Midnattsol Guild','Porter','Grizzled 50-year-old porter who awakened late; knows Arctic gates better than most B-ranks.',false],
- ['Frida Vold','F','E','Healer','Kristiansand','Kystjegerne','Peer','Gentle minor healer who runs a soup kitchen on weekends.',false],
- ['Martin Kolstad','M','E','Fighter','Oslo','Freelance','Peer','Ex-boxer with a ruined knee; respects anyone who fights bare-handed.',false],
+ ['Frida Vold','F','D','Healer','Kristiansand','Kystjegerne','Peer','Gentle minor healer who runs a soup kitchen on weekends.',false],
+ ['Martin Kolstad','M','D','Fighter','Oslo','Freelance','Peer','Ex-boxer with a ruined knee; respects anyone who fights bare-handed.',false],
  // D-rank (18)
  ['Kari Lie','F','D','Fighter','Oslo','Østkant Raid Group','Low-rank raid leader','Leader of the Østkant Raid Group; 34, scarred jaw, keeps low-rank crews alive by being relentlessly careful. Pays fair splits.',false],
  ['Jonas Berg','M','D','Healer','Oslo','Østkant Raid Group','Healer','The crew\'s healer; tired father of twins, gentle hands, gallows humor.',false],
@@ -1182,6 +1258,8 @@ function worldPack(){
   PACK_CIVILIANS.forEach(a=>out.push(mk({type:'civilian',name:a[0],gender:a[1],city:a[2],role:a[3],desc:a[4],romance:a[5]})));
   return out;
 }
+function updatePackRanks(list){let n=0;const pack=worldPack();for(const p of pack){if(p.type!=='hunter')continue;const e=list.find(x=>keyOf(x)===keyOf(p));
+    if(e&&e.rank==='E'&&p.rank!=='E'&&(e.desc===p.desc||e.desc===PACK_V1_DESC[p.name])){e.rank=p.rank;e.desc=p.desc;n++;}}return n;}
 function mergeWorldPack(list){const have=new Set(list.map(e=>keyOf(e)));let added=0;for(const e of worldPack()){if(!have.has(keyOf(e))){list.push(e);added++;}}return added;}
 
 /* ---- compact context for the narrator ---- */
@@ -1193,31 +1271,35 @@ function npcLine(e){
 function worldSummary(){
   const W=S.world.npcs||[];const by=t=>W.filter(e=>e.type===t);
   const assoc=by('association');const chair=assoc.find(e=>/chairman/i.test(e.role));
-  const branches=assoc.filter(e=>/branch head/i.test(e.role)).map(e=>e.city+': '+e.name).join('; ');
-  let s='Norwegian Hunter Association — HQ Oslo'+(chair?' (Chairman '+chair.name+')':'')+(branches?'; branches: '+branches:'')+'.';
-  s+='\nNorway\'s S-ranks ('+by('s-rank').length+'): '+by('s-rank').map(e=>e.name+' ('+[e.cls,e.affil,e.city].join(', ')+')').join('; ')+'.';
-  s+='\nGuilds:\n'+by('guild').map(e=>'- '+e.name+': '+e.city+', '+(e.size==='small'?'small crew led by ':'master ')+e.master+'; '+e.role+'; recruiting: '+e.recruitment).join('\n');
+  let s='Association HQ Oslo'+(chair?' (Chairman '+chair.name+')':'')+'; branches Bergen/Trondheim/Tromsø/Stavanger.';
+  s+='\nS-ranks: '+by('s-rank').map(e=>e.name+' ('+e.cls.split(' ')[0]+', '+(e.affil==='Freelance'?'freelance':e.affil.replace(' Guild',''))+')').join('; ')+'.';
+  s+='\nGuilds: '+by('guild').map(e=>e.name.replace(' Guild','')+' ('+e.city+', '+(e.size==='small'?'crew, hires E/D':String(e.role).split(/[;,]/)[0])+')').join('; ')+'.';
   return s;
 }
 function relevantNpcs(uptoIndex){
-  const W=S.world.npcs||[];const msgs=S.messages.slice(Math.max(0,uptoIndex-8),uptoIndex);
-  const text=msgs.map(m=>m.role==='narrator'?(curAlt(m)?parseSystemUpdates(curAlt(m).text).clean:''):m.text).join('\n')+'\n'+($('#input')?$('#input').value:'');
-  const picked=new Map();
-  W.filter(e=>e.pinned).forEach(e=>picked.set(e.id,e));
-  for(const e of W){if(e.type==='guild')continue;const full=e.name.replace(/\s*"[^"]*"\s*/,' ').replace(/^Dr\.\s*/,'').trim();const first=full.split(/\s+/)[0];
-    const nick=(e.name.match(/"([^"]+)"/)||[])[1];
-    const esc2=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    if(new RegExp('\\b'+esc2(full)+'\\b','i').test(text)||(first.length>=3&&new RegExp('\\b'+esc2(first)+'\\b').test(text))||(nick&&new RegExp('\\b'+esc2(nick)+'\\b').test(text)))picked.set(e.id,e);}
-  const cities=[...new Set(W.map(e=>e.city).filter(Boolean))].filter(c=>new RegExp('\\b'+c+'\\b','i').test(text)||keyOf(c)===keyOf(S.character.city));
-  for(const c of cities){let n=0;for(const e of W){if(n>=8)break;if(e.city===c&&e.type!=='guild'&&e.type!=='s-rank'&&!picked.has(e.id)&&(e.type==='civilian'||e.type==='hunter'&&/^[EDC]$/.test(e.rank))){picked.set(e.id,e);n++;}}}
-  return [...picked.values()].slice(0,30);
+  const W=S.world.npcs||[];const msgs=S.messages.slice(Math.max(0,uptoIndex-6),uptoIndex);
+  let text=msgs.map(m=>m.role==='narrator'?(curAlt(m)?parseSystemUpdates(curAlt(m).text).clean:''):(m.text||'')).join('\n')+'\n'+($('#input')?$('#input').value:'');
+  if(S.world.openingActive)text+='\n'+(S.world.opening||'');
+  const esc2=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const picked=new Map();W.filter(e=>e.pinned).forEach(e=>picked.set(e.id,e));
+  // most recently mentioned first
+  const hits=[];
+  for(const e of W){if(e.type==='guild')continue;const full=e.name.replace(/\s*"[^"]*"\s*/,' ').replace(/^Dr\.\s*/,'').trim();const first=full.split(/\s+/)[0];const nick=(e.name.match(/"([^"]+)"/)||[])[1];
+    let pos=-1;for(const re of [new RegExp('\\b'+esc2(full)+'\\b','gi'),first.length>=3?new RegExp('\\b'+esc2(first)+'\\b','g'):null,nick?new RegExp('\\b'+esc2(nick)+'\\b','g'):null]){if(!re)continue;let m;while((m=re.exec(text)))pos=Math.max(pos,m.index);}
+    if(pos>=0)hits.push([pos,e]);}
+  hits.sort((a,b)=>b[0]-a[0]).forEach(([,e])=>{if(!picked.has(e.id))picked.set(e.id,e);});
+  return [...picked.values()].slice(0,12);
 }
+function npcShort(e){const bits=[e.gender,e.rank&&e.rank!=='—'?e.rank:'',e.cls].filter(Boolean).join(' ');const d=String(e.desc||'');
+  return e.name+' ('+[bits,e.city,e.affil&&e.affil!=='Freelance'?e.affil:'',e.role].filter(Boolean).join(', ')+'): '+(d.length>72?d.slice(0,71)+'…':d)+(e.romance?' ♥':'');}
 function worldContext(uptoIndex){
-  const rel=relevantNpcs(uptoIndex);
-  return '\n\n=== NORWAY HUNTER WORLD (roster; use these characters, invent minor extras freely) ===\n'+worldSummary()+
-    (rel.length?'\n\nScene-relevant NPCs:\n'+rel.map(e=>'- '+npcLine(e)).join('\n'):'');
+  const W=S.world.npcs||[];const rel=relevantNpcs(uptoIndex);const relIds=new Set(rel.map(e=>e.id));
+  const groups={};for(const e of W){if(e.type==='guild'||relIds.has(e.id))continue;const k=e.type==='hunter'?e.rank:null;if(!k)continue;(groups[k]=groups[k]||[]).push(e.name.replace(/\s*"[^"]*"/,''));}
+  const order=S.world.openingActive?['E']:rel.length>=6?['A','B','C','E']:['A','B','C','D','E']; // busy scene: skip the long D list
+  return '\n\nWORLD (Norway roster):\n'+worldSummary()+
+    (rel.length?'\nIn scene / recently mentioned (♥ = possible romance):\n'+rel.map(e=>'- '+npcShort(e)).join('\n'):'')+
+    '\nOther roster hunters: '+order.filter(k=>groups[k]).map(k=>k+': '+groups[k].join(', ')).join(' | ');
 }
-
 /* ---- World tab UI ---- */
 let worldFilter={q:'',type:'',rank:'',city:'',romance:false,pinned:false},worldOpen=null;
 function renderWorld(){
@@ -1360,8 +1442,10 @@ function showTab(name){document.querySelectorAll('#tabs button').forEach(x=>x.cl
   if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge')renderForgeInv();if(name==='story')renderLog();if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();}
 
 function init(){
-  S=load();
+  S=load();setTimeout(saveNow,0); // persist migrations right away
   document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+  {const nav=$('#tabs'),wrap=$('#tabwrap');const upd=()=>{if(wrap)wrap.classList.toggle('atend',nav.scrollLeft+nav.clientWidth>=nav.scrollWidth-4);};nav.addEventListener('scroll',upd,{passive:true});window.addEventListener('resize',upd);upd();
+   nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{b.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});}catch(e){}}));}
   $('#log').addEventListener('click',onLogClick);
   $('#sendBtn').addEventListener('click',sendUser);$('#continueBtn').addEventListener('click',continueScene);
   $('#stopBtn').addEventListener('click',()=>{if(abortCtl)abortCtl.abort();});
