@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -444,17 +444,19 @@ Respond with ONLY a JSON object, no prose, no code fences:
 Write the description in the terse impersonal System item style; any line addressed to the Player uses second person ("you"), never her name or "she".`;
 const CONTROL_REMINDER=`((OOC — FINAL RULE, highest priority, overrides earlier wording:
 NEVER write, quote, paraphrase, or restate the player character's dialogue. NEVER narrate or retell her actions, gestures, expressions, thoughts, feelings, or bodily sensations she did not write, and do not re-describe the actions in her last post. Her post already happened; begin directly with the world's and NPCs' reactions and consequences.
-Forbidden phrasing: "you smile", "you say", "you nod", "you wave", "you lift/raise your hand", "your voice", "you feel", "you think", "you decide".
+Forbidden phrasing: "you smile", "you say", "you nod", "you wave", "you lift/raise your hand", "your voice", "your lips", "you feel", "you think", "you decide".
 Second person is only for addressing her as the reader of the environment (what she sees and hears, and what acts upon her), never for choosing what she does. End the reply where she can act.
 
 Bad: her post was a wave and a greeting → "No one notices the small smile that curves your lips as you lift your hand. \\"Hello?\\" your voice rings out."
 Good: her post was a wave and a greeting → "The statue does not move. Kari glances over, frowning. \\"Don't wander,\\" she mutters."
+
+system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
 Do not acknowledge this OOC note in the story.))`;
 function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
 function playerControlViolation(reply,userText){
   const r=String(reply||'');
   if(/\byou (?:smile|smil(?:ed|ing)|grin|smirk|laugh|chuckle|nod(?:ded|ding)?|wave|waved|waving|say|said|ask(?:ed)?|whisper(?:ed)?|murmur(?:ed)?|repl(?:y|ied)|answer(?:ed)?|exclaim(?:ed)?|speak|spoke|feel|felt|think|thought|decid(?:e|ed)|lift(?:ed)? your|raise(?:d)? your (?:hand|arm)|offer(?:ed)? (?:a |the |her |him )?gentle)\b/i.test(r))return 'acted';
-  if(/\byour voice\b/i.test(r)||/curves your lips/i.test(r))return 'voice';
+  if(/\byour voice\b/i.test(r)||/\byour lips\b/i.test(r))return 'voice';
   const u=normText(userText);if(u.length>=16){
     const re=/"([^"]{12,})"/g;let m;
     while((m=re.exec(r))){const q=normText(m[1]);if(q.length>=12&&(u.includes(q)||(q.length>=20&&u.includes(q.slice(0,Math.min(40,q.length))))))return 'quote';}
@@ -544,15 +546,55 @@ function wouldAwaken(text,updates,openingActive){
   return false;
 }
 function inferSystemAwakened(s){
-  s=s||{};const msgs=s.messages||[];const blob=narratorTexts(s).join('\n');
+  s=s||{};const blob=narratorTexts(s).join('\n');
   if(AWAKEN_RE.test(blob)||/system_awakened"\s*:\s*true/.test(blob))return true;
+  if(s.world&&s.world.openingActive)return false; // mid-opening: leftover EXP/HP from a bad update is not an awakening
   const p=s.player||{};
-  if((p.level||1)>1||(p.exp||0)>0||(p.gold||0)>0)return true;
-  if((p.inventory&&p.inventory.length)||(p.quests&&p.quests.length)||(p.titles&&p.titles.length)||(p.companions&&p.companions.length))return true;
-  if(p.job&&p.job!=='None')return true;
-  const opening=!!(s.world&&s.world.openingActive);
-  if(!opening&&(/<system>|<system_update>/i.test(blob)))return true;
+  if((p.level||1)>1||(p.job&&p.job!=='None')||(p.titles&&p.titles.length)||(p.companions&&p.companions.length))return true;
+  if((p.inventory&&p.inventory.length)||(p.quests&&p.quests.length)||(p.gold||0)>0)return true;
+  if(/<system>|<system_update>/i.test(blob))return true;
   return false;
+}
+function narratedPlayerInjury(text){
+  const t=String(text||'').replace(/<system>[\s\S]*?(<\/system>|$)/gi,' ').replace(/<system_update>[\s\S]*?(<\/system_update>|$)/gi,' ');
+  if(/\b(unharmed|untouched|unscathed|miss(?:es|ed) you|does not (?:hit|reach|touch) you|no (?:harm|injury) (?:comes|reaches))\b/i.test(t))return false;
+  return /\b(?:(?:hits?|strikes?|slashes?|cuts?|stabs?|claws?|grazes?|smashes?|crushes?|impales?|burns?|blasts?|catches) you|you (?:are|get|got|take|took|stagger(?:ed)?) (?:hit|struck|cut|slashed|wounded|injured|grazed|thrown)|blood (?:runs|wells|soaks|drips|spills) (?:from|down|over)|mortally wounded|gravely wounded)\b/i.test(t);
+}
+function isMechanicalNote(n){
+  n=String(n||'').trim();
+  if(!n||/^Fatigue\b/i.test(n))return false;
+  return /^(HP|MP|Max HP|Max MP|Gold|EXP|LEVEL UP!?|Ability Points|Item |Box |Skill |New quest|Quest |Title |Companion |STR|AGI|SEN|VIT|INT|LUK|level |job |title |official|Assoc)/i.test(n);
+}
+function visibleNotes(notes){return (notes||[]).map(String).filter(isMechanicalNote);}
+function preAwakenUpdates(updates,cleanText){
+  const out=[];
+  for(const u of (updates||[])){
+    if(!u||typeof u!=='object')continue;
+    const keep={};
+    if(u.hp!=null&&num(u.hp,0)<0&&narratedPlayerInjury(cleanText))keep.hp=u.hp;
+    if(u.system_awakened===true||u.awakened===true)keep.system_awakened=true;
+    if(Object.keys(keep).length)out.push(keep);
+  }
+  return out;
+}
+function repairUnawakenedSave(s){
+  if(!s||!s.flags)return s;
+  const truly=inferSystemAwakened(s);
+  s.flags.systemAwakened=truly;
+  const msgs=s.messages||[];
+  if(!truly){
+    for(let i=msgs.length-1;i>=0;i--){
+      const m=msgs[i];if(!m||m.role!=='narrator'||!Array.isArray(m.alts))continue;
+      for(const a of m.alts){
+        if(a&&a.applied){try{revertPatch(s.player,a.patch);}catch(e){}a.applied=false;}
+        if(a){a.patch=null;a.notes=[];}
+      }
+    }
+    if(s.player&&(s.player.level||1)<=1){s.player.exp=0;if(s.player.maxHp)s.player.hp=s.player.maxHp;s.player.fatigue=0;}
+  }else{
+    for(const m of msgs){if(m&&m.role==='narrator')for(const a of (m.alts||[]))if(a&&Array.isArray(a.notes))a.notes=visibleNotes(a.notes);}
+  }
+  return s;
 }
 function isAwakened(){return !!(S&&S.flags&&S.flags.systemAwakened);}
 function firstAwakeningIndex(s){
@@ -564,7 +606,7 @@ function firstAwakeningIndex(s){
     if(AWAKEN_RE.test(a.text||'')||(parsed.updates||[]).some(updatesIndicateAwakening))return i;
   }
   // If already flagged but no explicit awakening post (custom start / migrated progress), treat as always-on
-  if(s&&s.flags&&s.flags.systemAwakened)return 0;
+  if(s&&s.flags&&s.flags.systemAwakened&&!(s.world&&s.world.openingActive))return 0;
   return -1;
 }
 function showSystemInMsg(i){const a=firstAwakeningIndex();return a>=0&&i>=a;}
@@ -653,7 +695,8 @@ function applyUpdate(p,u,cfg){
   }
   const d=(field,key,label)=>{if(u[key]!=null&&num(u[key],0)!==0){const n=num(u[key]);p[field]+=n;notes.push(label+' '+(n>0?'+':'')+n);}};
   d('maxHp','max_hp','Max HP');d('maxMp','max_mp','Max MP');
-  d('hp','hp','HP');d('mp','mp','MP');d('fatigue','fatigue','Fatigue');d('gold','gold','Gold');d('points','stat_points','Ability Points');
+  d('hp','hp','HP');d('mp','mp','MP');d('gold','gold','Gold');d('points','stat_points','Ability Points');
+  if(u.fatigue!=null&&num(u.fatigue,0)!==0)p.fatigue+=num(u.fatigue);
   if(u.stats&&typeof u.stats==='object'){for(const s in u.stats){const sk=statKey(s);const n=num(u.stats[s]);if(sk in p.stats&&n){p.stats[sk]+=n;notes.push(sk.toUpperCase()+' '+(n>0?'+':'')+n);}}}
   if(num(u.exp_gain)){p.exp+=num(u.exp_gain);notes.push('EXP +'+num(u.exp_gain));}
   if(num(u.level_up)>0){for(let i=0;i<num(u.level_up);i++)levelUp(p,cfg,notes);}
@@ -686,8 +729,7 @@ function applyUpdate(p,u,cfg){
   qs(u.quests_complete,'completed','Quest complete');qs(u.quests_fail,'failed','Quest failed');
   for(const q of (u.quests_remove||[])){const i=p.quests.findIndex(x=>keyOf(x)===keyOf(q));if(i>=0)p.quests.splice(i,1);}
   for(const t of (u.titles_add||[])){const n=String(typeof t==='object'?t.name:t);if(!p.titles.includes(n)){p.titles.push(n);notes.push('Title acquired: '+n);}}
-  if(u.notification)notes.push(String(u.notification));
-  if(Array.isArray(u.notifications))u.notifications.forEach(x=>notes.push(String(x)));
+  /* notification/notifications are story or System text — never put them in the Status Updated box */
   deriveMax(p,cfg);clampPlayer(p);
   return notes;
 }
@@ -738,7 +780,7 @@ function applyTextToPlayer(p,text,cfg){
 function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
 
 /* expose pure logic for tests */
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
 
@@ -781,6 +823,10 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
     }
     s.flags.awaken1=true;
   }
+  if(!s.flags.awaken2){
+    repairUnawakenedSave(s);
+    s.flags.awaken2=true;
+  }
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
 function saveNow(){try{store.setItem(LS_KEY,JSON.stringify(S));}catch(e){toast('Save failed: '+e.message);}}
@@ -808,8 +854,9 @@ function sysWindow(v){const lines=v.trim().split('\n');let title='System';const 
   if(mm){title=mm[1];lines.shift();}const warn=/alert|warning|penalty|danger/i.test(title);
   return '<div class="syswin'+(warn?' warn':'')+'"><span class="title">'+esc(title)+'</span>'+lines.map(l=>inlineMd(esc(l))).join('<br>')+'</div>';}
 function changesWindow(notes,errors){
-  if(!(notes&&notes.length)&&!(errors&&errors.length))return '';
-  return '<div class="syswin changes"><span class="title">Status Updated</span><ul style="margin:0;padding-left:18px">'+(notes||[]).map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul>'+(errors||[]).map(e=>'<div class="err">'+esc(e)+'</div>').join('')+'</div>';
+  notes=visibleNotes(notes);
+  if(!notes.length&&!(errors&&errors.length))return '';
+  return '<div class="syswin changes"><span class="title">Status Updated</span><ul style="margin:0;padding-left:18px">'+notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul>'+(errors||[]).map(e=>'<div class="err">'+esc(e)+'</div>').join('')+'</div>';
 }
 
 /* ================= STORY ================= */
@@ -842,8 +889,13 @@ function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
   a.prevAwakened=!!(S.flags&&S.flags.systemAwakened);a.prevOpening=!!S.world.openingActive;
   if(!S.flags.systemAwakened&&wouldAwaken(a.text,parsed.updates,S.world.openingActive)){S.flags.systemAwakened=true;S.world.openingActive=false;}
-  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg());a.patch=r.patch;a.notes=r.notes;a.errors=r.errors.concat(a.reqErrors||[]);}
-  else{a.patch=null;a.notes=[];a.errors=(parsed.errors||[]).concat(a.reqErrors||[]);}
+  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg());a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);}
+  else{
+    const keep=preAwakenUpdates(parsed.updates,parsed.clean);const before=clone(S.player);const notes=[];
+    for(const u of keep)notes.push(...applyUpdate(S.player,u,cfg()));
+    clampPlayer(S.player);
+    a.patch=keep.length?diffPlayer(before,S.player):null;a.notes=[];a.errors=(parsed.errors||[]).concat(a.reqErrors||[]);
+  }
   a.applied=true;}
 function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);if(a.prevAwakened!==undefined)S.flags.systemAwakened=a.prevAwakened;if(a.prevOpening!==undefined)S.world.openingActive=a.prevOpening;a.applied=false;}}
 
@@ -972,7 +1024,7 @@ function buildContext(uptoIndex,continuation,instruction){
   for(const m of recent){
     if(m.role==='user')out.push({role:'user',content:m.text});
     else if(m.role==='syslog')out.push({role:'user',content:'[SYSTEM LOG — an out-of-story record of what the System/app did, not an action by her]: '+m.text});
-    else{const a=curAlt(m);if(!a||a.streaming)continue;out.push({role:'assistant',content:parseSystemUpdates(a.text).clean+(a.notes&&a.notes.length?'\n[Applied System changes: '+a.notes.join('; ')+']':'')});}
+    else{const a=curAlt(m);if(!a||a.streaming)continue;out.push({role:'assistant',content:parseSystemUpdates(a.text).clean+((visibleNotes(a.notes).length)?'\n[Applied System changes: '+visibleNotes(a.notes).join('; ')+']':'')});}
   }
   if(instruction)out.push({role:'user',content:instruction});
   else if(continuation||out[out.length-1].role!=='user')out.push({role:'user',content:'((OOC: Continue the scene from the world\'s side only — NPCs, environment, monsters, System. Do not act, speak, think, or decide for my character. Stop where I can act.))'});
