@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -577,8 +577,8 @@ function narratedPlayerInjury(text){
 }
 function isMechanicalNote(n){
   n=String(n||'').trim();
-  if(!n||/^Fatigue\b/i.test(n))return false;
-  return /^(HP|MP|Max HP|Max MP|Gold|EXP|LEVEL UP!?|Ability Points|Item |Box |Skill |New quest|Quest |Title |Companion |STR|AGI|SEN|VIT|INT|LUK|level |job |title |official|Assoc)/i.test(n);
+  if(!n||/^Fatigue\b/i.test(n)||/^Max (HP|MP)\b/i.test(n))return false;
+  return /^(HP|MP|Gold|EXP|LEVEL UP!?|Ability Points|Item |Box |Skill |New quest|Quest |Title |Companion |STR|AGI|SEN|VIT|INT|LUK|level |job |title |official|Assoc)/i.test(n);
 }
 function visibleNotes(notes){return (notes||[]).map(String).filter(isMechanicalNote);}
 function preAwakenUpdates(updates,cleanText){
@@ -699,20 +699,25 @@ function levelUp(p,cfg,notes){
 function applyUpdate(p,u,cfg){
   const notes=[];if(!u||typeof u!=='object')return notes;
   const setMap={level:'level',exp:'exp',exp_next:'expNext',expNext:'expNext',job:'job',title:'title',official_rank:'officialRank',rank:'officialRank',
-    hp:'hp',max_hp:'maxHp',mp:'mp',max_mp:'maxMp',fatigue:'fatigue',gold:'gold',stat_points:'points',points:'points'};
+    hp:'hp',mp:'mp',fatigue:'fatigue',gold:'gold',stat_points:'points',points:'points'};
+  const pendingHP=Object.create(null); // current-pool sets applied after formula max
   if(u.set&&typeof u.set==='object'){
     for(const k in u.set){
+      if(isPlayerMaxKey(k))continue;
       if(k==='stats'&&typeof u.set.stats==='object'){for(const s in u.set.stats){const sk=statKey(s);if(sk in p.stats){p.stats[sk]=num(u.set.stats[s],p.stats[sk]);notes.push(sk.toUpperCase()+' set to '+p.stats[sk]);}}continue;}
       const f=setMap[k];if(!f)continue;const v=u.set[k];
+      if(f==='hp'||f==='mp'){pendingHP[f]=num(v,p[f]);continue;}
       p[f]=(typeof p[f]==='number')?num(v,p[f]):String(v);
       notes.push(k.replace(/_/g,' ')+' → '+p[f]);
     }
   }
   const d=(field,key,label)=>{if(u[key]!=null&&num(u[key],0)!==0){const n=num(u[key]);p[field]+=n;notes.push(label+' '+(n>0?'+':'')+n);}};
-  d('maxHp','max_hp','Max HP');d('maxMp','max_mp','Max MP');
-  d('hp','hp','HP');d('mp','mp','MP');d('gold','gold','Gold');d('points','stat_points','Ability Points');
+  d('gold','gold','Gold');d('points','stat_points','Ability Points');
   if(u.fatigue!=null&&num(u.fatigue,0)!==0)p.fatigue+=num(u.fatigue);
   if(u.stats&&typeof u.stats==='object'){for(const s in u.stats){const sk=statKey(s);const n=num(u.stats[s]);if(sk in p.stats&&n){p.stats[sk]+=n;notes.push(sk.toUpperCase()+' '+(n>0?'+':'')+n);}}}
+  deriveMax(p,cfg);
+  applyCurrentPoolDelta(p,'hp','maxHp',u.hp,pendingHP.hp,notes,'HP');
+  applyCurrentPoolDelta(p,'mp','maxMp',u.mp,pendingHP.mp,notes,'MP');
   if(num(u.exp_gain)){p.exp+=num(u.exp_gain);notes.push('EXP +'+num(u.exp_gain));}
   if(num(u.level_up)>0){for(let i=0;i<num(u.level_up);i++)levelUp(p,cfg,notes);}
   if(cfg.autoLevel){let guard=0;while(p.expNext>0&&p.exp>=p.expNext&&guard++<200){p.exp-=p.expNext;p.expNext=Math.max(1,Math.round(p.expNext*num(cfg.expGrowth,1.25)));levelUp(p,cfg,notes);}}
@@ -748,11 +753,22 @@ function applyUpdate(p,u,cfg){
   deriveMax(p,cfg);clampPlayer(p);
   return notes;
 }
-function deriveMax(p,cfg){if(cfg&&cfg.deriveHpMp===false)return;const lv=Math.max(1,num(p.level,1));
-  const mh=Math.max(1,Math.round(num(p.stats.vit,0)*lv*10)),mm=Math.max(0,Math.round(num(p.stats.int,0)*lv));
-  if(mh>p.maxHp)p.hp+=mh-p.maxHp;if(mm>p.maxMp)p.mp+=mm-p.maxMp;p.maxHp=mh;p.maxMp=mm;}
-function clampPlayer(p){p.maxHp=Math.max(1,p.maxHp);p.maxMp=Math.max(0,p.maxMp);p.hp=Math.min(Math.max(0,p.hp),p.maxHp);p.mp=Math.min(Math.max(0,p.mp),p.maxMp);
-  p.fatigue=Math.max(0,p.fatigue);p.points=Math.max(0,p.points);p.level=Math.max(1,p.level);p.exp=Math.max(0,p.exp);}
+function isPlayerMaxKey(k){const s=String(k||'').toLowerCase().replace(/[\s_-]/g,'');return s==='maxhp'||s==='maxmp'||s==='hpmax'||s==='mpmax';}
+function formulaMaxHp(p){return Math.max(1,Math.round(num(p&&p.stats&&p.stats.vit,0)*Math.max(1,num(p&&p.level,1))*10));}
+function formulaMaxMp(p){return Math.max(0,Math.round(num(p&&p.stats&&p.stats.int,0)*Math.max(1,num(p&&p.level,1))));}
+function applyCurrentPoolDelta(p,field,maxField,delta,setVal,notes,label){
+  if(setVal!=null){const v=Math.min(Math.max(0,num(setVal,p[field])),p[maxField]);if(v!==p[field]){p[field]=v;notes.push(label+' → '+v);}return;}
+  if(delta==null||num(delta,0)===0)return;
+  const n=num(delta);
+  if(n>0){const add=Math.min(n,Math.max(0,p[maxField]-p[field]));if(add>0){p[field]+=add;notes.push(label+' +'+add);}}
+  else{p[field]+=n;if(p[field]<0)p[field]=0;notes.push(label+' '+n);}
+}
+function deriveMax(p,cfg){if(!p||(cfg&&cfg.deriveHpMp===false))return;const mh=formulaMaxHp(p),mm=formulaMaxMp(p);
+  if(mh>num(p.maxHp,0))p.hp=num(p.hp,0)+mh-num(p.maxHp,0);if(mm>num(p.maxMp,0))p.mp=num(p.mp,0)+mm-num(p.maxMp,0);
+  p.maxHp=mh;p.maxMp=mm;}
+function clampPlayer(p){if(!p)return;p.maxHp=formulaMaxHp(p);p.maxMp=formulaMaxMp(p);
+  p.hp=Math.min(Math.max(0,num(p.hp,0)),p.maxHp);p.mp=Math.min(Math.max(0,num(p.mp,0)),p.maxMp);
+  p.fatigue=Math.max(0,num(p.fatigue,0));p.points=Math.max(0,num(p.points,0));p.level=Math.max(1,num(p.level,1));p.exp=Math.max(0,num(p.exp,0));}
 
 /* ---- generic diff/revert so redo/delete undoes exactly one post's effects ---- */
 const SCALARS=['level','exp','expNext','hp','maxHp','mp','maxMp','fatigue','gold','points','job','title','officialRank'];
@@ -794,6 +810,22 @@ function sanitizeFirstAwakeningUpdate(u){
   return o;
 }
 function repairDerivedStats(p,cfg){if(!p)return p;deriveMax(p,cfg);clampPlayer(p);return p;}
+function scrubFakeMaxPatch(patch){
+  if(!patch||!patch.nums)return patch;
+  const n=patch.nums;
+  if((n.maxHp||0)>0&&n.hp===n.maxHp)delete n.hp;
+  if((n.maxMp||0)>0&&n.mp===n.maxMp)delete n.mp;
+  delete n.maxHp;delete n.maxMp;
+  return patch;
+}
+function scrubFakeMaxSave(s){
+  if(!s)return s;
+  for(const m of (s.messages||[])){
+    if(!m||m.role!=='narrator')continue;
+    for(const a of (m.alts||[]))if(a&&a.patch)scrubFakeMaxPatch(a.patch);
+  }
+  return s;
+}
 function applyTextToPlayer(p,text,cfg,opts){
   const before=clone(p);let {updates,errors}=parseSystemUpdates(text);const notes=[];
   const first=opts&&opts.firstAwakening;
@@ -921,7 +953,7 @@ function ensureNpcDefaults(npcs){
   }
 }
 
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
 
@@ -982,10 +1014,11 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
     if((s.world.style||'')==='Second person ("you"), present tense, addressing her character directly. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.')s.world.style=base.world.style;
     s.flags.pacing1=true;
   }
+  scrubFakeMaxSave(s);
   repairDerivedStats(s.player,s.settings);
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
-function saveNow(){try{store.setItem(LS_KEY,JSON.stringify(S));}catch(e){toast('Save failed: '+e.message);}}
+function saveNow(){try{if(S&&S.player)repairDerivedStats(S.player,S.settings);store.setItem(LS_KEY,JSON.stringify(S));}catch(e){toast('Save failed: '+e.message);}}
 const $=s=>document.querySelector(s);
 function toast(t,ms=2600){const el=$('#toast');el.textContent=t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',ms);}
 function getPath(o,path){return path.split('.').reduce((a,k)=>a==null?a:a[k],o);}
@@ -1093,13 +1126,13 @@ function applyAlt(a){if(!a||a.applied)return;
   else{
     const keep=preAwakenUpdates(parsed.updates,parsed.clean);const before=clone(S.player);const notes=[];
     for(const u of keep)notes.push(...applyUpdate(S.player,u,cfg()));
-    clampPlayer(S.player);
+    repairDerivedStats(S.player,cfg());
     a.patch=keep.length?diffPlayer(before,S.player):null;a.notes=[];a.errors=(parsed.errors||[]).concat(a.reqErrors||[]);
   }
   const ops=collectNpcOps(parsed.updates);
   a.npcPatch={deaths:applyNpcDeaths(S.world.npcs,ops.deaths,S.game&&S.game.day,uid),knowledge:applyNpcKnowledge(S.world.npcs,ops.knowledge,uid)};
-  a.applied=true;}
-function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);if(a.npcPatch){revertNpcKnowledge(S.world.npcs,a.npcPatch.knowledge);revertNpcDeaths(S.world.npcs,a.npcPatch.deaths);}if(a.prevAwakened!==undefined)S.flags.systemAwakened=a.prevAwakened;if(a.prevOpening!==undefined)S.world.openingActive=a.prevOpening;a.applied=false;}}
+  repairDerivedStats(S.player,cfg());a.applied=true;}
+function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);if(a.npcPatch){revertNpcKnowledge(S.world.npcs,a.npcPatch.knowledge);revertNpcDeaths(S.world.npcs,a.npcPatch.deaths);}if(a.prevAwakened!==undefined)S.flags.systemAwakened=a.prevAwakened;if(a.prevOpening!==undefined)S.world.openingActive=a.prevOpening;a.applied=false;repairDerivedStats(S.player,cfg());}}
 
 function onLogClick(e){
   if(e.target.closest('#beginOpening')){beginOpening();return;}
@@ -1273,7 +1306,7 @@ async function summarize(manual){
 function maybeAutoSummarize(){const keep=Math.max(2,num(S.settings.contextMessages,40));if(S.messages.length-keep-num(S.world.summarizedCount,0)>=10)summarize(false);}
 
 /* ================= HUD & SYSTEM PANEL ================= */
-function renderHud(){const p=S.player;
+function renderHud(){if(S&&S.player)repairDerivedStats(S.player,cfg());const p=S.player;
   if(!isAwakened()){$('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Hunter <b class="rank">'+esc(p.officialRank||'E')+'</b></span><span class="muted">System dormant</span>';return;}
   $('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b></span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Rank <b class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
 function syncStoryChrome(){
@@ -1302,8 +1335,8 @@ function renderSystem(){
       '<div class="kv"><span class="k">Assoc. Record</span>'+field('officialRank',p.officialRank)+'</div>'+
       '<div class="kv"><span class="k">Day</span><span>'+esc(gameDateStr())+'</span></div>'+
       '</div><h3>Condition</h3><div class="status-grid">'+
-      '<div><div class="kv"><span class="k">HP</span>'+field('hp',p.hp,'number')+'/'+field('maxHp',p.maxHp,'number')+'</div><div class="bar hp"><i style="width:'+pct(p.hp,p.maxHp)+'%"></i></div></div>'+
-      '<div><div class="kv"><span class="k">MP</span>'+field('mp',p.mp,'number')+'/'+field('maxMp',p.maxMp,'number')+'</div><div class="bar mp"><i style="width:'+pct(p.mp,p.maxMp)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">HP</span>'+field('hp',p.hp,'number')+'/<span title="VIT × Level × 10">'+p.maxHp+'</span></div><div class="bar hp"><i style="width:'+pct(p.hp,p.maxHp)+'%"></i></div></div>'+
+      '<div><div class="kv"><span class="k">MP</span>'+field('mp',p.mp,'number')+'/<span title="INT × Level">'+p.maxMp+'</span></div><div class="bar mp"><i style="width:'+pct(p.mp,p.maxMp)+'%"></i></div></div>'+
       '<div><div class="kv"><span class="k">Fatigue</span>'+field('fatigue',p.fatigue,'number')+'</div><div class="bar fat"><i style="width:'+pct(p.fatigue,100)+'%"></i></div></div>'+
       '<div><div class="kv"><span class="k">EXP</span>'+field('exp',p.exp,'number')+'/'+field('expNext',p.expNext,'number')+'</div><div class="bar"><i style="width:'+pct(p.exp,p.expNext)+'%"></i></div></div>'+
       '<div class="kv"><span class="k">Gold</span>'+field('gold',p.gold,'number')+'</div>'+
@@ -1349,7 +1382,7 @@ function itemEditor(it,i){
 }
 function onSysInput(e){
   const t=e.target;const p=S.player;
-  if(t.dataset.pfield){const path=t.dataset.pfield;const cur=getPath(p,path);setPath(p,path,typeof cur==='number'?num(t.value,cur):t.value);if(e.type==='change'){if(/^(level|stats\.)/.test(path))deriveMax(p,cfg());clampPlayer(p);}save();renderHud();if(e.type==='change')renderSystem();return;}
+  if(t.dataset.pfield){const path=t.dataset.pfield;if(path==='maxHp'||path==='maxMp'){repairDerivedStats(p,cfg());if(e.type==='change')renderSystem();else renderHud();return;}const cur=getPath(p,path);setPath(p,path,typeof cur==='number'?num(t.value,cur):t.value);if(/^(level|stats\.)/.test(path)||e.type==='change')repairDerivedStats(p,cfg());else clampPlayer(p);save();renderHud();if(e.type==='change')renderSystem();return;}
   if(t.dataset.list){const L=t.dataset.list,i=+t.dataset.i,k=t.dataset.k;const obj=p[L][i];if(!obj)return;
     if(t.type==='checkbox')obj[k]=t.checked;else if(k==='qty'||k==='level')obj[k]=num(t.value,obj[k]);
     else if(k==='stats'){const o={};t.value.split('\n').forEach(l=>{const j=l.indexOf(':');if(j>0)o[l.slice(0,j).trim()]=l.slice(j+1).trim();});obj.stats=o;}
