@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -81,6 +81,21 @@ label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px;letter-sp
 .grant-exp{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 .grant-exp label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
 .grant-exp input[type=number]{width:100%;min-height:44px;padding:6px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+.sys-stack{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.sys-stack .syswin{margin:0}
+.equip-panel{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.equip-slot{background:rgba(8,16,32,.6);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-height:40px}
+.equip-slot .k{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.item-card .item-desc{margin:4px 0;font-size:14px}
+.item-card.equipped{border-color:var(--glow)}
+.add-item-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.add-item-row input{flex:1 1 100px;min-height:44px;padding:6px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+.shop-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.shop-card{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--panel2)}
+.shop-card .price{color:var(--gold);font-weight:700;text-align:right;margin-bottom:6px}
+.shop-buy{flex:0 0 auto;text-align:right}
+.quest-offer .row{gap:8px}
+
 
 
 .swipe{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
@@ -205,6 +220,10 @@ pre{white-space:pre-wrap;word-break:break-word}
   @keyframes nudge{50%{transform:translateX(3px)}}
   /* one stat per row: [label][value][rank][+] */
   .status-grid{grid-template-columns:1fr}
+  .shop-card{flex-wrap:wrap}
+  .item-card,.item-card .head{max-width:100%}
+  .item-card{overflow:hidden}
+
   .stats-list .stat{display:grid;grid-template-columns:48px minmax(0,1fr) auto 44px;gap:8px;align-items:center;padding:3px 0}
   .stats-list .stat .k{width:auto;font-size:16px}
   .stats-list .stat input{width:100%}
@@ -484,10 +503,13 @@ CANON (follow precisely)
 - Use WORLD roster NPCs by name; invent minor extras; they can grow stronger.
 
 FORMAT
-- Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system> or <system_update>, and do not treat the System as visible to her. Once awake, <system>[Notification]\\n...</system> (or Quest Info, Alert, Warning, Level Up, Penalty) only when needed. Most replies have no window. SOMETIMES (sparingly, never two in a row) a line may take the creator's voice (see Patron): warmer, a little odd.
-- After awakening, tag creatures [[mob:Name|Lv.N]] (never humans). App colors the tag.
-- When the System changes anything, end with ONE block: <system_update>{json}</system_update>. Deltas except in "set". Keys: exp_gain, level_up, gold, hp, mp, fatigue, stat_points, stats{str,agi,sen,vit,int,luk}, set{job,title,official_rank,level,hp,...}, items_add[{name,qty,category,stats,effects,description}], items_remove[{name,qty}], skills_add[{name,type,level,mp_cost,cooldown,description}], skills_update[{name,level}], quests_add[{name,description,reward,deadline}], quests_complete[names], quests_fail[names], titles_add[names], boxes_add[{tier,kind,qty}], companions_add[{name,species,rank,level,stats{},skills[],appearance,personality}], companions_update[{name,exp_gain,hp,mp,kills,bond,stats,skills_add,history}], companions_remove[names], notification, system_awakened.
-  JSON only. Omit if unchanged. Prefer exp_gain (app auto-levels).`;
+- Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system>, <system_update>, or <system_event>, and do not treat the System as visible to her.
+- After awakening, tag creatures [[mob:Name|Lv.N]] (never humans). The app colors the tag.
+- The APP owns all System mechanics (EXP, drops, gold, level-ups, daily rewards, boxes, shop). Do not invent stats, EXP, gold, or loot, and do not write kill/loot/Level Up windows — the app draws them. Sometimes (sparingly) you may add one brief line in the creator's voice (see Patron).
+- When something mechanical happened, end with ONE event block (omit if nothing mechanical happened):
+  <system_event>{"kills":[{"name":"Wolf","level":8,"rank":"E","boss":false}]}</system_event>
+  Keys (all optional): kills[{name,level,rank,boss}], dungeon_clear{name,rank,boss}, quest_offer[{name,description,type,reward}], quest_progress[{name,progress,complete}], item_use[{name}], npcDeaths[{name,cause}], npcKnowledge[{name,fact}], hp, mp, companions_add, companions_update, companions_remove, skills_add, skills_update, system_awakened.
+  Valid JSON only. Never include exp_gain, gold, items_add, or level_up — the app awards those from events and kills.`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
 Respond with ONLY a JSON object, no prose, no code fences:
@@ -501,7 +523,7 @@ Second person is only for addressing her as the reader of the environment (what 
 Bad: her post was a wave and a greeting → "No one notices the small smile that curves your lips as you lift your hand. \\"Hello?\\" your voice rings out."
 Good: her post was a wave and a greeting → "The statue does not move. Kari glances over, frowning. \\"Don't wander,\\" she mutters."
 
-system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. After awakening, when she kills a monster or creature on-screen, you MUST include exp_gain in that same <system_update> (scale by the mob's level versus hers: less if it was much weaker, more if it was stronger) and a brief <system>[Notification]\nYou have killed NAME. EXP +X</system>. Never skip EXP for an on-screen kill. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
+system_update must be justified only by events this same reply actually narrates: HP loss only if she is hit, MP only if she spends mana, EXP only after the System has awakened and only for kills or quests. After awakening, when she kills a monster or creature on-screen, emit a <system_event> with kills[{name,level,rank,boss}] (or tag the mob with [[mob:Name|Lv.N]] and clearly narrate the kill). Do not invent EXP, gold, or drops and do not write the kill/loot/Level Up windows — the app awards them and draws the notices. Same for a dungeon clear (dungeon_clear). For a new quest, emit quest_offer; for progress, quest_progress. You may still include narrated hp/mp loss and npcDeaths/npcKnowledge in the event block. If nothing mechanical happened, omit system_update. Never put story events (statues waking, rules, atmosphere) into system_update or a Status box — those belong in the prose.
 When a named NPC dies on-screen (including the opening raid), include npcDeaths:[{name,cause}] in that same system_update. This is world tracking, not a System window — do not write it as a status box or <system> notice. Do not reuse deceased people as living characters; memories and mentions are fine.
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
 System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
@@ -537,9 +559,13 @@ function statRank(table,v){const rows=(table||DEFAULT_STAT_RANKS);for(const r of
 const DEFAULT_SHOP=[
   {name:'Healing Potion (Low Grade)',price:500,category:'Consumable',description:'Restores a small amount of HP.'},
   {name:'Healing Potion (Mid Grade)',price:5000,category:'Consumable',description:'Restores a moderate amount of HP.'},
+  {name:'Healing Potion (High Grade)',price:20000,category:'Consumable',description:'Restores a large amount of HP.'},
   {name:'Mana Potion (Low Grade)',price:800,category:'Consumable',description:'Restores a small amount of MP.'},
+  {name:'Mana Potion (Mid Grade)',price:6000,category:'Consumable',description:'Restores a moderate amount of MP.'},
+  {name:'Mana Potion (High Grade)',price:25000,category:'Consumable',description:'Restores a large amount of MP.'},
   {name:'Fatigue Recovery Potion',price:2000,category:'Consumable',description:'Removes fatigue.'},
-  {name:'Steel Dagger',price:3000,category:'Dagger',description:'A plain steel dagger. Attack +5.'}
+  {name:'Bandage',price:150,category:'Consumable',description:'A simple bandage. Restores a little HP.'},
+  {name:'Steel Dagger',price:3000,category:'Dagger',description:'A plain steel dagger. Attack +5.',stats:{atk:5}}
 ];
 function defaultPlayer(){return {level:1,exp:0,expNext:100,job:'None',title:'None',officialRank:'E',hp:100,maxHp:100,mp:10,maxMp:10,fatigue:0,
   stats:{str:10,agi:10,sen:10,vit:10,int:10,luk:10},points:0,gold:0,skills:innateSkills(),inventory:[],quests:[],titles:[],companions:[]};}
@@ -607,7 +633,7 @@ function strongAwakeningText(text){
 function wouldAwaken(text,updates,openingActive){
   if(strongAwakeningText(text||''))return true;
   const ups=updates||[];if(ups.some(updatesIndicateAwakening))return true;
-  if(!openingActive&&(ups.length||/<system>/i.test(text||'')))return true;
+  if(!openingActive&&(ups.length||/<system(?:_update|_event)?>/i.test(text||'')))return true;
   return false;
 }
 function inferSystemAwakened(s){
@@ -621,7 +647,7 @@ function inferSystemAwakened(s){
   const p=s.player||{};
   if((p.level||1)>1||(p.job&&p.job!=='None')||(p.titles&&p.titles.length)||(p.companions&&p.companions.length))return true;
   if((p.inventory&&p.inventory.length)||(p.quests&&p.quests.length)||(p.gold||0)>0)return true;
-  if(/<system>|<system_update>/i.test(blob))return true;
+  if(/<system>|<system_update>|<system_event>/i.test(blob))return true;
   return false;
 }
 function narratedPlayerInjury(text){
@@ -686,19 +712,26 @@ function lockedMarkup(kind){
 }
 
 /* ================= SYSTEM UPDATE PARSER ================= */
-function parseSystemUpdates(text){
-  const re=/<system_update>([\s\S]*?)<\/system_update>/gi;const updates=[],errors=[];let m;
-  while((m=re.exec(text||''))){
-    const raw=m[1].trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
-    try{updates.push(JSON.parse(raw));}
-    catch(e){
-      try{const fixed=raw.replace(/^\s*\/\/[^\n]*$/gm,'').replace(/,\s*([}\]])/g,'$1');updates.push(JSON.parse(fixed));}
-      catch(e2){errors.push('Could not parse system_update: '+e.message);}
-    }
+function parseJsonBlock(raw,errors,label){
+  raw=String(raw||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+  try{return JSON.parse(raw);}
+  catch(e){
+    try{return JSON.parse(raw.replace(/^\s*\/\/[^\n]*$/gm,'').replace(/,\s*([}\]])/g,'$1'));}
+    catch(e2){errors.push('Could not parse '+(label||'block')+': '+e.message);return null;}
   }
-  let clean=(text||'').replace(re,'');
-  clean=clean.replace(/<system_update>[\s\S]*$/i,''); // hide an unterminated block while streaming
-  return {updates,errors,clean:clean.trim()};
+}
+function parseSystemUpdates(text){
+  const updates=[],events=[],errors=[];
+  const pull=(src,tag,bucket)=>{
+    const re=new RegExp('<'+tag+'>'+'([\\s\\S]*?)'+'</'+tag+'>','gi');let m;
+    while((m=re.exec(src||''))){const obj=parseJsonBlock(m[1],errors,tag);if(obj&&typeof obj==='object')bucket.push(obj);}
+    return re;
+  };
+  const reUp=pull(text||'','system_update',updates);
+  const reEv=pull(text||'','system_event',events);
+  let clean=(text||'').replace(reUp,'').replace(reEv,'');
+  clean=clean.replace(/<system_update>[\s\S]*$/i,'').replace(/<system_event>[\s\S]*$/i,'');
+  return {updates,events,errors,clean:clean.trim()};
 }
 function normItem(it){
   if(typeof it==='string')it={name:it};
@@ -810,8 +843,8 @@ function applyUpdate(p,u,cfg){
   return notes;
 }
 function isPlayerMaxKey(k){const s=String(k||'').toLowerCase().replace(/[\s_-]/g,'');return s==='maxhp'||s==='maxmp'||s==='hpmax'||s==='mpmax';}
-function formulaMaxHp(p){return Math.max(1,Math.round(num(p&&p.stats&&p.stats.vit,0)*Math.max(1,num(p&&p.level,1))*10));}
-function formulaMaxMp(p){return Math.max(0,Math.round(num(p&&p.stats&&p.stats.int,0)*Math.max(1,num(p&&p.level,1))));}
+function formulaMaxHp(p){const b=typeof equippedBonuses==='function'?equippedBonuses(p):{stats:{},maxHp:0};const vit=num(p&&p.stats&&p.stats.vit,0)+num(b.stats&&b.stats.vit,0);return Math.max(1,Math.round(vit*Math.max(1,num(p&&p.level,1))*10+num(b.maxHp,0)));}
+function formulaMaxMp(p){const b=typeof equippedBonuses==='function'?equippedBonuses(p):{stats:{},maxMp:0};const intel=num(p&&p.stats&&p.stats.int,0)+num(b.stats&&b.stats.int,0);return Math.max(0,Math.round(intel*Math.max(1,num(p&&p.level,1))+num(b.maxMp,0)));}
 function applyCurrentPoolDelta(p,field,maxField,delta,setVal,notes,label){
   if(setVal!=null){const v=Math.min(Math.max(0,num(setVal,p[field])),p[maxField]);if(v!==p[field]){p[field]=v;notes.push(label+' → '+v);}return;}
   if(delta==null||num(delta,0)===0)return;
@@ -988,24 +1021,309 @@ function backfillKillExp(s){
   }
   return s;
 }
-function applyTextToPlayer(p,text,cfg,opts){
-  const before=clone(p);let {updates,errors}=parseSystemUpdates(text);const notes=[];
-  const first=opts&&opts.firstAwakening;
+/* ================= SYSTEM ENGINE (app-owned mechanics) ================= */
+function rngFromSeed(seed){let s=(num(seed,1)|0)||1;return function(){s=Math.imul(s^s>>>15,0x45d9f3b);s=Math.imul(s^s>>>15,0x45d9f3b);s=(s^s>>>15)>>>0;return s/4294967296;};}
+function mobRankFromLevel(level){const m=num(level,1);if(m<=10)return 'E';if(m<=20)return 'D';if(m<=35)return 'C';if(m<=55)return 'B';if(m<=80)return 'A';return 'S';}
+function inferMobSpecies(name){
+  const n=String(name||'').toLowerCase();
+  if(/wolf|lycan|warg|fenrir/.test(n))return 'wolf';
+  if(/goblin/.test(n))return 'goblin';
+  if(/orc/.test(n))return 'orc';
+  if(/spider/.test(n))return 'spider';
+  if(/bear/.test(n))return 'bear';
+  if(/slime/.test(n))return 'slime';
+  if(/skeleton|undead|wraith|ghoul/.test(n))return 'undead';
+  if(/ant|insect|centipede/.test(n))return 'insect';
+  if(/dragon|drake/.test(n))return 'dragon';
+  return 'beast';
+}
+const MOB_MATERIALS={
+  wolf:[{name:'Wolf Fang',category:'Material',description:'A sharp fang taken from a wolf. Used in crafting, or sold to workshops.'},{name:'Wolf Pelt',category:'Material',description:'A thick pelt, warm and useful for armor craft.'}],
+  goblin:[{name:"Goblin's Ear",category:'Material',description:'A goblin ear. The Association and some collectors pay for proof of a hunt.'},{name:'Crude Goblin Dagger',category:'Dagger',description:'A chipped goblin blade. Attack +3.',stats:{atk:3},rare:true}],
+  orc:[{name:'Orc Tusk',category:'Material',description:'A heavy tusk. Valuable as a trophy and a crafting material.'},{name:'Orc Blood Sample',category:'Material',description:'Thick orc blood, sometimes used in alchemical work.'}],
+  spider:[{name:'Spider Carapace',category:'Material',description:'A hard chitin plate. Useful in light armor craft.'},{name:'Spider Silk',category:'Material',description:'Strong, fine silk drawn from a magic spider.'}],
+  bear:[{name:'Bear Fang',category:'Material',description:'A large bear fang, dense with residual mana.'},{name:'Bear Pelt',category:'Material',description:'A heavy pelt. Excellent padding for winter gear.'}],
+  slime:[{name:'Slime Fluid',category:'Material',description:'A sticky mana-rich fluid. Used in low-grade potions.'}],
+  undead:[{name:'Cursed Bone',category:'Material',description:'A bone fragment that still carries a faint curse. Handle with care.'}],
+  insect:[{name:'Chitin Fragment',category:'Material',description:'A shard of magic-insect chitin. Light and hard.'}],
+  dragon:[{name:'Drake Scale',category:'Material',description:'A heat-touched scale. Rare and extremely valuable.'},{name:'Drake Fang',category:'Material',description:'A fang that still hums with mana.',rare:true}],
+  beast:[{name:'Magic Beast Hide',category:'Material',description:'Hide taken from a magic beast. A common crafting material.'},{name:'Sharp Claw',category:'Material',description:'A claw broken off in the fight. Useful in craft or as a trophy.'}]
+};
+const GEAR_TYPES=[['Dagger',3],['Sword',3],['Gauntlets',2],['Armor',2],['Helmet',1],['Boots',1],['Cloak',1],['Ring',1]];
+function luckFactor(luk){return 1+Math.min(1.5,num(luk,10)/200);}
+function goldForRank(rank,rng,luck){const i=tierIdx(rank);const base=[30,80,220,600,1800,6000,20000][i]||30;return Math.max(1,Math.round(base*(0.6+rng()*0.8)*luck/5)*5);}
+function makeLootItem(partial,rank){
+  const it=normItem(Object.assign({acquisition_difficulty:rank,rarity:rank},partial));
+  if(!it.description)it.description='An item recovered from a hunt.';
+  return it;
+}
+function rollMobDrops(mob,player,rng){
+  rng=rng||Math.random;mob=mob||{};
+  const rank=String(mob.rank||mob.acquisition_difficulty||mobRankFromLevel(mob.level)||'E').replace(/-?rank/i,'').trim()||'E';
+  const boss=!!(mob.boss||mob.type==='boss'||/boss/i.test(mob.name||''));
+  const luck=luckFactor(player&&player.stats&&player.stats.luk);
+  const bump=b=>Math.min(0.97,b*luck);
+  const items=[];let gold=0;
+  const species=inferMobSpecies(mob.name);
+  const mats=MOB_MATERIALS[species]||MOB_MATERIALS.beast;
+  const push=it=>{if(!it)return;const ex=items.find(x=>keyOf(x)===keyOf(it));if(ex)ex.qty+=it.qty;else items.push(it);};
+  if(boss||rng()<bump(0.75))push(makeLootItem({name:'Magic Stone ('+rank+'-rank)',qty:1+(rng()<0.45?1:0)+(boss?1:0),category:'Material',description:'A mana crystal taken from a magic beast. Sells to the Association or guilds; usable in crafting.'},rank));
+  if(boss||rng()<bump(0.20))push(makeLootItem({name:'Magic Beast Core ('+rank+'-rank)',qty:1,category:'Material',description:'The condensed mana core of a magic beast. Valuable crafting material.'},rank));
+  if(mats[0]&&(boss||rng()<bump(0.62)))push(makeLootItem({name:mats[0].name,qty:1,category:mats[0].category,description:mats[0].description,stats:mats[0].stats},rank));
+  if(mats[1]&&!mats[1].rare&&(boss||rng()<bump(0.34)))push(makeLootItem({name:mats[1].name,qty:1,category:mats[1].category,description:mats[1].description,stats:mats[1].stats},rank));
+  if(mats[1]&&mats[1].rare&&rng()<bump(boss?0.28:0.08))push(makeLootItem({name:mats[1].name,qty:1,category:mats[1].category,description:mats[1].description,stats:mats[1].stats},rank));
+  if(boss||rng()<bump(0.42))gold+=goldForRank(rank,rng,luck);
+  if(rng()<bump(boss?0.22:0.08)){
+    const g=tierIdx(rank)<=1?'Low Grade':tierIdx(rank)<=3?'Mid Grade':'High Grade';
+    const pt=rng()<0.6?'Healing Potion':'Mana Potion';
+    push(makeLootItem({name:pt+' ('+g+')',qty:1,category:'Consumable',description:'Restores '+(pt.indexOf('Mana')>=0?'MP':'HP')+'.'},rank));
+  }
+  if(rng()<bump(boss?0.20:0.05)){
+    const typ=pickWeighted(GEAR_TYPES,rng);
+    const atk=3+tierIdx(rank)*4+Math.floor(rng()*4);
+    push(makeLootItem({name:rank+'-rank '+typ,qty:1,category:typ,description:'Equipment recovered from the hunt.',stats:typ==='Armor'||typ==='Helmet'||typ==='Boots'||typ==='Cloak'?{vit:1,maxHp:5+tierIdx(rank)*5}:{atk:atk}},rank));
+  }
+  if(rng()<bump(boss?0.14:0.03))push(normItem(makeBox({kind:boss?'boss':'random',tier:rank,qty:1})));
+  if(boss){
+    if(!items.some(x=>/Magic Beast Core/.test(x.name)))push(makeLootItem({name:'Magic Beast Core ('+rank+'-rank)',qty:1,category:'Material',description:'The condensed mana core of a magic beast. Valuable crafting material.'},rank));
+    if(!items.some(x=>/Magic Stone/.test(x.name)))push(makeLootItem({name:'Magic Stone ('+rank+'-rank)',qty:1,category:'Material',description:'A mana crystal taken from a magic beast.'},rank));
+    if(!gold)gold+=goldForRank(rank,rng,luck);
+  }
+  return {items,gold,rank,boss};
+}
+function rollDungeonClear(clear,player,rng){
+  rng=rng||Math.random;clear=clear&&typeof clear==='object'?clear:{};
+  const rank=String(clear.rank||mobRankFromLevel(clear.level)||'D').replace(/-?rank/i,'').trim()||'D';
+  const luck=luckFactor(player&&player.stats&&player.stats.luk);
+  const items=[normItem(makeBox({kind:'boss',tier:rank,qty:1}))];
+  const gold=goldForRank(rank,rng,luck)*3;
+  if(rng()<Math.min(0.8,0.35*luck))items.push(makeLootItem({name:'Magic Stone ('+rank+'-rank)',qty:2,category:'Material',description:'Mana crystals gathered after the dungeon was cleared.'},rank));
+  return {items,gold,rank};
+}
+function collectEngineKills(events,updates,text){
+  const out=[];
+  const push=k=>{if(!k)return;const name=String(k.name||k.mob||k.monster||'').trim();if(!name)return;out.push({name,level:k.level!=null?num(k.level,null): (k.lv!=null?num(k.lv,null):null),rank:k.rank||k.acquisition_difficulty||'',boss:!!(k.boss||k.type==='boss'),type:k.type||''});};
+  for(const ev of (events||[])){
+    if(!ev||typeof ev!=='object')continue;
+    const list=ev.kills||ev.kill||[];
+    (Array.isArray(list)?list: [list]).forEach(push);
+  }
+  for(const u of (updates||[])){
+    if(!u||typeof u!=='object')continue;
+    const list=u.kills||u.kill||[];
+    (Array.isArray(list)?list:[list]).forEach(push);
+  }
+  if(!out.length)for(const k of detectTaggedMobKills(text))push(k);
+  const seen=new Set();
+  return out.filter(k=>{const key=k.name.toLowerCase();if(seen.has(key))return false;seen.add(key);return true;});
+}
+function collectDungeonClear(events,updates){
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){
+    if(!o||typeof o!=='object')continue;
+    if(o.dungeon_clear===true||o.dungeonClear===true)return {rank:'D'};
+    const d=o.dungeon_clear||o.dungeonClear;
+    if(d&&typeof d==='object')return d;
+    if(Array.isArray(d)&&d[0])return d[0];
+  }
+  return null;
+}
+function collectQuestOffers(events,updates){
+  const out=[];
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){
+    if(!o||typeof o!=='object')continue;
+    const list=o.quest_offer||o.quest_offers||o.questOffer||[];
+    (Array.isArray(list)?list:[list]).forEach(q=>{if(q&&(q.name||q.title))out.push({name:String(q.name||q.title),description:String(q.description||''),type:String(q.type||'hidden'),reward:String(q.reward||''),deadline:String(q.deadline||'')});});
+  }
+  return out;
+}
+function applyQuestProgress(p,events,updates,notes){
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){
+    if(!o||typeof o!=='object')continue;
+    const list=o.quest_progress||o.questProgress||[];
+    for(const q of (Array.isArray(list)?list:[list])){
+      if(!q||!q.name)continue;
+      const found=(p.quests||[]).find(x=>keyOf(x)===keyOf(q.name));
+      if(!found)continue;
+      if(q.progress!=null)found.progress=String(q.progress);
+      if(q.complete===true||q.status==='completed'){if(found.status!=='completed'){found.status='completed';notes.push('Quest complete: '+found.name);}}
+      else if(q.status==='failed'||q.fail===true){found.status='failed';notes.push('Quest failed: '+found.name);}
+    }
+  }
+}
+function stripNarratorLoot(u){
+  if(!u||typeof u!=='object')return u;
+  const o=Object.assign({},u);
+  delete o.exp_gain;delete o.exp;delete o.level_up;delete o.gold;delete o.stat_points;delete o.items_add;delete o.boxes_add;
+  if(o.set&&typeof o.set==='object'){const set=Object.assign({},o.set);['exp','exp_gain','expNext','exp_next','gold','points','stat_points','level'].forEach(k=>delete set[k]);o.set=set;}
+  return o;
+}
+function noticeHtml(notices){
+  return (notices||[]).map(n=>{
+    const title=n&&n.title||'Notification';
+    const body=n&&n.body||String(n||'');
+    return sysWindow('['+title+']\n'+body);
+  }).join('');
+}
+function equippedBonuses(p){
+  const stats={};for(const k of STAT_KEYS)stats[k]=0;let maxHp=0,maxMp=0,atk=0;
+  for(const it of (p&&p.inventory)||[]){
+    if(!it||!it.equipped)continue;
+    const st=it.stats||{};
+    for(const k of STAT_KEYS)stats[k]+=num(st[k]!=null?st[k]:st[k.toUpperCase()],0);
+    maxHp+=num(st.maxHp!=null?st.maxHp:(st.max_hp!=null?st.max_hp:st.HP),0);
+    maxMp+=num(st.maxMp!=null?st.maxMp:(st.max_mp!=null?st.max_mp:st.MP),0);
+    atk+=num(st.atk!=null?st.atk:(st.Attack!=null?st.Attack:st.attack),0);
+  }
+  return {stats,maxHp,maxMp,atk};
+}
+function itemSlot(it){
+  const c=String((it&&(it.slot||it.category||it.type||it.name))||'').toLowerCase();
+  if(/dagger|sword|greatsword|spear|axe|bow|staff|gauntlet|knuckle|weapon|fist/.test(c))return 'weapon';
+  if(/helmet|helm|hat/.test(c))return 'helmet';
+  if(/boot/.test(c))return 'boots';
+  if(/glove/.test(c))return 'gloves';
+  if(/cloak|cape/.test(c))return 'cloak';
+  if(/armor|mail|chest/.test(c))return 'armor';
+  if(/ring/.test(c))return 'ring';
+  if(/necklace|earring|bracelet|amulet|accessory/.test(c))return 'accessory';
+  return '';
+}
+function itemSellPrice(it){
+  if(!it)return 0;
+  if(it.price!=null&&num(it.price)>0)return Math.max(1,Math.round(num(it.price)*0.5));
+  const r=tierIdx(it.acquisition_difficulty||it.rarity||'E');
+  const base=[40,120,400,1200,4000,15000,50000][r]||40;
+  const cat=String(it.category||it.name||'');
+  if(isBox(it))return base*2;
+  if(/potion|consumable|bandage/i.test(cat))return Math.max(5,Math.round(base*0.4));
+  if(/stone|core|material|fang|pelt|ear|hide|silk|tusk|bone/i.test(cat+' '+it.name))return base;
+  return Math.max(5,Math.round(base*0.7));
+}
+function potionEffect(it,p){
+  const n=String((it&&it.name)||'').toLowerCase();
+  const mid=/mid/.test(n);const high=/high|full/.test(n);
+  if(/fatigue/.test(n))return {fatigue:-num(p.fatigue,0),label:'Fatigue cleared'};
+  if(/mana|mp /.test(n)||(/potion/.test(n)&&/mp/.test(n))){
+    const amt=high?p.maxMp:mid?Math.max(1,Math.round(p.maxMp*0.6)):Math.max(1,Math.round(p.maxMp*0.3)||10);
+    return {mp:amt,label:'MP +'+amt};
+  }
+  if(/heal|hp |bandage|potion/.test(n)){
+    const amt=high?p.maxHp:mid?Math.max(1,Math.round(p.maxHp*0.6)):Math.max(1,Math.round(p.maxHp*0.3)||30);
+    return {hp:amt,label:'HP +'+amt};
+  }
+  return null;
+}
+function useInventoryItem(p,idx,cfg){
+  const it=(p.inventory||[])[idx];if(!it)return {ok:false,notes:[]};
+  const notes=[];
+  const fx=potionEffect(it,p);
+  if(fx){
+    if(fx.hp)applyCurrentPoolDelta(p,'hp','maxHp',fx.hp,null,notes,'HP');
+    if(fx.mp)applyCurrentPoolDelta(p,'mp','maxMp',fx.mp,null,notes,'MP');
+    if(fx.fatigue){p.fatigue=Math.max(0,num(p.fatigue,0)+fx.fatigue);notes.push(fx.label);}
+  }else if(isBox(it))return {ok:false,notes:[],reason:'box'};
+  else if(/key|rune/i.test(it.category||it.name))notes.push('Used '+it.name);
+  else return {ok:false,notes:[],reason:'unusable'};
+  it.qty=num(it.qty,1)-1;if(it.qty<=0){if(it.equipped)it.equipped=false;p.inventory.splice(idx,1);}
+  repairDerivedStats(p,cfg);return {ok:true,notes,name:it.name||'item'};
+}
+function applyBoxOpen(p,idx,cfg,rng){
+  const box=(p.inventory||[])[idx];if(!box||!isBox(box))return {ok:false,notes:[]};
+  const roll=rollBox(box,p.stats&&p.stats.luk,rng);(roll.items||[]).forEach(x=>delete x._flavor);
+  const notes=applyUpdate(p,{gold:roll.gold,stat_points:roll.stat_points,items_add:roll.items,items_remove:[{name:box.name,qty:1}]},cfg).filter(n=>!/^Item removed/.test(n));
+  if(!notes.length)notes.push('The box was empty.');
+  repairDerivedStats(p,cfg);return {ok:true,notes,roll,title:'Opened: '+box.name};
+}
+function claimDailyReward(player,daily,rankChart,boxKind){
+  if(!player||!daily||daily.claimed)return {ok:false};
+  if(!(daily.items||[]).every(x=>x.done>=x.target))return {ok:false};
+  player.hp=player.maxHp;player.mp=player.maxMp;player.fatigue=0;player.points=num(player.points,0)+3;
+  const hr=rankForLevel(rankChart||DEFAULT_RANKS,player.level);
+  const tier=BOX_TIERS.includes(hr)?hr:(['National','Deity'].includes(hr)?'S':'E');
+  const box=normItem(makeBox({kind:boxKind||'random',tier:tier}));
+  const ex=(player.inventory||[]).find(x=>keyOf(x)===keyOf(box));if(ex)ex.qty++;else{if(!player.inventory)player.inventory=[];player.inventory.push(box);}
+  daily.claimed=true;
+  return {ok:true,box,notes:['HP/MP restored','Fatigue cleared','Ability Points +3','Item acquired: '+box.name]};
+}
+function advanceGameDay(state){
+  if(!state||!state.daily||!state.game)return {ok:false};
+  const d=state.daily,g=state.game,p=state.player;
+  const done=!!(d.claimed||(d.items||[]).every(x=>x.done>=x.target));
+  d.history=(d.history||[]).concat([{day:g.day,completed:done}]).slice(-60);
+  let penalty=null;
+  if(!done&&p){
+    penalty={name:'Penalty Quest: Survive',description:'Failure to complete the Daily Quest. Survive in the Penalty Zone until the time limit expires.',reward:'',deadline:'Penalty Zone time limit',status:'active',progress:''};
+    if(!p.quests)p.quests=[];
+    const i=p.quests.findIndex(q=>keyOf(q)===keyOf(penalty));if(i>=0)p.quests[i]=Object.assign({},p.quests[i],penalty);else p.quests.push(normQuest(penalty));
+  }
+  g.day=num(g.day,1)+1;(d.items||[]).forEach(x=>x.done=0);d.claimed=false;d.date='Day '+g.day;
+  return {ok:true,done,penalty,day:g.day};
+}
+function acceptQuestOffer(player,offer){
+  if(!player||!offer||!offer.name)return {ok:false};
+  if(!player.quests)player.quests=[];
+  const q=normQuest({name:offer.name,description:offer.description||'',reward:offer.reward||'',deadline:offer.deadline||'',status:'active'});
+  const i=player.quests.findIndex(x=>keyOf(x)===keyOf(q));if(i>=0)player.quests[i]=Object.assign({},player.quests[i],q);else player.quests.push(q);
+  return {ok:true,quest:q};
+}
+function runSystemEngine(p,text,cfg,opts){
+  opts=opts||{};
+  const parsed=opts.parsed||parseSystemUpdates(text);
+  let updates=parsed.updates||[];
+  const events=parsed.events||[];
+  const errors=parsed.errors||[];
+  const notes=[];const notices=[];
+  const first=opts.firstAwakening;
   const rebirth=first&&AWAKEN_RE.test(text||'');
   if(first)updates=updates.map(sanitizeFirstAwakeningUpdate);
   if(rebirth)updates=updates.map(u=>{if(!u||typeof u!=='object')return u;const o=Object.assign({},u);delete o.exp_gain;delete o.exp;delete o.level_up;return o;});
+  const kills=rebirth?[]:collectEngineKills(events,updates,text);
+  const clear=rebirth?null:collectDungeonClear(events,updates);
+  const offers=rebirth?[]:collectQuestOffers(events,updates);
+  const strip=kills.length||clear;
+  if(strip)updates=updates.map(stripNarratorLoot);
   for(const u of updates)notes.push(...applyUpdate(p,u,cfg));
-  let killNotices=[];
+  if(!rebirth)applyQuestProgress(p,events,updates,notes);
+  const rng=opts.rng||Math.random;
   if(!rebirth){
-    const fb=killExpFallback(text,updates,p,cfg);
-    if(fb.exp){
-      notes.push(...applyUpdate(p,{exp_gain:fb.exp},cfg));
-      killNotices=fb.notices;
+    for(const k of kills){
+      const amt=expForMobKill(k.level,p.level);
+      notes.push(...applyUpdate(p,{exp_gain:amt},cfg));
+      notices.push({title:'Notification',body:'You have killed '+k.name+'.\nEXP +'+amt});
+      const drops=rollMobDrops(k,p,rng);
+      if(drops.gold)notes.push(...applyUpdate(p,{gold:drops.gold},cfg));
+      if(drops.items&&drops.items.length)notes.push(...applyUpdate(p,{items_add:drops.items},cfg));
+      for(const it of (drops.items||[]))notices.push({title:'Notification',body:'Item: '+it.name+(it.qty>1?' ×'+it.qty:'')+' has been acquired.'});
+      if(drops.gold)notices.push({title:'Notification',body:'Gold +'+drops.gold+' has been acquired.'});
+    }
+    if(clear){
+      const rew=rollDungeonClear(clear,p,rng);
+      if(rew.gold)notes.push(...applyUpdate(p,{gold:rew.gold},cfg));
+      if(rew.items&&rew.items.length)notes.push(...applyUpdate(p,{items_add:rew.items},cfg));
+      notices.push({title:'Notification',body:'The dungeon has been cleared.'});
+      for(const it of (rew.items||[]))notices.push({title:'Notification',body:'Item: '+it.name+(it.qty>1?' ×'+it.qty:'')+' has been acquired.'});
+      if(rew.gold)notices.push({title:'Notification',body:'Gold +'+rew.gold+' has been acquired.'});
     }
   }
+  for(const n of notes){
+    if(/^LEVEL UP/.test(n))notices.push({title:'Level Up!',body:n.replace(/^LEVEL UP!?\s*/,'')});
+    else if(/^Skill acquired/.test(n))notices.push({title:'Notification',body:n+'.'});
+  }
   if(rebirth){deriveMax(p,cfg);p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;clampPlayer(p);}
-  const changed=updates.length||killNotices.length;
-  return {patch:(changed?diffPlayer(before,p):null),notes,errors,killNotices};
+  else repairDerivedStats(p,cfg);
+  return {notes,notices,questOffers:offers,errors,kills,updates};
+}
+
+function applyTextToPlayer(p,text,cfg,opts){
+  const before=clone(p);opts=opts||{};
+  const parsed=parseSystemUpdates(text);
+  const r=runSystemEngine(p,text,cfg,Object.assign({},opts,{parsed:parsed}));
+  const changed=(r.updates&&r.updates.length)||(r.notices&&r.notices.length)||(r.notes&&r.notes.length)||(r.questOffers&&r.questOffers.length)||(r.kills&&r.kills.length);
+  const killNotices=(r.notices||[]).filter(n=>/You have killed/.test(n.body||'')).map(n=>(n.body||'').replace(/\n/g,' '));
+  return {patch:(changed?diffPlayer(before,p):null),notes:r.notes||[],errors:r.errors||parsed.errors||[],killNotices,sysNotices:r.notices||[],questOffers:r.questOffers||[]};
 }
 function rankForLevel(chart,level){let best=null;for(const r of [...chart].sort((a,b)=>num(a.minLevel)-num(b.minLevel))){if(level>=num(r.minLevel))best=r.rank;}return best||'—';}
 
@@ -1132,7 +1450,7 @@ const SYS_HEAD=/^\[(Notification|Quest|Quest Info|System|Alert|Warning|Level Up|
 // No level: use narrator green|orange|yellow|amber|red (yellow/amber → orange); else unknown.
 const MOB_GREEN_BELOW=5;
 const MOB_RED_ABOVE=3;
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,expForMobKill,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,expForMobKill,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -1214,6 +1532,13 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
   if(!s.flags.killExpBackfill1){
     if(s.flags.systemAwakened||inferSystemAwakened(s)){s.flags.systemAwakened=true;backfillKillExp(s);}
     s.flags.killExpBackfill1=true;
+  }
+  if(!s.flags.systemEngine1){
+    const sp=s.settings.systemPrompt||'';
+    if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
+    const have=new Set((s.shop||[]).map(x=>keyOf(x)));
+    DEFAULT_SHOP.forEach(it=>{if(!have.has(keyOf(it)))s.shop.push(Object.assign({},it));});
+    s.flags.systemEngine1=true;
   }
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
@@ -1404,6 +1729,22 @@ function renderLog(){
   renderHud();syncStoryChrome();updateJumpBtn();
 }
 function editBox(t){return '<textarea class="editArea" style="min-height:160px">'+esc(t)+'</textarea><div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small primary" data-act="saveEdit">Save</button> <button class="btn small" data-act="cancelEdit">Cancel</button></div></div>';}
+
+function filterCoveredNotes(notes,notices){
+  if(!(notices&&notices.length))return notes;
+  return (notes||[]).filter(n=>!/^(EXP \+|Item acquired|Box acquired|Gold \+|LEVEL UP)/i.test(String(n)));
+}
+function questOfferHtml(offers,msgIndex){
+  return (offers||[]).map((q,i)=>{
+    if(q.resolved)return '<div class="syswin"><span class="title">Quest Info</span>'+esc(q.name)+' — '+(q.resolved)+'.</div>';
+    return '<div class="syswin quest-offer"><span class="title">Quest Info</span><div><b>'+esc(q.name)+'</b>'+(q.type?' <span class="tag">'+esc(q.type)+'</span>':'')+'</div><div>'+esc(q.description||'')+'</div>'+(q.reward?'<div class="muted">Reward: '+esc(q.reward)+'</div>':'')+'<div class="row" style="margin-top:8px"><button class="btn small primary" data-qaccept="'+msgIndex+'" data-qi="'+i+'" style="min-height:44px">Accept</button><button class="btn small" data-qdecline="'+msgIndex+'" data-qi="'+i+'" style="min-height:44px">Decline</button></div></div>';
+  }).join('');
+}
+function sysNoticeStack(a){
+  const notices=(a&&a.sysNotices&&a.sysNotices.length)?a.sysNotices:(a&&a.killNotices||[]).map(s=>({title:'Notification',body:String(s||'')}));
+  const body=(notices.length?'<div class="sys-stack">'+noticeHtml(notices)+'</div>':'')+questOfferHtml(a&&a.questOffers,a&&a._msgIndex);
+  return body;
+}
 function renderMsg(m,i){
   const isEdit=editing===m.id;
   if(m.role==='error')return '<div class="msg syslog" style="border-color:var(--red);color:#ffb3c0" data-i="'+i+'"><div class="who">Narrator error<span class="tools"><button class="icon" data-act="retryErr">↻ retry</button><button class="icon" data-act="del">🗑</button></span></div><div class="body">The request to Grok failed: '+esc(m.text)+'<br><span class="muted">Check your API key / model in Settings, then press retry.</span></div></div>';
@@ -1414,17 +1755,17 @@ function renderMsg(m,i){
       '<button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
       '</span></div><div class="body">'+(isEdit?editBox(m.text):renderProse(m.text))+'</div></div>';
   }
-  const a=curAlt(m);if(!a||(a.streaming&&!a.text))return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body"><span class="thinking">thinking<i>.</i><i>.</i><i>.</i></span></div></div>';const parsed=parseSystemUpdates(a.text);const allow=showSystemInMsg(i);
+  const a=curAlt(m);if(a)a._msgIndex=i;if(!a||(a.streaming&&!a.text))return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator</div><div class="body"><span class="thinking">thinking<i>.</i><i>.</i><i>.</i></span></div></div>';const parsed=parseSystemUpdates(a.text);const allow=showSystemInMsg(i);
   const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
   return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator '+swipe+'<span class="tools">'+
     '<button class="icon" data-act="regen" title="Redo (new alternative)">↻ redo</button><button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
-    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+(a.streaming||!allow?'':killNoticeWindows(a.killNotices)+changesWindow(a.notes,a.errors)))+'</div></div>';
+    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+(a.streaming||!allow?'':sysNoticeStack(a)+changesWindow(filterCoveredNotes(a.notes,a.sysNotices),a.errors)))+'</div></div>';
 }
 function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
   a.prevAwakened=!!(S.flags&&S.flags.systemAwakened);a.prevOpening=!!S.world.openingActive;
   if(!S.flags.systemAwakened&&wouldAwaken(a.text,parsed.updates,S.world.openingActive)){S.flags.systemAwakened=true;S.world.openingActive=false;}
-  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];if((a.killNotices||[]).length)a.killExpAwarded=true;}
+  if(S.flags.systemAwakened){const r=applyTextToPlayer(S.player,a.text,cfg(),{firstAwakening:!a.prevAwakened});a.patch=r.patch;a.notes=visibleNotes(r.notes);a.errors=r.errors.concat(a.reqErrors||[]);a.killNotices=r.killNotices||[];a.sysNotices=r.sysNotices||[];a.questOffers=r.questOffers||[];if((a.killNotices||[]).length||(a.sysNotices||[]).length)a.killExpAwarded=true;}
   else{
     const keep=preAwakenUpdates(parsed.updates,parsed.clean);const before=clone(S.player);const notes=[];
     for(const u of keep)notes.push(...applyUpdate(S.player,u,cfg()));
@@ -1438,6 +1779,15 @@ function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);if(a.npcPa
 
 function onLogClick(e){
   if(e.target.closest('#beginOpening')){beginOpening();return;}
+  const qa=e.target.closest('[data-qaccept],[data-qdecline]');
+  if(qa){
+    const acc=qa.dataset.qaccept!=null;const mi=+((acc?qa.dataset.qaccept:qa.dataset.qdecline));const qi=+qa.dataset.qi;
+    const m=S.messages[mi];const a=m&&curAlt(m);const off=a&&a.questOffers&&a.questOffers[qi];
+    if(!off||off.resolved)return;
+    if(acc){acceptQuestOffer(S.player,off);off.resolved='Accepted';syslog('Quest accepted: '+off.name+'.');toast('Quest accepted: '+off.name);}
+    else{off.resolved='Declined';toast('Quest declined.');}
+    save();renderLog();renderSystem();return;
+  }
   const b=e.target.closest('[data-act]');if(!b)return;const el=b.closest('.msg');if(!el)return;const i=+el.dataset.i;const m=S.messages[i];if(!m)return;const act=b.dataset.act;
   if(busy&&!['edit','cancelEdit'].includes(act)){toast('Wait for the narrator to finish (or press Stop).');return;}
   if(act==='prev'||act==='next'){unapplyAlt(curAlt(m));m.sel=(m.sel+(act==='next'?1:-1)+m.alts.length)%m.alts.length;applyAlt(curAlt(m));afterChange();}
@@ -1678,7 +2028,7 @@ function renderSystem(){
       '<label>Description</label><textarea data-list="skills" data-i="'+i+'" data-k="description">'+esc(s.description)+'</textarea></div>').join('')+
       '<button class="btn small" data-addlist="skills">+ Add skill</button></div>';
   }else if(sysTab==='inventory'){
-    h+=(lastBoxResult?'<div class="syswin"><span class="title">'+esc(lastBoxResult.title)+'</span><ul style="margin:0;padding-left:18px">'+lastBoxResult.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul><button class="btn small" data-closebox="1">OK</button></div>':'')+'<div class="syswin"><span class="title">Inventory</span>'+(p.inventory.length?'':'<div class="muted">Empty.</div>')+p.inventory.map((it,i)=>itemEditor(it,i)).join('')+'<button class="btn small" data-addlist="inventory">+ Add item</button></div>';
+    h+=(lastBoxResult?'<div class="syswin"><span class="title">'+esc(lastBoxResult.title)+'</span><ul style="margin:0;padding-left:18px">'+lastBoxResult.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul><button class="btn small" data-closebox="1">OK</button></div>':'')+'<div class="syswin"><span class="title">Equipment</span>'+equipmentPanel(p)+'</div><div class="syswin"><span class="title">Inventory</span>'+(p.inventory.length?'':'<div class="muted">Empty.</div>')+p.inventory.map((it,i)=>itemEditor(it,i)).join('')+'<div class="add-item-row"><input type="text" id="addItemName" placeholder="Item name"><input type="text" id="addItemCat" placeholder="Type (e.g. Material)" style="max-width:140px"><input type="text" id="addItemRank" placeholder="Rank" style="max-width:80px"><button class="btn small" id="addItemQuick" style="min-height:44px">Add item</button></div></div>';
   }else if(sysTab==='quests'){
     h+='<div class="syswin"><span class="title">Quest Log</span>'+(p.quests.length?'':'<div class="muted">No quests.</div>')+p.quests.map((q,i)=>
       '<div class="list-item"><div class="head">'+li('quests',i,'name',q.name,'style="flex:2 1 160px"')+'<select data-list="quests" data-i="'+i+'" data-k="status" style="flex:0 0 130px">'+['active','completed','failed'].map(o=>'<option'+(q.status===o?' selected':'')+'>'+o+'</option>').join('')+'</select><button class="icon" data-dellist="quests" data-i="'+i+'">🗑</button></div>'+
@@ -1686,22 +2036,35 @@ function renderSystem(){
       '<div class="row"><div><label>Reward</label>'+li('quests',i,'reward',q.reward)+'</div><div><label>Deadline</label>'+li('quests',i,'deadline',q.deadline)+'</div><div><label>Progress</label>'+li('quests',i,'progress',q.progress)+'</div></div></div>').join('')+
       '<button class="btn small" data-addlist="quests">+ Add quest</button></div>';
   }else if(sysTab==='shop'){
-    h+='<div class="syswin"><span class="title">Shop</span><div class="muted">Gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+'</b>. Purchases are added to the story as a System log so the narrator knows. Stock below is placeholder — edit freely.</div>'+
-      '<table><tr><th>Item</th><th>Price</th><th>Description</th><th></th></tr>'+S.shop.map((s,i)=>'<tr><td><input type="text" data-shop="'+i+'" data-k="name" value="'+esc(s.name)+'"></td><td style="width:110px"><input type="number" data-shop="'+i+'" data-k="price" value="'+esc(s.price)+'"></td><td><input type="text" data-shop="'+i+'" data-k="description" value="'+esc(s.description)+'"></td><td style="white-space:nowrap"><button class="btn small" data-buy="'+i+'" '+(p.gold>=s.price?'':'disabled')+'>Buy</button><button class="icon" data-delshop="'+i+'">🗑</button></td></tr>').join('')+'</table>'+
-      '<button class="btn small" id="addShop" style="margin-top:6px">+ Add shop item</button></div>';
+    h+='<div class="syswin"><span class="title">Store</span><div class="muted">Gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+'</b>. Buy potions and basic supplies. Sell from Inventory. Purchases are logged for the narrator.</div><div class="shop-list">'+S.shop.map((s,i)=>'<div class="shop-card"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.category?esc(s.category)+' · ':'')+esc(s.description||'')+'</div></div><div class="shop-buy"><div class="price">'+Number(s.price||0).toLocaleString()+' G</div><button class="btn small primary" data-buy="'+i+'" '+(p.gold>=s.price?'':'disabled')+' style="min-height:44px">Buy</button></div></div>').join('')+'</div></div>';
   }
   body.innerHTML=h;
 }
+function equipmentPanel(p){
+  const slots=[['weapon','Weapon'],['armor','Armor'],['helmet','Helmet'],['gloves','Gloves'],['boots','Boots'],['cloak','Cloak'],['ring','Ring'],['accessory','Accessory']];
+  const by={};
+  for(const it of (p.inventory||[])){if(it&&it.equipped){const s=itemSlot(it);if(s&&!by[s])by[s]=it;}}
+  const b=equippedBonuses(p);
+  const bonusBits=STAT_KEYS.filter(k=>b.stats[k]).map(k=>k.toUpperCase()+' +'+b.stats[k]);
+  if(b.maxHp)bonusBits.push('Max HP +'+b.maxHp);if(b.maxMp)bonusBits.push('Max MP +'+b.maxMp);if(b.atk)bonusBits.push('ATK +'+b.atk);
+  return '<div class="equip-panel">'+slots.map(([k,l])=>'<div class="equip-slot"><span class="k">'+l+'</span> '+(by[k]?'<b>'+esc(by[k].name)+'</b>':'<span class="muted">—</span>')+'</div>').join('')+(bonusBits.length?'<div class="muted" style="margin-top:6px">Equipped bonuses: '+esc(bonusBits.join(' · '))+'</div>':'')+'</div>';
+}
 function itemEditor(it,i){
   const statsTxt=Object.entries(it.stats||{}).map(([k,v])=>k+': '+v).join('\n');
-  return '<div class="list-item"><div class="head">'+li('inventory',i,'name',it.name,'style="flex:2 1 160px"')+'<span class="muted">×</span><input type="number" data-list="inventory" data-i="'+i+'" data-k="qty" value="'+esc(it.qty)+'" style="width:70px;flex:0 0 70px">'+
-    (it.acquisition_difficulty?'<span class="tag">'+esc(it.acquisition_difficulty)+'</span>':'')+
-    '<label style="flex:0 0 auto;margin:0"><input type="checkbox" data-list="inventory" data-i="'+i+'" data-k="equipped" '+(it.equipped?'checked':'')+'> Equipped</label>'+
-    (isBox(it)?'<button class="btn small primary" data-open="'+i+'">Open</button>':'<button class="btn small" data-use="'+i+'">Use</button>')+'<button class="icon" data-dellist="inventory" data-i="'+i+'">🗑</button></div>'+
-    '<details><summary>Details</summary><div class="row"><div><label>Category</label>'+li('inventory',i,'category',it.category)+'</div><div><label>Acquisition Difficulty</label>'+li('inventory',i,'acquisition_difficulty',it.acquisition_difficulty)+'</div><div><label>Durability</label>'+li('inventory',i,'durability',it.durability)+'</div></div>'+
-    '<label>Stats (one per line, e.g. "Attack: +20")</label><textarea data-list="inventory" data-i="'+i+'" data-k="stats">'+esc(statsTxt)+'</textarea>'+
+  const slot=itemSlot(it);const sell=itemSellPrice(it);
+  const fx=(it.effects||[]).join(' · ');
+  return '<div class="list-item item-card'+(it.equipped?' equipped':'')+'"><div class="head"><div style="flex:1 1 140px"><b>'+esc(it.name)+'</b>'+(it.qty>1?' <span class="muted">×'+esc(it.qty)+'</span>':'')+'<div class="muted" style="font-size:12px">'+(it.category?esc(it.category):'Item')+(it.acquisition_difficulty||it.rarity?' · '+esc(it.acquisition_difficulty||it.rarity):'')+(it.equipped?' · Equipped':'')+'</div></div>'+
+    (isBox(it)?'<button class="btn small primary" data-open="'+i+'" style="min-height:44px">Open</button>':'')+
+    ((potionEffect(it,S.player)||/^(consumable|potion|key|rune stone)$/i.test(it.category||''))?'<button class="btn small" data-use="'+i+'" style="min-height:44px">Use</button>':'')+
+    (slot?'<button class="btn small" data-equip="'+i+'" style="min-height:44px">'+(it.equipped?'Unequip':'Equip')+'</button>':'')+
+    '<button class="btn small" data-sell="'+i+'" style="min-height:44px">Sell ('+sell+'g)</button>'+
+    '<button class="icon" data-dellist="inventory" data-i="'+i+'" title="Delete">🗑</button></div>'+
+    (it.description?'<div class="item-desc">'+esc(it.description)+'</div>':'')+
+    (fx?'<div class="muted">'+esc(fx)+'</div>':'')+
+    (statsTxt?'<div class="muted">'+esc(statsTxt.replace(/\n/g,', '))+'</div>':'')+
+    '<details><summary>Edit</summary><div class="row"><div><label>Name</label>'+li('inventory',i,'name',it.name)+'</div><div><label>Qty</label><input type="number" data-list="inventory" data-i="'+i+'" data-k="qty" value="'+esc(it.qty)+'"></div><div><label>Category</label>'+li('inventory',i,'category',it.category)+'</div><div><label>Rarity</label>'+li('inventory',i,'acquisition_difficulty',it.acquisition_difficulty||it.rarity||'')+'</div></div>'+
+    '<label>Stats (one per line, e.g. "atk: 8")</label><textarea data-list="inventory" data-i="'+i+'" data-k="stats">'+esc(statsTxt)+'</textarea>'+
     '<label>Effects (one per line)</label><textarea data-list="inventory" data-i="'+i+'" data-k="effects">'+esc((it.effects||[]).join('\n'))+'</textarea>'+
-    '<label>Requirements</label>'+li('inventory',i,'requirements',it.requirements)+
     '<label>Description</label><textarea data-list="inventory" data-i="'+i+'" data-k="description">'+esc(it.description)+'</textarea></details></div>';
 }
 function onSysInput(e){
@@ -1741,8 +2104,26 @@ function onSysClick(e){
   if(t.dataset.open!==undefined){openBox(+t.dataset.open);return;}
   if(t.dataset.closebox){lastBoxResult=null;renderSystem();return;}
   if(t.dataset.use!==undefined){const idx=+t.dataset.use;const it=p.inventory[idx];if(!it)return;
-    if(confirm('Use "'+it.name+'"? This removes 1 from your Inventory and adds a System log so the narrator applies its effect next reply.')){
-      const name=it.name;it.qty--;if(it.qty<=0)p.inventory.splice(idx,1);syslog('Item used from Inventory: '+name+'. (Narrator: apply its canon effect and include the stat change in a system_update.)');save();renderSystem();}return;}
+    if(isBox(it)){openBox(idx);return;}
+    const r=useInventoryItem(p,idx,cfg());
+    if(!r.ok){toast(r.reason==='box'?'Open boxes with Open.':'That item cannot be used here.');return;}
+    syslog('Item used: '+r.name+(r.notes&&r.notes.length?' — '+r.notes.join('; '):'')+'.');
+    toast(r.notes.join(' · ')||('Used '+r.name));renderSystem();renderHud();return;}
+  if(t.dataset.equip!==undefined){const idx=+t.dataset.equip;const it=p.inventory[idx];if(!it)return;
+    const slot=itemSlot(it);if(!slot){toast('That cannot be equipped.');return;}
+    if(!it.equipped){for(const x of p.inventory){if(x!==it&&x.equipped&&itemSlot(x)===slot)x.equipped=false;}it.equipped=true;}
+    else it.equipped=false;
+    repairDerivedStats(p,cfg());save();renderSystem();renderHud();toast(it.equipped?('Equipped '+it.name):('Unequipped '+it.name));return;}
+  if(t.dataset.sell!==undefined){const idx=+t.dataset.sell;const it=p.inventory[idx];if(!it)return;
+    const price=itemSellPrice(it);
+    if(!confirm('Sell 1 × '+it.name+' for '+price+' gold?'))return;
+    p.gold=num(p.gold,0)+price;it.qty=num(it.qty,1)-1;if(it.qty<=0){if(it.equipped)it.equipped=false;p.inventory.splice(idx,1);}
+    repairDerivedStats(p,cfg());syslog('Sold '+it.name+' for '+price+' gold. Gold remaining: '+p.gold+'.');toast('Sold for '+price+' G');renderSystem();renderHud();return;}
+  if(t.id==='addItemQuick'){
+    const name=(($('#addItemName')||{}).value||'').trim();if(!name){toast('Enter an item name.');return;}
+    const cat=(($('#addItemCat')||{}).value||'Material').trim();const rank=(($('#addItemRank')||{}).value||'').trim();
+    p.inventory.push(normItem({name,category:cat,acquisition_difficulty:rank,description:'Added manually.'}));
+    save();renderSystem();toast('Added '+name);return;}
 }
 
 /* ================= DAILY QUEST & DAYS ================= */
@@ -1752,15 +2133,10 @@ function nextDay(){
   if(busy){toast('Wait for the narrator to finish.');return;}
   const d=S.daily,g=S.game;const done=dailyDone();
   if(!confirm('Advance to Day '+(g.day+1)+'?'+(done?'':'\n\n⚠ Today\'s Daily Quest is NOT complete — the canon Penalty Quest will trigger.')))return;
-  d.history=(d.history||[]).concat([{day:g.day,completed:done}]).slice(-60);
-  if(!done){
-    const p=S.player;const pq={name:'Penalty Quest: Survive',description:'Failure to complete the Daily Quest. Survive in the Penalty Zone until the time limit expires.',reward:'',deadline:'Penalty Zone time limit',status:'active',progress:''};
-    const i=p.quests.findIndex(q=>keyOf(q)===keyOf(pq));if(i>=0)p.quests[i]=pq;else p.quests.push(pq);
-    syslog('[Warning] Day '+g.day+': the Daily Quest "Preparation to Become Powerful" was NOT completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon: desert, giant centipedes, survive until the time limit). Narrator: run the Penalty Quest now.');
-  }
-  g.day+=1;d.items.forEach(x=>x.done=0);d.claimed=false;d.date='Day '+g.day;
-  syslog('— Day '+g.day+' begins'+(S.game.startDate?' · '+gameDateStr():'')+'. A new Daily Quest has arrived. —');
-  save();renderDaily();renderSystem();renderHud();toast(done?'Day '+g.day+' begins.':'Day '+g.day+' — Penalty Quest triggered!',4000);
+  const r=advanceGameDay(S);
+  if(r.penalty)syslog('[Warning] Day '+(r.day-1)+': the Daily Quest "Preparation to Become Powerful" was NOT completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon: desert, giant centipedes, survive until the time limit). Narrator: run the Penalty Quest now.');
+  syslog('— Day '+r.day+' begins'+(S.game.startDate?' · '+gameDateStr():'')+'. A new Daily Quest has arrived. —');
+  renderDaily();renderSystem();renderHud();toast(r.done?'Day '+r.day+' begins.':'Day '+r.day+' — Penalty Quest triggered!',4000);
 }
 function renderDaily(){
   if(!isAwakened()){$('#dailyBody').innerHTML=lockedMarkup('Daily Quest');return;}
@@ -1788,10 +2164,7 @@ function onDaily(e){
   else if(e.type==='click'&&btn&&btn.dataset.dtoggle!==undefined){const x=d.items[+btn.dataset.dtoggle];x.done=x.done>=x.target?0:x.target;}
   else if(e.type==='click'&&btn&&btn.dataset.dadd!==undefined){const x=d.items[+btn.dataset.dadd];x.done=Math.min(x.target,x.done+(x.unit==='km'?1:10));}
   else if(e.type==='click'&&btn&&btn.id==='dNext'){nextDay();return;}
-  else if(e.type==='click'&&btn&&btn.dataset.dclaim){if(d.claimed||!d.items.every(x=>x.done>=x.target))return;const p=S.player;p.hp=p.maxHp;p.mp=p.maxMp;p.fatigue=0;p.points+=3;
-    const hr=rankForLevel(S.rankChart,p.level);const tier=BOX_TIERS.includes(hr)?hr:(tierIdx(hr)?hr:'S');const box=normItem(makeBox({kind:btn.dataset.dclaim,tier:['National','Deity'].includes(hr)?'S':tier}));
-    const ex=p.inventory.find(x=>keyOf(x)===keyOf(box));if(ex)ex.qty++;else p.inventory.push(box);
-    d.claimed=true;syslog('[Daily Quest: Preparation to Become Powerful] completed ('+gameDateStr()+'). Rewards received: Full Recovery (HP/MP restored, fatigue cleared), 3 free Ability Points, '+box.name+' ×1 (unopened).');renderSystem();toast('Daily Quest complete! '+box.name+' added to Inventory.');}
+  else if(e.type==='click'&&btn&&btn.dataset.dclaim){const r=claimDailyReward(S.player,d,S.rankChart,btn.dataset.dclaim);if(!r.ok)return;syslog('[Daily Quest: Preparation to Become Powerful] completed ('+gameDateStr()+'). Rewards received: Full Recovery (HP/MP restored, fatigue cleared), 3 free Ability Points, '+r.box.name+' ×1 (unopened).');renderSystem();renderHud();toast('Daily Quest complete! '+r.box.name+' added to Inventory.');}
   else if(e.type==='click'&&btn&&btn.id==='dPenalty'){if(!confirm('Trigger the Penalty Quest now?'))return;
     syslog('[Warning] The Daily Quest was not completed. Penalty Quest triggered: the Player is transported to the PENALTY ZONE (canon penalty quest: "Survive"). Narrator: run the Penalty Quest now.');toast('Penalty logged to the story.');}
   else return;
