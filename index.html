@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -567,7 +567,7 @@ Pacing: one beat per reply, then stop and give her space to react. Do not inject
 Combat: when a COMBAT GUIDE is in the system context, follow it strictly. Do not one-shot a higher-level, orange, or red monster (a rare LUK/SEN weak-point crit may drop an orange if the fiction supports it; never a red). Mobs fight back; emit received damage as hp in <system_event> using the guide's numbers. Only resolve the outcome of actions she wrote — never decide her moves.
 Regeneration is innate and app-applied: do not award HP or write a regen window for it. If she is wounded, you may briefly describe minor wounds closing; the app updates HP.
 Titles are app-run. For a story feat with no app rule, emit title_earned[{name,description,effects}]. Do not invent titles, title windows, or title effects otherwise — the app awards them and draws '[You have acquired the title: X]'.
-If she skips or moves forward time (in story or OOC) and says she did her dailies, emit <system_event>{"time_skip":{"days":N,"dailies_done":true}}</system_event> in that reply (dailies_done may be a number of days if only some were completed). The app advances the day, awards Daily Quest rewards, and draws the notice — do not invent points, boxes, or HP/MP. If she asks (in story or OOC) to sell specific items and quantities, emit {"sell":[{"name":"Wolf Pelt","qty":10}]}. If she asks to mix, craft, or combine specific items, emit {"craft":[{"inputs":[{"name":"...","qty":N}],"output":{"name":"...","qty":1,"category":"...","description":"...","effects":[]}}]}. The app performs the sale or craft and draws the notice; reject items she does not have. Do not invent gold or items, and do not set max HP or max MP on crafted output.
+If she skips or moves forward time (in story or OOC) and says she did her dailies, emit <system_event>{"time_skip":{"days":N,"dailies_done":true}}</system_event> in that reply (dailies_done may be a number of days if only some were completed). The app advances the day, awards Daily Quest rewards, and draws the notice — do not invent points, boxes, or HP/MP. If she asks (in story or OOC) to sell, mix, craft, combine, fuse, merge, or meld items, emit a system_event in that reply: {"sell":[{"name":"Wolf Pelt","qty":10}]} or {"craft":[{"inputs":[{"name":"...","qty":N}],"output":{"name":"...","qty":1,"category":"...","description":"...","effects":[]}}]}. For bulk requests such as "fuse everything" or "fuse everything I'm not wearing", emit one or more craft entries with exact inventory names, real quantities, and concrete named outputs — never "new entries", and never invent a crafting tab or section. Leave keys, boxes, equipped gear, and quest items untouched unless she names them. The app performs the sale or craft and draws the notice; apply valid parts and skip items she does not have. Do not invent gold or items, and do not set max HP or max MP on crafted output.
 If the context lists "Since last reply, she did (app actions)", those already happened out-of-story. Acknowledge them naturally (NPCs or the world can notice a new item or outfit). Do not narrate her performing those actions or invent her feelings about them. She is already wearing any equipped gear and title listed under Currently equipped.
 Do not acknowledge this OOC note in the story.))`;
 function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
@@ -1645,7 +1645,9 @@ function collectNamedList(events,updates,keys){
   }
   return out;
 }
-function sellNamedItems(p,list){
+function sellNamedItems(p,list,opts){
+  opts=opts||{};
+  const userText=opts.userText||'';
   const sold=[];const rejected=[];
   for(const req of (list||[])){
     if(!req)continue;
@@ -1655,6 +1657,7 @@ function sellNamedItems(p,list){
     const i=findInventoryMatch(p,name);
     if(i<0){rejected.push({name,qty:Math.max(1,Math.floor(num(req.qty,1))),reason:'missing'});continue;}
     const it=p.inventory[i];
+    if(shouldProtectTradeItem(it,userText)){rejected.push({name:it.name,qty:Math.max(1,Math.floor(num(req.qty,1))),reason:'protected'});continue;}
     const have=Math.max(0,num(it.qty,1));
     const qty=wantAll?have:Math.max(1,Math.floor(num(req.qty,1)));
     if(have<qty||!have){rejected.push({name:it.name,qty,have,reason:'qty'});continue;}
@@ -1669,7 +1672,7 @@ function sellNamedItems(p,list){
     notices.push({title:'Notification',body:lines.join('\n')});
   }
   for(const r of rejected){
-    const msg=r.reason==='qty'?'You do not have '+r.qty+' × '+r.name+' (have '+(r.have||0)+').':'You do not have '+r.name+'.';
+    const msg=r.reason==='protected'?'Left '+r.name+' untouched (equipped, box, key, or quest item).':r.reason==='qty'?'You do not have '+r.qty+' × '+r.name+' (have '+(r.have||0)+').':'You do not have '+r.name+'.';
     notices.push({title:'Notification',body:msg});
   }
   return {ok:!!sold.length,sold,rejected,gold,notices};
@@ -1696,16 +1699,32 @@ function consumeNamedItems(p,list){
     if(it.qty<=0){if(it.equipped)it.equipped=false;p.inventory.splice(i,1);}
   }
 }
-function craftRecipes(p,recipes){
+function craftRecipes(p,recipes,opts){
+  opts=opts||{};
+  const userText=opts.userText||'';
   const crafted=[];const rejected=[];const notices=[];
   for(const rec of (recipes||[])){
     if(!rec)continue;
-    const inputs=(rec.inputs||rec.materials||rec.mats||rec.consume||[]).map(x=>{
+    let inputs=(rec.inputs||rec.materials||rec.mats||rec.consume||[]).map(x=>{
       if(typeof x==='string')return {name:x,qty:1};
       return {name:String(x.name||x.item||'').trim(),qty:Math.max(1,Math.floor(num(x.qty,1)))};
     }).filter(x=>x.name);
     const output=scrubCraftedItem(rec.output||rec.item||rec.result||rec);
     if(!output.name||output.name==='Item'&&!((rec.output||rec.item||rec.result||{}).name)){rejected.push({reason:'output',inputs});notices.push({title:'Notification',body:'The craft was missing a result item.'});continue;}
+    const protectedInputs=[];
+    inputs=inputs.filter(inp=>{
+      const idx=findInventoryMatch(p,inp.name);
+      const it=idx>=0?p.inventory[idx]:null;
+      if(it&&shouldProtectTradeItem(it,userText)){protectedInputs.push(it.name);return false;}
+      return true;
+    });
+    if(protectedInputs.length){
+      rejected.push({reason:'protected',name:output.name,protectedInputs});
+      notices.push({title:'Notification',body:'Left '+[...new Set(protectedInputs)].join(', ')+' untouched (equipped, box, key, or quest item).'});
+      if(!inputs.length)continue;
+      // If a recipe still mixed protected items with valid ones, do not consume the rest for that output.
+      continue;
+    }
     if(!inputs.length){rejected.push({reason:'inputs',name:output.name});notices.push({title:'Notification',body:'You do not have the materials to craft '+output.name+'.'});continue;}
     const missing=[];
     for(const inp of inputs){
@@ -1762,11 +1781,110 @@ function parseItemQtyList(text){
   }
   return out;
 }
+const TRADE_CRAFT_KEYS=['craft','crafts','forge','combine','fuse','fuses','fusion','merge','meld'];
+const TRADE_CRAFT_VERB=/\b(?:craft(?:s|ed|ing)?|mix(?:es|ed|ing)?|combine[sd]?|combin(?:e|ing)|forge(?:d|s|ing)?|fus(?:e|es|ed|ing|ion)|merg(?:e|es|ed|ing)|meld(?:s|ed|ing)?|upgrade[- ]?combin(?:e|es|ed|ing))\b/i;
+function isUnfusibleItem(it){
+  if(!it)return false;
+  if(it.equipped)return true;
+  if(typeof isBox==='function'&&isBox(it))return true;
+  const cat=String(it.category||'');
+  const name=String(it.name||'');
+  if(/\b(?:key|quest)\b/i.test(cat))return true;
+  if(/\b(?:dungeon\s+)?key\b/i.test(name))return true;
+  return false;
+}
+function userExplicitlyNamedItem(text,name){
+  const t=String(text||'');
+  const n=String(name||'').trim();
+  if(!t||!n)return false;
+  if(new RegExp('\\b'+escapeRe(n)+'\\b','i').test(t))return true;
+  const norm=normalizeItemName(n);
+  if(norm&&norm.length>=3&&new RegExp('\\b'+escapeRe(norm)+'\\b','i').test(normalizeItemName(t)))return true;
+  return false;
+}
+function shouldProtectTradeItem(it,userText){
+  return !!(it&&isUnfusibleItem(it)&&!userExplicitlyNamedItem(userText,it.name));
+}
+function userMentionsTrade(text){
+  const t=String(text||'');
+  return TRADE_CRAFT_VERB.test(t)||/\bsell(?:s|ing)?\b/i.test(t);
+}
+function userAsksBulkTrade(text){
+  const t=String(text||'');
+  if(!userMentionsTrade(t))return null;
+  const bulk=/\b(?:everything|every thing|all of (?:it|them|this|that|my|the)|all my|all the|the rest|all of my)\b/i.test(t)||/\b(?:fus(?:e|es|ed|ion)|craft|combine|merge|meld|mix|sell|forge)\s+all\b/i.test(t);
+  if(!bulk)return null;
+  const craft=TRADE_CRAFT_VERB.test(t);
+  return {kind:craft?'craft':'sell',unequippedOnly:/\b(?:not (?:wearing|equipped|worn)|i(?:['’])?m not wearing|that i(?:['’])?m not wearing|unequipped)\b/i.test(t),bulk:true};
+}
+function inventoryContextBlock(player){
+  const inv=(player&&player.inventory)||[];
+  if(!inv.length)return 'INVENTORY: empty.';
+  const lines=inv.map(it=>{
+    const qty=Math.max(1,num(it.qty,1));
+    let s='- '+it.name+(qty>1?' ×'+qty:'');
+    const bits=[];
+    if(it.category)bits.push(it.category);
+    if(it.equipped)bits.push('equipped');
+    else if(isUnfusibleItem(it))bits.push(isBox(it)?'box — leave unless she names it':'leave unless she names it');
+    if(bits.length)s+=' ('+bits.join('; ')+')';
+    return s;
+  });
+  return 'INVENTORY (authoritative names and quantities — use these exact names in sell/craft/fuse events):\n'+lines.join('\n');
+}
+function inventoryListIsShort(player){
+  const inv=(player&&player.inventory)||[];
+  return inv.length<=12||inventoryContextBlock(player).length<=800;
+}
+function tradeGuideBlock(){
+  return 'TRADE / FUSE GUIDE (app; follow this): If she asks to fuse, fusion, merge, meld, mix, combine, craft, forge, or sell, emit a <system_event> in this same reply. Use exact INVENTORY names and real quantities. Bulk requests such as "fuse everything", "fuse everything I\'m not wearing", "fuse all my stones", or "combine all the pelts" require one or more craft (or fuse) entries that consume the listed items being used, each with a concrete named output (e.g. Magic Stone (E) ×12 → Magic Stone (D); pelts or fangs → gear or materials; potions → a stronger potion). Multiple craft entries in one event are allowed. Never write "new entries" or a vague unlock. Do not invent app features the System does not have (no Intermediate Crafting tab or section). Leave keys, boxes, equipped gear, and quest items untouched unless she names those items. "Not wearing" / "not equipped" means skip equipped gear. Do not write loot or craft windows, and do not set max HP or max MP on outputs — the app applies the event and draws notices. If selling, emit {"sell":[{"name":"Exact Name","qty":N}]}.';
+}
+function tradeContextBlock(player,userText){
+  const mention=userMentionsTrade(userText);
+  if(!mention&&!inventoryListIsShort(player))return '';
+  let s=inventoryContextBlock(player);
+  if(mention)s+='\n\n'+tradeGuideBlock();
+  return s;
+}
+function craftRecordIsConcrete(rec){
+  if(!rec||typeof rec!=='object')return false;
+  const output=rec.output||rec.item||rec.result||null;
+  let name='';
+  if(output&&typeof output==='object')name=String(output.name||output.item||'').trim();
+  else if(typeof output==='string')name=output.trim();
+  if(!name&&rec.name&&(rec.inputs||rec.materials||rec.mats))name=String(rec.name).trim();
+  if(!name||name.length<2)return false;
+  if(/^(?:new entries|entries|items|loot|results?|output|something|various items|various|stuff)$/i.test(name))return false;
+  const inputs=(rec.inputs||rec.materials||rec.mats||rec.consume||[]);
+  return Array.isArray(inputs)&&inputs.length>0;
+}
+function collectTradeEvents(text){
+  const parsed=parseSystemUpdates(text||'');
+  const crafts=collectNamedList(parsed.events,parsed.updates,TRADE_CRAFT_KEYS);
+  const sells=collectNamedList(parsed.events,parsed.updates,['sell','sells','items_sell']);
+  return {crafts,sells,validCraft:crafts.some(craftRecordIsConcrete),validSell:sells.some(s=>s&&(s.name||s.item))};
+}
+function vagueTradeProse(text){
+  const t=String(text||'');
+  return /\bnew entries\b/i.test(t)||/\b(?:intermediate|advanced|basic|beginner)?\s*craft(?:ing)?\s+(?:tab|section|menu|window|screen|panel)s?\b/i.test(t)||/\bunlocked\b[\s\S]{0,60}\bcraft(?:ing)?\s+(?:tab|section|menu|window)/i.test(t)||/\bcraft(?:ing)?\s+(?:tab|section)\s+(?:unlocked|opened|appeared|available|added)\b/i.test(t);
+}
+function needsTradeEventRetry(replyText,userText){
+  if(!userMentionsTrade(userText))return '';
+  const ev=collectTradeEvents(replyText);
+  const bulk=userAsksBulkTrade(userText);
+  const vague=vagueTradeProse(replyText);
+  if(bulk){
+    if(bulk.kind==='sell'&&ev.validSell&&!vague)return '';
+    if(bulk.kind==='craft'&&ev.validCraft&&!vague)return '';
+    return vague?'vague':'missing';
+  }
+  if(vague&&!ev.validCraft&&!ev.validSell)return 'vague';
+  return '';
+}
 function detectUserCrafts(text){
   const t=String(text||'');
-  const verb=/\b(?:craft(?:s|ed|ing)?|mix(?:es|ed|ing)?|combine[sd]?|combin(?:e|ing)|forge(?:d|s|ing)?)\b/i;
-  if(!verb.test(t))return [];
-  const m=t.match(/\b(?:craft(?:s|ed|ing)?|mix(?:es|ed|ing)?|combine[sd]?|combin(?:e|ing)|forge(?:d|s|ing)?)\s+(?:(?:me|her|him)\s+)?(?:(?:a|an|one|the)\s+)?(.+?)\s+(?:from|using|with|out of)\s+(.+?)(?:[.!?]|$)/i);
+  if(!TRADE_CRAFT_VERB.test(t))return [];
+  const m=t.match(new RegExp(TRADE_CRAFT_VERB.source+'\\s+(?:(?:me|her|him)\\s+)?(?:(?:a|an|one|the)\\s+)?(.+?)\\s+(?:from|using|with|out of)\\s+(.+?)(?:[.!?]|$)','i'));
   if(!m)return [];
   const outName=String(m[1]||'').replace(/\s+/g,' ').trim();
   const inputs=parseItemQtyList(m[2]);
@@ -1841,13 +1959,13 @@ function runSystemEngine(p,text,cfg,opts){
     const sellList=collectNamedList(events,updates,['sell','sells','items_sell']);
     if(!sellList.length&&userText)sellList.push.apply(sellList,detectUserSells(userText));
     if(sellList.length){
-      const sr=sellNamedItems(p,sellList);
+      const sr=sellNamedItems(p,sellList,{userText});
       for(const n of (sr.notices||[]))notices.push(n);
     }
-    const craftList=collectNamedList(events,updates,['craft','crafts','forge','combine']);
+    const craftList=collectNamedList(events,updates,TRADE_CRAFT_KEYS);
     if(!craftList.length&&userText)craftList.push.apply(craftList,detectUserCrafts(userText));
     if(craftList.length){
-      const cr=craftRecipes(p,craftList);
+      const cr=craftRecipes(p,craftList,{userText});
       for(const n of (cr.notices||[]))notices.push(n);
     }
     let skip=collectTimeSkip(events,updates);
@@ -2535,7 +2653,7 @@ function commitActionLog(state,msgIndex,alt,used){
   let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
   if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -2815,11 +2933,30 @@ function changesWindow(notes,errors){
 /* ================= STORY ================= */
 let busy=false,abortCtl=null,editing=null;
 function curAlt(m){return m.alts[m.sel];}
-function renderLog(){
+let storyScrollY=0;
+function isStoryTab(){const story=$('#tab-story');return !!(story&&story.classList.contains('active'));}
+function currentScrollY(){return window.scrollY||document.documentElement.scrollTop||0;}
+function rememberStoryScroll(){if(isStoryTab())storyScrollY=currentScrollY();return storyScrollY;}
+function restoreStoryScroll(y){
+  if(!isStoryTab())return;
+  const top=Math.max(0,y==null?storyScrollY:num(y,0));
+  storyScrollY=top;
+  const go=()=>{streamScroll.programmatic=true;try{window.scrollTo(0,top);}catch(e){}};
+  go();
+  const raf=typeof requestAnimationFrame==='function'?requestAnimationFrame:fn=>setTimeout(fn,16);
+  raf(()=>{go();raf(()=>{go();clearTimeout(streamScroll.progTimer);streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;syncChrome();updateJumpBtn();},40);});});
+}
+function renderLog(opts){
+  opts=opts||{};
+  const onStory=isStoryTab();
+  if(onStory&&opts.y==null)storyScrollY=currentScrollY();
+  const y=opts.y!=null?opts.y:storyScrollY;
   const log=$('#log');
   if(!S.messages.length){log.innerHTML='<div class="card welcome-card" data-marker="arise-sys-awaken-v1"><h2>Begin</h2><p>You are an E-rank hunter in Norway. The story starts at a gate in Nordmarka — a raid that will not stay ordinary.</p><p class="muted">Set up the Character &amp; World tab and paste your xAI API key in Settings. Then either press <b>Begin opening scene</b> (the double dungeon, then Sól, then rebirth — editable in Character &amp; World) or write your own first post below.</p><p class="muted">The System will not appear until you are chosen.</p><button class="btn primary" id="beginOpening">Begin opening scene</button></div>';}
   else log.innerHTML=S.messages.map((m,i)=>renderMsg(m,i)).join('');
-  renderHud();syncStoryChrome();updateJumpBtn();
+  renderHud();syncStoryChrome();
+  if(onStory&&opts.restore!==false)restoreStoryScroll(y);
+  else updateJumpBtn();
 }
 function editBox(t){return '<textarea class="editArea" style="min-height:160px">'+esc(t)+'</textarea><div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small primary" data-act="saveEdit">Save</button> <button class="btn small" data-act="cancelEdit">Cancel</button></div></div>';}
 
@@ -2941,6 +3078,14 @@ async function regenerate(i){
       const retry=msgs.concat([{role:'system',content:'((OOC: Your previous draft broke the player-control rule. Rewrite the same world/NPC consequences only. Do not write, quote, or restate her dialogue, and do not narrate her actions, gestures, expressions, or feelings. Start from the world\'s reaction. Draft to fix:\n'+String(parseSystemUpdates(draft).clean).slice(0,1200)+'))'}]);
       try{a.text=await chat(retry,{stream:cfg().stream,onDelta:(full)=>{a.text=full;updateStreaming(i);}});}
       catch(e2){if(e2.name!=='AbortError'){if(!a.text)a.text=draft;else a.reqErrors=(a.reqErrors||[]).concat(['Rewrite failed: '+e2.message]);}else if(!a.text)a.text=draft;}
+    }else if(isAwakened()){
+      const miss=needsTradeEventRetry(a.text,prevUser&&prevUser.text);
+      if(miss){
+        const draft=a.text;$('#statusLine').textContent='rewriting…';
+        const retry=msgs.concat([{role:'system',content:'((OOC: She asked to fuse, craft, or sell items. Your previous draft had no valid <system_event> with concrete named craft or sell entries, or it used vague wording such as "new entries" or invented a crafting tab/section. Rewrite the same scene and emit one or more craft or sell events using exact INVENTORY names and real quantities. Name each output clearly. Leave keys, boxes, equipped gear, and quest items untouched unless she named them. "Not wearing" means skip equipped items. Do not invent gold, items, crafting tabs, or max HP/MP. The app applies the event.\n'+inventoryContextBlock(S.player)+'\n\nDraft to fix:\n'+String(parseSystemUpdates(draft).clean).slice(0,1200)+'))'}]);
+        try{a.text=await chat(retry,{stream:cfg().stream,onDelta:(full)=>{a.text=full;updateStreaming(i);}});}
+        catch(e2){if(e2.name!=='AbortError'){if(!a.text)a.text=draft;else a.reqErrors=(a.reqErrors||[]).concat(['Rewrite failed: '+e2.message]);}else if(!a.text)a.text=draft;}
+      }
     }
   }
   clearInterval(tick);
@@ -2963,8 +3108,8 @@ function scrollToMsgTop(i){
   streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;},450);
 }
 function startStreamScroll(i){
-  if(streamScroll.i!==i)streamScroll={i,initialDone:false,userMoved:false,programmatic:false,progTimer:streamScroll.progTimer||0};
-  if(!streamScroll.initialDone&&!streamScroll.userMoved){streamScroll.initialDone=true;scrollToMsgTop(i);}
+  if(streamScroll.i!==i)streamScroll={i,initialDone:true,userMoved:false,programmatic:false,progTimer:streamScroll.progTimer||0};
+  // Keep her where she was. Never auto-scroll to the top or follow the stream; only ↑ Top and jump-to-latest move the page.
 }
 function syncChrome(){
   const header=document.querySelector('header');const root=document.documentElement;
@@ -2982,7 +3127,7 @@ function syncChrome(){
   const topBtn=$('#jumpTop');if(topBtn)topBtn.hidden=window.scrollY<80;
   updateJumpBtn();
 }
-function onWinScroll(){syncChrome();if(streamScroll.programmatic)return;if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;}
+function onWinScroll(){syncChrome();if(streamScroll.programmatic)return;if(isStoryTab())storyScrollY=currentScrollY();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;}
 function updateJumpBtn(){
   const btn=$('#jumpLatest');if(!btn)return;
   const story=$('#tab-story');if(!story||!story.classList.contains('active')||!S||!S.messages||!S.messages.length){btn.hidden=true;return;}
@@ -2994,13 +3139,13 @@ function jumpToLatest(){streamScroll.userMoved=false;streamScroll.programmatic=t
   const go=()=>{try{window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});}catch(e){window.scrollTo(0,document.documentElement.scrollHeight);}};
   go();
   streamScroll.progTimer=setTimeout(()=>{syncChrome();go();streamScroll.programmatic=false;updateJumpBtn();},450);}
-function jumpToTop(){streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+function jumpToTop(){storyScrollY=0;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
   try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){window.scrollTo(0,0);}
   streamScroll.progTimer=setTimeout(()=>{syncChrome();streamScroll.programmatic=false;updateJumpBtn();},450);}
 function updateStreaming(i){
   const go=()=>{
     const el=document.querySelector('.msg[data-i="'+i+'"] .body');
-    if(!el||el.querySelector('.thinking')){renderLog();startStreamScroll(i);return;}
+    if(!el||el.querySelector('.thinking')){renderLog();return;}
     const allow=showSystemInMsg(i);
     el.innerHTML=renderProse(parseSystemUpdates(curAlt(S.messages[i]).text).clean,allow);
     updateJumpBtn();
@@ -3031,7 +3176,7 @@ function buildContext(uptoIndex,continuation,instruction){
     (w.summary?'\n\nSTORY SO FAR: '+w.summary:'')+
     '\n\nHunter rank by level: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
     (isAwakened()?'\n\nRIGHT NOW: System is awake. Windows only when there is something to tell her; most replies have none. Occasional (sparing) voice of '+(c.patronName||c.patronType||'Sól')+'.':'')+
-    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex)+'\n\n'+equippedContextBlock(S.player)+(((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[])).length?('\n'+formatActionLog((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[]))):'');
+    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex)+'\n\n'+equippedContextBlock(S.player)+((isAwakened()&&!(S.world&&S.world.openingActive)&&(userMentionsTrade(prevUserText(S.messages,uptoIndex))||inventoryListIsShort(S.player)))?'\n\n'+tradeContextBlock(S.player,prevUserText(S.messages,uptoIndex)):'')+(((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[])).length?('\n'+formatActionLog((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[]))):'');
   const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
   const recent=hist.slice(-Math.max(2,num(S.settings.contextMessages,40)));
   const out=[{role:'system',content:sys}];
@@ -3908,10 +4053,20 @@ function renderStatRankTable(){
   $('#statRankTable').innerHTML='<tr><th>Stat rank</th><th>Up to (blank = no cap)</th><th></th></tr>'+S.statRanks.map((r,i)=>'<tr><td><input type="text" data-srank="'+i+'" data-k="rank" value="'+esc(r.rank)+'"></td><td><input type="number" data-srank="'+i+'" data-k="max" value="'+esc(r.max==null?'':r.max)+'"></td><td><button class="icon" data-delsrank="'+i+'">🗑</button></td></tr>').join('');
 }
 function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
-function showTab(name){document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
+function showTab(name){
+  const prevBtn=[...document.querySelectorAll('#tabs button')].find(b=>b.classList.contains('active'));
+  const from=prevBtn&&prevBtn.dataset.tab;
+  if(from==='story')rememberStoryScroll();
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
-  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge'){renderForgeInv();syncStoryChrome();}if(name==='story')renderLog();if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();syncChrome();}
+  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge'){renderForgeInv();syncStoryChrome();}if(name==='story')renderLog({y:storyScrollY});if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();syncChrome();
+  if(name==='story')restoreStoryScroll(storyScrollY);
+}
 
+if(typeof window!=='undefined'){
+  window.SoloRP=window.SoloRP||{};
+  Object.assign(window.SoloRP,{renderLog,showTab,afterChange,updateStreaming,startStreamScroll,jumpToTop,jumpToLatest,rememberStoryScroll,restoreStoryScroll,getStoryScrollY:()=>storyScrollY,getState:()=>S});
+}
 function init(){
   S=load();setTimeout(saveNow,0); // persist migrations right away
   document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
