@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -769,6 +769,16 @@ function parseSystemUpdates(text){
   const reUp=pull(text||'','system_update',updates);
   const reEv=pull(text||'','system_event',events);
   let clean=(text||'').replace(reUp,'').replace(reEv,'');
+  const reSys=/<system>([\s\S]*?)<\/system>/gi;let sm;
+  while((sm=reSys.exec(text||''))){
+    const obj=parseJsonBlock(sm[1],[],'system');
+    if(obj&&typeof obj==='object'&&typeof isCraftishObject==='function'&&isCraftishObject(obj)){events.push(obj);clean=clean.replace(sm[0],'');}
+  }
+  const reFence=/```(?:json)?\s*([\s\S]*?)```/gi;let fm;
+  while((fm=reFence.exec(text||''))){
+    const obj=parseJsonBlock(fm[1],[],'json');
+    if(obj&&typeof obj==='object'&&typeof isCraftishObject==='function'&&isCraftishObject(obj)){events.push(obj);clean=clean.replace(fm[0],'');}
+  }
   clean=clean.replace(/<system_update>[\s\S]*$/i,'').replace(/<system_event>[\s\S]*$/i,'');
   return {updates,events,errors,clean:clean.trim()};
 }
@@ -1612,26 +1622,63 @@ function revertWorldPatch(state,patch){
   }
 }
 function normalizeItemName(s){
-  return keyOf(s).replace(/['’]/g,'').replace(/\b(the|a|an)\b/g,' ').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()
-    .replace(/ies$/,'y').replace(/ses$/,'s').replace(/s$/,'');
+  let t=keyOf(s).replace(/['’]/g,'');
+  t=t.replace(/\b(the|a|an)\b/g,' ');
+  t=t.replace(/\b([edcbas])[\s\-]*rank\b/g,' $1 ');
+  t=t.replace(/\brank[\s\-]*([edcbas])\b/g,' $1 ');
+  t=t.replace(/[^a-z0-9]+/g,' ');
+  t=t.replace(/\s+/g,' ').trim();
+  t=t.split(' ').map(w=>{
+    if(!w||w.length<=2)return w;
+    if(/ies$/.test(w))return w.replace(/ies$/,'y');
+    if(/(xes|zes|ches|shes)$/.test(w))return w.replace(/e?s$/,'');
+    if(/ses$/.test(w))return w.replace(/ses$/,'s');
+    if(/s$/.test(w)&&!/ss$/.test(w))return w.slice(0,-1);
+    return w;
+  }).join(' ').trim();
+  return t;
+}
+function itemNameParts(name){
+  const n=normalizeItemName(name);
+  const ranks=['e','d','c','b','a','s'];
+  const toks=(n?n.split(' '):[]).filter(Boolean);
+  const rank=toks.filter(p=>p.length===1&&ranks.indexOf(p)>=0).pop()||'';
+  const base=toks.filter(p=>!(p.length===1&&ranks.indexOf(p)>=0)).join(' ');
+  return {norm:n,base,rank};
+}
+function findInventoryMatches(p,name){
+  if(!p||!Array.isArray(p.inventory)||!name)return [];
+  const q=itemNameParts(name);
+  if(!q.norm&&!q.base)return [];
+  const hits=[];
+  p.inventory.forEach((x,idx)=>{
+    if(!x||!x.name)return;
+    if(keyOf(x)===keyOf(name)){hits.push({idx,score:100,qty:Math.max(0,num(x.qty,1)),rank:itemNameParts(x.name).rank});return;}
+    const r=itemNameParts(x.name);
+    if(!r.norm)return;
+    let score=0;
+    if(r.norm===q.norm)score=100;
+    else if(q.base&&r.base===q.base){
+      if(q.rank&&r.rank&&q.rank===r.rank)score=90;
+      else if(q.rank&&r.rank&&q.rank!==r.rank)score=0;
+      else if(!q.rank)score=70;
+      else score=40;
+    }else if(q.base&&r.base&&(r.base.indexOf(q.base)>=0||q.base.indexOf(r.base)>=0))score=55;
+    if(score)hits.push({idx,score,qty:Math.max(0,num(x.qty,1)),rank:r.rank});
+  });
+  const rankOrder={e:1,d:2,c:3,b:4,a:5,s:6};
+  hits.sort((a,b)=>b.score-a.score||(rankOrder[a.rank]||9)-(rankOrder[b.rank]||9)||b.qty-a.qty);
+  return hits;
 }
 function findInventoryMatch(p,name){
-  if(!p||!Array.isArray(p.inventory)||!name)return -1;
-  const k=keyOf(name);
-  let i=p.inventory.findIndex(x=>keyOf(x)===k);
-  if(i>=0)return i;
-  const n1=normalizeItemName(name);
-  if(!n1)return -1;
-  const hits=[];
-  p.inventory.forEach((x,idx)=>{if(normalizeItemName(x.name)===n1)hits.push(idx);});
-  if(hits.length)return hits[0];
-  const loose=[];
-  p.inventory.forEach((x,idx)=>{const xn=normalizeItemName(x.name);if(xn===n1||xn.endsWith(' '+n1)||n1.endsWith(' '+xn))loose.push(idx);});
-  return loose.length===1?loose[0]:-1;
+  const hits=findInventoryMatches(p,name);
+  return hits.length?hits[0].idx:-1;
 }
 function inventoryQtyByName(p,name){
-  const i=findInventoryMatch(p,name);
-  return i<0?0:Math.max(0,num(p.inventory[i].qty,1));
+  const hits=findInventoryMatches(p,name);
+  if(!hits.length)return 0;
+  const top=hits[0];
+  return hits.filter(h=>h.idx===top.idx||(h.score>=90&&h.rank===top.rank)).reduce((s,h)=>s+h.qty,0);
 }
 function collectNamedList(events,updates,keys){
   const out=[];
@@ -1706,12 +1753,16 @@ function craftRecipes(p,recipes,opts){
   const crafted=[];const rejected=[];const notices=[];
   for(const rec of (recipes||[])){
     if(!rec)continue;
-    let inputs=(rec.inputs||rec.materials||rec.mats||rec.consume||[]).map(x=>{
-      if(typeof x==='string')return {name:x,qty:1};
-      return {name:String(x.name||x.item||'').trim(),qty:Math.max(1,Math.floor(num(x.qty,1)))};
-    }).filter(x=>x.name);
-    const output=scrubCraftedItem(rec.output||rec.item||rec.result||rec);
-    if(!output.name||output.name==='Item'&&!((rec.output||rec.item||rec.result||{}).name)){rejected.push({reason:'output',inputs});notices.push({title:'Notification',body:'The craft was missing a result item.'});continue;}
+    const norm=normalizeCraftRecord(rec)||rec;
+    let inputs=(norm.inputs||[]).slice();
+    if(!inputs.length){
+      inputs=(rec.inputs||rec.materials||rec.mats||rec.consume||[]).map(x=>{
+        if(typeof x==='string')return {name:x,qty:1};
+        return {name:String(x.name||x.item||'').trim(),qty:Math.max(1,Math.floor(num(x.qty,1)))};
+      }).filter(x=>x.name);
+    }
+    const output=scrubCraftedItem(norm.output||rec.output||rec.item||rec.result||rec);
+    if(!output.name||output.name==='Item'&&!((norm.output||rec.output||rec.item||rec.result||{}).name)){rejected.push({reason:'output',inputs});if(!opts.silent)notices.push({title:'Notification',body:'The craft was missing a result item.'});continue;}
     const protectedInputs=[];
     inputs=inputs.filter(inp=>{
       const idx=findInventoryMatch(p,inp.name);
@@ -1721,10 +1772,8 @@ function craftRecipes(p,recipes,opts){
     });
     if(protectedInputs.length){
       rejected.push({reason:'protected',name:output.name,protectedInputs});
-      notices.push({title:'Notification',body:'Left '+[...new Set(protectedInputs)].join(', ')+' untouched (equipped, box, key, or quest item).'});
+      if(!opts.silent)notices.push({title:'Notification',body:'Left '+[...new Set(protectedInputs)].join(', ')+' untouched (equipped, box, key, or quest item).'});
       if(!inputs.length)continue;
-      // If a recipe still mixed protected items with valid ones, do not consume the rest for that output.
-      continue;
     }
     if(!inputs.length){rejected.push({reason:'inputs',name:output.name});notices.push({title:'Notification',body:'You do not have the materials to craft '+output.name+'.'});continue;}
     const missing=[];
@@ -1741,9 +1790,11 @@ function craftRecipes(p,recipes,opts){
     consumeNamedItems(p,inputs);
     if(!output.qty||output.qty<1)output.qty=1;
     addItemToInventory(p,output);
-    crafted.push({name:output.name,qty:output.qty,inputs});
+    const extras=norm.extraOutputs||[];
+    extras.forEach(ex=>{if(ex&&ex.name){if(!ex.qty||ex.qty<1)ex.qty=1;addItemToInventory(p,ex);}});
+    crafted.push({name:output.name,qty:output.qty,inputs,extraOutputs:extras});
     const used=inputs.map(x=>x.name+(x.qty>1?' ×'+x.qty:'')).join(', ');
-    notices.push({title:'Notification',body:'Crafted '+output.name+(output.qty>1?' ×'+output.qty:'')+'. Materials consumed: '+used+'.'});
+    if(!opts.silent)notices.push({title:'Notification',body:'Crafted '+output.name+(output.qty>1?' ×'+output.qty:'')+'. Materials consumed: '+used+'.'});
   }
   return {ok:!!crafted.length,crafted,rejected,notices};
 }
@@ -1773,7 +1824,9 @@ function parseItemQtyList(text){
   const parts=String(text||'').split(/\s*(?:,|;|&|\band\b)\s*/);
   for(const part of parts){
     const bit=part.trim();if(!bit)continue;
-    const m=bit.match(/^(?:(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|a|an)\s*[x×]?\s+)?(.+)$/i);
+    let m=bit.match(/^(.+?)\s*[x×]\s*(\d+)$/i);
+    if(m&&!/^\d/.test(m[1].trim())){const name=String(m[1]||'').replace(/\s+/g,' ').trim();if(name.length>=3)out.push({name,qty:Math.max(1,parseInt(m[2],10))});continue;}
+    m=bit.match(/^(?:(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|a|an)\s*[x×]?\s+)?(.+)$/i);
     if(!m)continue;
     const name=String(m[2]||'').replace(/\s+/g,' ').trim();
     if(!name||name.length<3)continue;
@@ -1782,7 +1835,7 @@ function parseItemQtyList(text){
   }
   return out;
 }
-const TRADE_CRAFT_KEYS=['craft','crafts','forge','combine','fuse','fuses','fusion','merge','meld'];
+const TRADE_CRAFT_KEYS=['craft','crafts','crafted','crafting','forge','combine','fuse','fuses','fused','fusion','merge','merged','meld','melded'];
 const TRADE_CRAFT_VERB=/\b(?:craft(?:s|ed|ing)?|mix(?:es|ed|ing)?|combine[sd]?|combin(?:e|ing)|forge(?:d|s|ing)?|fus(?:e|es|ed|ing|ion)|merg(?:e|es|ed|ing)|meld(?:s|ed|ing)?|upgrade[- ]?combin(?:e|es|ed|ing))\b/i;
 function isUnfusibleItem(it){
   if(!it)return false;
@@ -1838,7 +1891,7 @@ function inventoryListIsShort(player){
   return inv.length<=12||inventoryContextBlock(player).length<=800;
 }
 function tradeGuideBlock(){
-  return 'TRADE / FUSE GUIDE (app; follow this): If she asks to fuse, fusion, merge, meld, mix, combine, craft, forge, or sell, emit a <system_event> in this same reply. Use exact INVENTORY names and real quantities. Bulk requests such as "fuse everything", "fuse everything I\'m not wearing", "fuse all my stones", or "combine all the pelts" require one or more craft (or fuse) entries that consume the listed items being used, each with a concrete named output (e.g. Magic Stone (E) ×12 → Magic Stone (D); pelts or fangs → gear or materials; potions → a stronger potion). Multiple craft entries in one event are allowed. Never write "new entries" or a vague unlock. Do not invent app features the System does not have (no Intermediate Crafting tab or section). Leave keys, boxes, equipped gear, and quest items untouched unless she names those items. "Not wearing" / "not equipped" means skip equipped gear. Do not write loot or craft windows, and do not set max HP or max MP on outputs — the app applies the event and draws notices. If selling, emit {"sell":[{"name":"Exact Name","qty":N}]}.';
+  return 'TRADE / FUSE GUIDE (app; follow this): If she asks to fuse, fusion, merge, meld, mix, combine, craft, forge, or sell, emit a <system_event> in this same reply. Use exact INVENTORY names and real quantities. Bulk requests such as "fuse everything", "fuse everything I\'m not wearing", "fuse all my stones", or "combine all the pelts" require one or more craft (or fuse) entries that consume the listed items being used, each with a concrete named output (e.g. Magic Stone (E-rank) ×10 → Magic Stone (D-rank); pelts or fangs → gear or materials; potions → a stronger potion). Multiple craft entries in one event are allowed. Never write "new entries" or a vague unlock. Do not invent app features the System does not have (no Intermediate Crafting tab or section). Leave keys, boxes, equipped gear, and quest items untouched unless she names those items. "Not wearing" / "not equipped" means skip equipped gear. Do not write loot or craft windows, and do not set max HP or max MP on outputs — the app applies the event and draws notices. If selling, emit {"sell":[{"name":"Exact Name","qty":N}]}.';
 }
 function tradeContextBlock(player,userText){
   const mention=userMentionsTrade(userText);
@@ -1848,20 +1901,14 @@ function tradeContextBlock(player,userText){
   return s;
 }
 function craftRecordIsConcrete(rec){
-  if(!rec||typeof rec!=='object')return false;
-  const output=rec.output||rec.item||rec.result||null;
-  let name='';
-  if(output&&typeof output==='object')name=String(output.name||output.item||'').trim();
-  else if(typeof output==='string')name=output.trim();
-  if(!name&&rec.name&&(rec.inputs||rec.materials||rec.mats))name=String(rec.name).trim();
-  if(!name||name.length<2)return false;
-  if(/^(?:new entries|entries|items|loot|results?|output|something|various items|various|stuff)$/i.test(name))return false;
-  const inputs=(rec.inputs||rec.materials||rec.mats||rec.consume||[]);
-  return Array.isArray(inputs)&&inputs.length>0;
+  const n=normalizeCraftRecord(rec);
+  if(!n||!n.output||!n.output.name||n.output.name.length<2)return false;
+  if(/^(?:new entries|entries|items|loot|results?|output|something|various items|various|stuff)$/i.test(n.output.name))return false;
+  return !!(n.inputs&&n.inputs.length);
 }
 function collectTradeEvents(text){
   const parsed=parseSystemUpdates(text||'');
-  const crafts=collectNamedList(parsed.events,parsed.updates,TRADE_CRAFT_KEYS);
+  const crafts=collectCraftList(parsed.events,parsed.updates);
   const sells=collectNamedList(parsed.events,parsed.updates,['sell','sells','items_sell']);
   return {crafts,sells,validCraft:crafts.some(craftRecordIsConcrete),validSell:sells.some(s=>s&&(s.name||s.item))};
 }
@@ -1882,6 +1929,165 @@ function needsTradeEventRetry(replyText,userText){
   if(vague&&!ev.validCraft&&!ev.validSell)return 'vague';
   return '';
 }
+const NOTHING_FUSED_NOTICE='Nothing was fused — tap redo or use System → Inventory.';
+const FUSE_RANK_NEXT={E:'D',D:'C',C:'B',B:'A',A:'S'};
+function isCraftishObject(o){
+  if(!o||typeof o!=='object'||Array.isArray(o))return false;
+  const keys=Object.keys(o).map(k=>k.toLowerCase());
+  if(keys.some(k=>TRADE_CRAFT_KEYS.indexOf(k)>=0))return true;
+  const typ=String(o.type||o.action||o.kind||o.event||'').toLowerCase();
+  if(TRADE_CRAFT_KEYS.indexOf(typ)>=0||TRADE_CRAFT_VERB.test(typ))return true;
+  if((o.inputs||o.materials||o.mats||o.consume)&&(o.output||o.outputs||o.result||o.results||o.item))return true;
+  return false;
+}
+function normalizeCraftRecord(rec){
+  if(!rec||typeof rec!=='object'||Array.isArray(rec))return null;
+  for(let i=0;i<TRADE_CRAFT_KEYS.length;i++){
+    const inner=rec[TRADE_CRAFT_KEYS[i]];
+    if(inner&&typeof inner==='object'&&!Array.isArray(inner)&&(inner.inputs||inner.materials||inner.output||inner.results||inner.result))return normalizeCraftRecord(inner);
+  }
+  let inputs=rec.inputs||rec.materials||rec.mats||rec.consume||rec.from||rec.used||[];
+  if(typeof inputs==='string')inputs=parseItemQtyList(inputs);
+  else inputs=(Array.isArray(inputs)?inputs:[inputs]).map(x=>{
+    if(typeof x==='string'){
+      const parsed=parseItemQtyList(x);
+      if(parsed.length)return parsed[0];
+      return {name:x.trim(),qty:1};
+    }
+    const name=String((x&&(x.name||x.item||x.item_name))||'').trim();
+    return {name,qty:Math.max(1,Math.floor(num(x&&(x.qty!=null?x.qty:x.count),1)))};
+  }).filter(x=>x&&x.name);
+  let outputs=rec.output||rec.outputs||rec.item||rec.result||rec.results||rec.creates||rec.into||rec.to;
+  if(outputs==null&&rec.name&&inputs.length)outputs={name:rec.name,qty:rec.qty||1,category:rec.category,description:rec.description,effects:rec.effects};
+  if(typeof outputs==='string')outputs=[{name:outputs,qty:1}];
+  if(outputs&&!Array.isArray(outputs)&&typeof outputs==='object')outputs=[outputs];
+  if(!outputs||!outputs.length||!inputs.length)return null;
+  outputs=outputs.map(o=>typeof o==='string'?scrubCraftedItem({name:o,qty:1}):scrubCraftedItem(o)).filter(o=>o&&o.name&&o.name!=='Item');
+  if(!outputs.length)return null;
+  return {inputs,output:outputs[0],extraOutputs:outputs.slice(1)};
+}
+function collectCraftList(events,updates){
+  const out=[];const seen={};
+  const add=rec=>{
+    const n=normalizeCraftRecord(rec);if(!n)return;
+    const sig=JSON.stringify(n);if(seen[sig])return;seen[sig]=1;out.push(n);
+  };
+  const src=[].concat(events||[],updates||[]);
+  for(const o of src){
+    if(!o||typeof o!=='object')continue;
+    let used=false;
+    for(const k of TRADE_CRAFT_KEYS){
+      if(o[k]==null)continue;
+      used=true;
+      const list=o[k];
+      (Array.isArray(list)?list:[list]).forEach(add);
+    }
+    if(!used&&isCraftishObject(o))add(o);
+  }
+  return out;
+}
+function itemRankFromName(name){
+  const s=String(name||'');
+  const m=s.match(/\b([EDCBAS])[\s\-]*rank\b/i)||s.match(/\(([EDCBAS])\)/);
+  return m?m[1].toUpperCase():'';
+}
+function withRankName(name,newRank){
+  if(/\b[EDCBAS][\s\-]*rank\b/i.test(name))return name.replace(/\b[EDCBAS][\s\-]*rank\b/i,newRank+'-rank');
+  if(/\(([EDCBAS])\)/.test(name))return name.replace(/\(([EDCBAS])\)/,'('+newRank+')');
+  return String(name||'').trim()+' ('+newRank+'-rank)';
+}
+function isGearItem(it){
+  const cat=String((it&&(it.category||''))+' '+(it&&it.slot||''));
+  return /\b(weapon|armor|helmet|glove|boot|cloak|ring|accessory|equip)\b/i.test(cat);
+}
+function isAutoFusableItem(it,userText){
+  if(!it||shouldProtectTradeItem(it,userText))return false;
+  if(isGearItem(it))return false;
+  return true;
+}
+function potionUpgradeName(name){
+  if(/\bLow\s*Grade\b/i.test(name))return name.replace(/\bLow\s*Grade\b/i,'Mid Grade');
+  if(/\bMid\s*Grade\b/i.test(name))return name.replace(/\bMid\s*Grade\b/i,'High Grade');
+  if(/\bHigh\s*Grade\b/i.test(name)){
+    if(/^Greater\b/i.test(name))return null;
+    return 'Greater '+name.replace(/\s*\((?:High\s*Grade)\)/i,'').trim();
+  }
+  if(/^Greater\b/i.test(name))return null;
+  return 'Greater '+name;
+}
+function bundleUpgradeName(name){
+  if(/\bbundle\b/i.test(name)){
+    if(/^High[\s\-]?grade\b/i.test(name))return null;
+    return 'High-grade '+name;
+  }
+  return String(name||'').replace(/\s+$/,'')+' Bundle';
+}
+function materialUpgradeName(it){
+  const name=it&&it.name||'';
+  const rank=itemRankFromName(name);
+  if(/potion/i.test(name)||/potion|consumable/i.test(it.category||''))return potionUpgradeName(name);
+  if(/beast\s*core/i.test(name)){
+    if(rank&&FUSE_RANK_NEXT[rank])return withRankName(name,FUSE_RANK_NEXT[rank]);
+    if(/^High[\s\-]?grade\b/i.test(name))return null;
+    return 'High-grade '+name;
+  }
+  if(rank&&FUSE_RANK_NEXT[rank])return withRankName(name,FUSE_RANK_NEXT[rank]);
+  if(/pelt|fang|hide|claw|bone|leather|wool|fur/i.test(name))return bundleUpgradeName(name);
+  if(/^High[\s\-]?grade\b/i.test(name)||/^Greater\b/i.test(name))return null;
+  if(/material|consumable/i.test(it.category||''))return 'High-grade '+name;
+  return null;
+}
+function fuseRatioFor(it){
+  const name=(it&&it.name)||'';
+  if(/beast\s*core/i.test(name))return 5;
+  if(/potion/i.test(name))return 3;
+  return 10;
+}
+function autoFuseFilterName(userText){
+  const t=String(userText||'');
+  if(/\b(?:everything|all of (?:it|them|this|that))\b/i.test(t))return '';
+  const m=t.match(/\b(?:all(?:\s+of)?(?:\s+my|\s+the)?)\s+((?!it\b|them\b|this\b|that\b|everything\b).+)$/i);
+  if(!m)return '';
+  return m[1].replace(/[.!?].*$/,'').replace(/\bthat I['’]?m not wearing\b/i,'').replace(/\b(?:please|now)\b/ig,'').trim();
+}
+function stackMatchesFilter(it,filter){
+  if(!filter)return true;
+  const hits=findInventoryMatches({inventory:[it]},filter);
+  if(hits.length)return true;
+  const fb=itemNameParts(filter).base;
+  const ib=itemNameParts(it.name).base;
+  return !!(fb&&ib&&(ib.indexOf(fb)>=0||fb.indexOf(ib)>=0));
+}
+function formatFuseNotice(crafted){
+  const bits=(crafted||[]).map(c=>{
+    const used=(c.inputs||[]).map(x=>x.qty+' × '+x.name).join(', ');
+    return used+' into '+c.name+(c.qty>1?' ×'+c.qty:'');
+  });
+  return 'Fused '+bits.join('; ')+'.';
+}
+function formatFuseAction(crafted){
+  return 'fused materials: '+formatFuseNotice(crafted).replace(/^Fused /,'');
+}
+function autoFuseDuplicates(p,opts){
+  opts=opts||{};
+  const userText=opts.userText||'';
+  const filter=opts.filterName!=null?opts.filterName:autoFuseFilterName(userText);
+  const recipes=[];
+  for(const it of (p.inventory||[]).slice()){
+    if(!isAutoFusableItem(it,userText))continue;
+    if(!stackMatchesFilter(it,filter))continue;
+    const ratio=fuseRatioFor(it);
+    const have=Math.max(0,num(it.qty,1));
+    const sets=Math.floor(have/ratio);
+    if(!sets)continue;
+    const outName=materialUpgradeName(it);
+    if(!outName||outName===it.name)continue;
+    recipes.push({inputs:[{name:it.name,qty:sets*ratio}],output:{name:outName,qty:sets,category:it.category||'Material',description:'Fused from '+it.name+'.',acquisition_difficulty:itemRankFromName(outName)||it.acquisition_difficulty||''}});
+  }
+  if(!recipes.length)return {ok:false,crafted:[],notices:[],rejected:[],recipes:[]};
+  return craftRecipes(p,recipes,{userText,silent:true});
+}
+
 function detectUserCrafts(text){
   const t=String(text||'');
   if(!TRADE_CRAFT_VERB.test(t))return [];
@@ -1963,11 +2169,25 @@ function runSystemEngine(p,text,cfg,opts){
       const sr=sellNamedItems(p,sellList,{userText});
       for(const n of (sr.notices||[]))notices.push(n);
     }
-    const craftList=collectNamedList(events,updates,TRADE_CRAFT_KEYS);
+    const craftList=collectCraftList(events,updates);
     if(!craftList.length&&userText)craftList.push.apply(craftList,detectUserCrafts(userText));
+    let cr={ok:false,crafted:[],notices:[],rejected:[]};
     if(craftList.length){
-      const cr=craftRecipes(p,craftList,{userText});
+      cr=craftRecipes(p,craftList,{userText});
       for(const n of (cr.notices||[]))notices.push(n);
+    }
+    const bulk=userAsksBulkTrade(userText);
+    if(bulk&&bulk.kind==='craft'&&!cr.ok){
+      const fb=autoFuseDuplicates(p,{userText,state:opts.state});
+      if(fb&&fb.ok){
+        cr=fb;
+        notices.push({title:'Notification',body:formatFuseNotice(fb.crafted)});
+        if(opts.state)logAppAction(formatFuseAction(fb.crafted),opts.state);
+        if(typeof toast==='function'&&typeof document!=='undefined'){try{toast(formatFuseNotice(fb.crafted),6000);}catch(e){}}
+      }else{
+        notices.push({title:'Notification',body:NOTHING_FUSED_NOTICE});
+        if(typeof toast==='function'&&typeof document!=='undefined'){try{toast(NOTHING_FUSED_NOTICE,6000);}catch(e){}}
+      }
     }
     let skip=collectTimeSkip(events,updates);
     if(!skip&&userText)skip=detectUserTimeSkip(userText);
@@ -2654,7 +2874,7 @@ function commitActionLog(state,msgIndex,alt,used){
   let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
   if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList,itemNameParts,findInventoryMatches,inventoryQtyByName,isCraftishObject,normalizeCraftRecord,collectCraftList,autoFuseDuplicates,formatFuseNotice,NOTHING_FUSED_NOTICE,materialUpgradeName,fuseRatioFor,isAutoFusableItem};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -2934,7 +3154,7 @@ function changesWindow(notes,errors){
 /* ================= STORY ================= */
 let busy=false,abortCtl=null,editing=null;
 function curAlt(m){return m.alts[m.sel];}
-let storyScrollY=0,tabScrollY={},scrollLock=0,restoreTarget=null,restoreGen=0,userScrollIntent=false;
+let storyScrollY=0,tabScrollY={},scrollLock=0,lastUserInputAt=0,lastMomentumAt=0;
 let streamScroll={i:-1,initialDone:true,userMoved:false,programmatic:false,progTimer:0};
 function isStoryTab(){const story=$('#tab-story');return !!(story&&story.classList.contains('active'));}
 function activeTabName(){const b=document.querySelector('#tabs button.active');return (b&&b.dataset.tab)||'story';}
@@ -2961,50 +3181,35 @@ function rememberTabScroll(name){
   return y;
 }
 function rememberStoryScroll(){return rememberTabScroll('story');}
+function markUserScrollIntent(){lastUserInputAt=Date.now();lastMomentumAt=Date.now();}
+function userScrollIsLive(){const now=Date.now();return (now-lastUserInputAt<800)||(now-lastMomentumAt<800);}
 function restoreTabScroll(name,y){
   name=name||activeTabName();
   const k=scrollKey(name);
   const top=Math.max(0,y==null?(tabScrollY[k]||0):num(y,0));
   tabScrollY[k]=top;
   if(name==='story'||k==='story')storyScrollY=top;
-  userScrollIntent=false;
-  restoreTarget=top;
-  const gen=++restoreGen;
   scrollLock++;
   streamScroll.programmatic=true;
-  const go=()=>{if(restoreGen!==gen||userScrollIntent)return;applyScrollY(top);};
+  const go=()=>applyScrollY(top);
   go();
   const raf=typeof requestAnimationFrame==='function'?requestAnimationFrame:fn=>setTimeout(fn,16);
-  raf(()=>{go();raf(go);});
-  [0,50,120,250,400].forEach(ms=>setTimeout(go,ms));
-  clearTimeout(streamScroll.progTimer);
-  streamScroll.progTimer=setTimeout(()=>{
+  raf(()=>{
     go();
-    if(restoreGen!==gen)return;
-    scrollLock=Math.max(0,scrollLock-1);
-    streamScroll.programmatic=false;
-    if(typeof syncChrome==='function')syncChrome();
-    if(typeof updateJumpBtn==='function')updateJumpBtn();
-  },420);
-}
-function markUserScrollIntent(){userScrollIntent=true;}
-function endUserScrollIntent(){
-  if(!userScrollIntent)return;
-  userScrollIntent=false;
-  const y=currentScrollY();
-  const name=activeTabName();
-  tabScrollY[scrollKey(name)]=y;
-  if(name==='story')storyScrollY=y;
-  restoreTarget=y;
+    raf(()=>{
+      go();
+      scrollLock=Math.max(0,scrollLock-1);
+      streamScroll.programmatic=false;
+      if(typeof syncChrome==='function')syncChrome();
+      if(typeof updateJumpBtn==='function')updateJumpBtn();
+    });
+  });
 }
 function setHeldScrollY(y,name){
   const top=Math.max(0,num(y,0));
   name=name||activeTabName();
   tabScrollY[scrollKey(name)]=top;
   if(name==='story')storyScrollY=top;
-  userScrollIntent=false;
-  restoreTarget=top;
-  restoreGen++;
   applyScrollY(top);
 }
 function restoreStoryScroll(y){if(isStoryTab())restoreTabScroll('story',y);}
@@ -3055,7 +3260,7 @@ function renderMsg(m,i){
   const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
   return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator '+swipe+'<span class="tools">'+
     '<button class="icon" data-act="regen" title="Redo (new alternative)">↻ redo</button><button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
-    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+(a.streaming||!allow?'':sysNoticeStack(a)+changesWindow(filterCoveredNotes(a.notes,a.sysNotices),a.errors)))+'</div></div>';
+    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+(a.streaming||!(allow||(a.sysNotices||[]).some(n=>/Fused |Nothing was fused/i.test((n&&n.body)||'')))?'':sysNoticeStack(a)+changesWindow(filterCoveredNotes(a.notes,a.sysNotices),a.errors)))+'</div></div>';
 }
 function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
@@ -3181,7 +3386,7 @@ function syncChrome(){
   const topBtn=$('#jumpTop');if(topBtn)topBtn.hidden=window.scrollY<80;
   updateJumpBtn();
 }
-function onWinScroll(){if(userScrollIntent){rememberTabScroll(activeTabName());restoreTarget=currentScrollY();if(activeTabName()==='story')storyScrollY=restoreTarget;syncChrome();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;return;}if(restoreTarget!=null&&Math.abs(currentScrollY()-restoreTarget)>1){applyScrollY(restoreTarget);syncChrome();return;}if(scrollLock||streamScroll.programmatic){syncChrome();return;}rememberTabScroll(activeTabName());syncChrome();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;}
+function onWinScroll(){if(scrollLock||streamScroll.programmatic){syncChrome();return;}if(Date.now()-lastUserInputAt<2000)lastMomentumAt=Date.now();rememberTabScroll(activeTabName());syncChrome();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;}
 function updateJumpBtn(){
   const btn=$('#jumpLatest');if(!btn)return;
   const story=$('#tab-story');if(!story||!story.classList.contains('active')||!S||!S.messages||!S.messages.length){btn.hidden=true;return;}
@@ -3189,11 +3394,11 @@ function updateJumpBtn(){
   const below=(document.documentElement.scrollHeight-(window.scrollY+viewH))>80;
   btn.hidden=!below;
 }
-function jumpToLatest(){userScrollIntent=false;streamScroll.userMoved=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+function jumpToLatest(){streamScroll.userMoved=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
   const go=()=>{const top=Math.max(0,(document.scrollingElement||document.documentElement).scrollHeight);setHeldScrollY(top,'story');};
   go();
   streamScroll.progTimer=setTimeout(()=>{go();streamScroll.programmatic=false;syncChrome();updateJumpBtn();},450);}
-function jumpToTop(){userScrollIntent=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+function jumpToTop(){streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
   setHeldScrollY(0,'story');
   streamScroll.progTimer=setTimeout(()=>{applyScrollY(0);syncChrome();streamScroll.programmatic=false;updateJumpBtn();},450);}
 function updateStreaming(i){
@@ -4135,10 +4340,6 @@ function init(){
    nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{const r=b.getBoundingClientRect(),nr=nav.getBoundingClientRect();const left=nav.scrollLeft+(r.left+r.right)/2-(nr.left+nr.right)/2;nav.scrollLeft=Math.max(0,left);}catch(e){}}));}
   window.addEventListener('scroll',onWinScroll,{passive:true});window.addEventListener('resize',syncChrome);
   ['wheel','touchstart','touchmove','pointerdown'].forEach(ev=>document.addEventListener(ev,markUserScrollIntent,{passive:true,capture:true}));
-  ['touchend','pointerup','keyup'].forEach(ev=>document.addEventListener(ev,endUserScrollIntent,{passive:true,capture:true}));
-  document.addEventListener('wheel',()=>{clearTimeout(endUserScrollIntent.t);endUserScrollIntent.t=setTimeout(endUserScrollIntent,160);},{passive:true,capture:true});
-  window.addEventListener('pageshow',()=>restoreTabScroll(activeTabName()));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreTabScroll(activeTabName());});
   const jump=$('#jumpLatest');if(jump)jump.addEventListener('click',jumpToLatest);
   const jumpTop=$('#jumpTop');if(jumpTop)jumpTop.addEventListener('click',jumpToTop);
   if(window.visualViewport){visualViewport.addEventListener('resize',syncChrome);visualViewport.addEventListener('scroll',syncChrome);}
