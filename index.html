@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -17,7 +17,8 @@
 :root{--chrome-h:96px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
 html,body{margin:0;min-height:100%;min-height:100dvh;height:auto;background:radial-gradient(ellipse at top,#0b1530 0%,var(--bg) 60%) fixed;color:var(--text);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;font-size:15px;line-height:1.55}
-html{overflow-x:hidden}
+html{overflow-x:hidden;overflow-anchor:none}
+body,#log,#sysBody,#dailyBody,.tab,#tab-story,#tab-system{overflow-anchor:none}
 body{padding-top:var(--chrome-h);padding-bottom:0}
 button,input,select,textarea{font:inherit;color:inherit}
 a{color:var(--glow)}
@@ -2933,29 +2934,92 @@ function changesWindow(notes,errors){
 /* ================= STORY ================= */
 let busy=false,abortCtl=null,editing=null;
 function curAlt(m){return m.alts[m.sel];}
-let storyScrollY=0;
+let storyScrollY=0,tabScrollY={},scrollLock=0,restoreTarget=null,restoreGen=0,userScrollIntent=false;
+let streamScroll={i:-1,initialDone:true,userMoved:false,programmatic:false,progTimer:0};
 function isStoryTab(){const story=$('#tab-story');return !!(story&&story.classList.contains('active'));}
-function currentScrollY(){return window.scrollY||document.documentElement.scrollTop||0;}
-function rememberStoryScroll(){if(isStoryTab())storyScrollY=currentScrollY();return storyScrollY;}
-function restoreStoryScroll(y){
-  if(!isStoryTab())return;
-  const top=Math.max(0,y==null?storyScrollY:num(y,0));
-  storyScrollY=top;
-  const go=()=>{streamScroll.programmatic=true;try{window.scrollTo(0,top);}catch(e){}};
+function activeTabName(){const b=document.querySelector('#tabs button.active');return (b&&b.dataset.tab)||'story';}
+function scrollKey(name){name=name||activeTabName();return name==='system'?'system:'+(typeof sysTab==='string'?sysTab:'status'):name;}
+function currentScrollY(){
+  const se=document.scrollingElement||document.documentElement;
+  return (se&&se.scrollTop)||window.pageYOffset||window.scrollY||document.documentElement.scrollTop||(document.body&&document.body.scrollTop)||0;
+}
+function currentScrollYSafe(){return (scrollLock||(streamScroll&&streamScroll.programmatic))? (tabScrollY[scrollKey()]||0):currentScrollY();}
+function applyScrollY(y){
+  const top=Math.max(0,num(y,0));
+  const se=document.scrollingElement||document.documentElement;
+  try{if(se)se.scrollTop=top;}catch(e){}
+  try{if(document.documentElement)document.documentElement.scrollTop=top;}catch(e){}
+  try{if(document.body)document.body.scrollTop=top;}catch(e){}
+  try{window.scrollTo(0,top);}catch(e){}
+}
+function rememberTabScroll(name){
+  name=name||activeTabName();
+  if(scrollLock||(streamScroll&&streamScroll.programmatic))return tabScrollY[scrollKey(name)]||0;
+  const y=currentScrollY();
+  tabScrollY[scrollKey(name)]=y;
+  if(name==='story')storyScrollY=y;
+  return y;
+}
+function rememberStoryScroll(){return rememberTabScroll('story');}
+function restoreTabScroll(name,y){
+  name=name||activeTabName();
+  const k=scrollKey(name);
+  const top=Math.max(0,y==null?(tabScrollY[k]||0):num(y,0));
+  tabScrollY[k]=top;
+  if(name==='story'||k==='story')storyScrollY=top;
+  userScrollIntent=false;
+  restoreTarget=top;
+  const gen=++restoreGen;
+  scrollLock++;
+  streamScroll.programmatic=true;
+  const go=()=>{if(restoreGen!==gen||userScrollIntent)return;applyScrollY(top);};
   go();
   const raf=typeof requestAnimationFrame==='function'?requestAnimationFrame:fn=>setTimeout(fn,16);
-  raf(()=>{go();raf(()=>{go();clearTimeout(streamScroll.progTimer);streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;syncChrome();updateJumpBtn();},40);});});
+  raf(()=>{go();raf(go);});
+  [0,50,120,250,400].forEach(ms=>setTimeout(go,ms));
+  clearTimeout(streamScroll.progTimer);
+  streamScroll.progTimer=setTimeout(()=>{
+    go();
+    if(restoreGen!==gen)return;
+    scrollLock=Math.max(0,scrollLock-1);
+    streamScroll.programmatic=false;
+    if(typeof syncChrome==='function')syncChrome();
+    if(typeof updateJumpBtn==='function')updateJumpBtn();
+  },420);
 }
+function markUserScrollIntent(){userScrollIntent=true;}
+function endUserScrollIntent(){
+  if(!userScrollIntent)return;
+  userScrollIntent=false;
+  const y=currentScrollY();
+  const name=activeTabName();
+  tabScrollY[scrollKey(name)]=y;
+  if(name==='story')storyScrollY=y;
+  restoreTarget=y;
+}
+function setHeldScrollY(y,name){
+  const top=Math.max(0,num(y,0));
+  name=name||activeTabName();
+  tabScrollY[scrollKey(name)]=top;
+  if(name==='story')storyScrollY=top;
+  userScrollIntent=false;
+  restoreTarget=top;
+  restoreGen++;
+  applyScrollY(top);
+}
+function restoreStoryScroll(y){if(isStoryTab())restoreTabScroll('story',y);}
 function renderLog(opts){
   opts=opts||{};
   const onStory=isStoryTab();
-  if(onStory&&opts.y==null)storyScrollY=currentScrollY();
-  const y=opts.y!=null?opts.y:storyScrollY;
+  const y=opts.y!=null?opts.y:(onStory?currentScrollYSafe():(tabScrollY.story!=null?tabScrollY.story:storyScrollY));
+  if(onStory){storyScrollY=y;tabScrollY.story=y;}
+  scrollLock++;streamScroll.programmatic=true;
   const log=$('#log');
   if(!S.messages.length){log.innerHTML='<div class="card welcome-card" data-marker="arise-sys-awaken-v1"><h2>Begin</h2><p>You are an E-rank hunter in Norway. The story starts at a gate in Nordmarka — a raid that will not stay ordinary.</p><p class="muted">Set up the Character &amp; World tab and paste your xAI API key in Settings. Then either press <b>Begin opening scene</b> (the double dungeon, then Sól, then rebirth — editable in Character &amp; World) or write your own first post below.</p><p class="muted">The System will not appear until you are chosen.</p><button class="btn primary" id="beginOpening">Begin opening scene</button></div>';}
   else log.innerHTML=S.messages.map((m,i)=>renderMsg(m,i)).join('');
   renderHud();syncStoryChrome();
-  if(onStory&&opts.restore!==false)restoreStoryScroll(y);
+  scrollLock=Math.max(0,scrollLock-1);
+  if(onStory&&opts.restore!==false)restoreTabScroll('story',y);
   else updateJumpBtn();
 }
 function editBox(t){return '<textarea class="editArea" style="min-height:160px">'+esc(t)+'</textarea><div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small primary" data-act="saveEdit">Save</button> <button class="btn small" data-act="cancelEdit">Cancel</button></div></div>';}
@@ -3035,7 +3099,7 @@ function onLogClick(e){
     if(m.role==='narrator')m.alts.forEach(unapplyAlt);
     else if(m.applied&&(m.patch||m.worldPatch)){revertPatch(S.player,m.patch);if(m.worldPatch)revertWorldPatch(S,m.worldPatch);m.applied=false;repairDerivedStats(S.player,cfg());}
     S.messages.splice(i,1);afterChange();if(act==='undoClaim')toast('Claim undone.');}
-  else if(act==='edit'){editing=m.id;renderLog();const ta=document.querySelector('.msg[data-i="'+i+'"] textarea');if(ta)ta.focus();}
+  else if(act==='edit'){editing=m.id;renderLog();const ta=document.querySelector('.msg[data-i="'+i+'"] textarea');if(ta){try{ta.focus({preventScroll:true});}catch(e){ta.focus();}}}
   else if(act==='cancelEdit'){editing=null;renderLog();}
   else if(act==='saveEdit'){const v=el.querySelector('.editArea').value;editing=null;
     if(m.role==='narrator'){const a=curAlt(m);unapplyAlt(a);a.text=v;a.reqErrors=[];applyAlt(a);}else m.text=v;afterChange();}
@@ -3065,7 +3129,7 @@ async function regenerate(i){
   const a={text:'',streaming:true,applied:false,notes:[],errors:[],reqErrors:[],actionLog:usedLog};m.alts.push(a);m.sel=m.alts.length-1;
   S._replyActionLog=usedLog;
   const msgs=buildContext(i,m.continuation,m.instruction);
-  const t0=Date.now();setBusy(true,'thinking…');renderLog();renderSystem();startStreamScroll(i);
+  const t0=Date.now();setBusy(true,'thinking…');renderLog();renderSystem();
   const tick=setInterval(()=>{if(busy)$('#statusLine').textContent=(a.text?'writing… ':'thinking… ')+Math.round((Date.now()-t0)/1000)+'s';},500);
   let failMsg='';
   try{a.text=await chat(msgs,{stream:cfg().stream,onDelta:(full)=>{a.text=full;updateStreaming(i);}});}
@@ -3098,19 +3162,9 @@ async function regenerate(i){
   setBusy(false);save();renderLog();renderSystem();renderCompanions();
   if(cfg().autoSummarize)maybeAutoSummarize();
 }
-let streamScroll={i:-1,initialDone:false,userMoved:false,programmatic:false,progTimer:0};
 function headerOffset(){const h=document.querySelector('header');return (h?h.getBoundingClientRect().height:0)+8;}
-function scrollToMsgTop(i){
-  const msg=document.querySelector('.msg[data-i="'+i+'"]');if(!msg)return;
-  const y=Math.max(0,window.scrollY+msg.getBoundingClientRect().top-headerOffset());
-  streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
-  try{window.scrollTo({top:y,behavior:'smooth'});}catch(e){window.scrollTo(0,y);}
-  streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;},450);
-}
-function startStreamScroll(i){
-  if(streamScroll.i!==i)streamScroll={i,initialDone:true,userMoved:false,programmatic:false,progTimer:streamScroll.progTimer||0};
-  // Keep her where she was. Never auto-scroll to the top or follow the stream; only ↑ Top and jump-to-latest move the page.
-}
+function scrollToMsgTop(i){/* no auto-scroll: only ↑ Top / ↓ Latest move the page */}
+function startStreamScroll(i){streamScroll.i=i;}
 function syncChrome(){
   const header=document.querySelector('header');const root=document.documentElement;
   const compact=window.scrollY>16;
@@ -3127,7 +3181,7 @@ function syncChrome(){
   const topBtn=$('#jumpTop');if(topBtn)topBtn.hidden=window.scrollY<80;
   updateJumpBtn();
 }
-function onWinScroll(){syncChrome();if(streamScroll.programmatic)return;if(isStoryTab())storyScrollY=currentScrollY();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;}
+function onWinScroll(){if(userScrollIntent){rememberTabScroll(activeTabName());restoreTarget=currentScrollY();if(activeTabName()==='story')storyScrollY=restoreTarget;syncChrome();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;return;}if(restoreTarget!=null&&Math.abs(currentScrollY()-restoreTarget)>1){applyScrollY(restoreTarget);syncChrome();return;}if(scrollLock||streamScroll.programmatic){syncChrome();return;}rememberTabScroll(activeTabName());syncChrome();if(busy&&streamScroll.i>=0)streamScroll.userMoved=true;}
 function updateJumpBtn(){
   const btn=$('#jumpLatest');if(!btn)return;
   const story=$('#tab-story');if(!story||!story.classList.contains('active')||!S||!S.messages||!S.messages.length){btn.hidden=true;return;}
@@ -3135,20 +3189,24 @@ function updateJumpBtn(){
   const below=(document.documentElement.scrollHeight-(window.scrollY+viewH))>80;
   btn.hidden=!below;
 }
-function jumpToLatest(){streamScroll.userMoved=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
-  const go=()=>{try{window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});}catch(e){window.scrollTo(0,document.documentElement.scrollHeight);}};
+function jumpToLatest(){userScrollIntent=false;streamScroll.userMoved=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+  const go=()=>{const top=Math.max(0,(document.scrollingElement||document.documentElement).scrollHeight);setHeldScrollY(top,'story');};
   go();
-  streamScroll.progTimer=setTimeout(()=>{syncChrome();go();streamScroll.programmatic=false;updateJumpBtn();},450);}
-function jumpToTop(){storyScrollY=0;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
-  try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){window.scrollTo(0,0);}
-  streamScroll.progTimer=setTimeout(()=>{syncChrome();streamScroll.programmatic=false;updateJumpBtn();},450);}
+  streamScroll.progTimer=setTimeout(()=>{go();streamScroll.programmatic=false;syncChrome();updateJumpBtn();},450);}
+function jumpToTop(){userScrollIntent=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+  setHeldScrollY(0,'story');
+  streamScroll.progTimer=setTimeout(()=>{applyScrollY(0);syncChrome();streamScroll.programmatic=false;updateJumpBtn();},450);}
 function updateStreaming(i){
   const go=()=>{
+    const y=isStoryTab()?currentScrollYSafe():(tabScrollY.story||0);
     const el=document.querySelector('.msg[data-i="'+i+'"] .body');
     if(!el||el.querySelector('.thinking')){renderLog();return;}
     const allow=showSystemInMsg(i);
+    scrollLock++;streamScroll.programmatic=true;
     el.innerHTML=renderProse(parseSystemUpdates(curAlt(S.messages[i]).text).clean,allow);
-    updateJumpBtn();
+    scrollLock=Math.max(0,scrollLock-1);
+    if(isStoryTab())restoreTabScroll('story',y);
+    else updateJumpBtn();
   };
   const raf=typeof requestAnimationFrame==='function'?requestAnimationFrame:fn=>setTimeout(fn,16);
   if(updateStreaming._raf)try{cancelAnimationFrame(updateStreaming._raf);}catch(e){}
@@ -3264,7 +3322,8 @@ let sysTab='status',lastBoxResult=null,openingBox=false;
 function field(path,val,type){return '<input type="'+(type||'text')+'" data-pfield="'+path+'" value="'+esc(val)+'">';}
 function pct(a,b){return Math.max(0,Math.min(100,b?a/b*100:0));}
 function li(L,i,k,val,extra){return '<input type="text" data-list="'+L+'" data-i="'+i+'" data-k="'+k+'" value="'+esc(val)+'" '+(extra||'')+'>';}
-function renderSystem(){
+function renderSystem(opts){
+  opts=opts||{};const onSys=activeTabName()==='system';const y=opts.y!=null?opts.y:(onSys?currentScrollYSafe():(tabScrollY[scrollKey('system')]||0));if(onSys)tabScrollY[scrollKey('system')]=y;scrollLock++;streamScroll.programmatic=true;
   renderHud();const p=S.player;const body=$('#sysBody');let h='';
   document.querySelectorAll('#sysSub button').forEach(b=>b.classList.toggle('active',b.dataset.sub===sysTab));
   if(!isAwakened()){document.querySelectorAll('#sysSub button').forEach(b=>b.disabled=true);body.innerHTML=lockedMarkup('System');syncStoryChrome();return;}
@@ -3315,6 +3374,8 @@ function renderSystem(){
   }
   body.innerHTML=h;
   bindClaimKillsPanel();
+  scrollLock=Math.max(0,scrollLock-1);
+  if(onSys&&opts.restore!==false)restoreTabScroll('system',y);
 }
 function renderClaimKillsPanel(){
   return '<div class="syswin" id="claimKillsBox"><span class="title">Claim missed kills</span>'+
@@ -3438,7 +3499,7 @@ function onSysClick(e){
     if(max<1)v=0;else{if(v<1)v=1;if(v>max)v=max;}
     inp.value=v;syncQtyTotals(inp.closest('.qty-box')||document);return;
   }
-  if(t.dataset.sub){sysTab=t.dataset.sub;renderSystem();return;}
+  if(t.dataset.sub){if(activeTabName()==='system')rememberTabScroll('system');sysTab=t.dataset.sub;renderSystem({y:tabScrollY[scrollKey('system')]||0});return;}
   if(t.dataset.plus){if(p.points>0){p.stats[t.dataset.plus]++;p.points--;deriveMax(p,cfg());clampPlayer(p);logAppAction('allocated 1 point to '+String(t.dataset.plus).toUpperCase());save();renderSystem();renderHud();}return;}
   if(t.dataset.equipTitle){if(equipTitle(p,t.dataset.equipTitle)){repairDerivedStats(p,cfg());logAppAction('equipped the title '+p.title);save();renderSystem();renderHud();toast('Equipped '+p.title);}return;}
   if(t.dataset.unequipTitle){p.title='None';repairDerivedStats(p,cfg());logAppAction('unequipped her title');save();renderSystem();renderHud();toast('Title unequipped');return;}
@@ -3944,7 +4005,7 @@ function worldEditor(e){
 function initWorld(){
   const el=$('#worldBody');
   el.addEventListener('input',e=>{const t=e.target;
-    if(t.id==='wq'){worldFilter.q=t.value;const pos=t.selectionStart;renderWorld();const n=$('#wq');n.focus();n.setSelectionRange(pos,pos);return;}
+    if(t.id==='wq'){worldFilter.q=t.value;const pos=t.selectionStart;renderWorld();const n=$('#wq');try{n.focus({preventScroll:true});}catch(e){n.focus();}n.setSelectionRange(pos,pos);return;}
     if(t.dataset.wf){const x=S.world.npcs.find(n=>n.id===t.dataset.wf);if(!x)return;if(t.dataset.k==='knowledge')x.knowledge=t.value.split('\n').map(s=>s.trim()).filter(Boolean);else x[t.dataset.k]=t.type==='checkbox'?t.checked:t.value;save();}});
   el.addEventListener('change',e=>{const t=e.target;const map={wtype:'type',wrank:'rank',wcity:'city'};
     if(map[t.id]){worldFilter[map[t.id]]=t.value;renderWorld();}else if(t.id==='wrom'){worldFilter.romance=t.checked;renderWorld();}else if(t.id==='wpin'){worldFilter.pinned=t.checked;renderWorld();}else if(t.id==='wlife'){worldFilter.life=t.value;renderWorld();}
@@ -4054,25 +4115,30 @@ function renderStatRankTable(){
 }
 function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 function showTab(name){
-  const prevBtn=[...document.querySelectorAll('#tabs button')].find(b=>b.classList.contains('active'));
-  const from=prevBtn&&prevBtn.dataset.tab;
-  if(from==='story')rememberStoryScroll();
+  const from=activeTabName();
+  if(from)rememberTabScroll(from);
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
-  if(name==='system')renderSystem();if(name==='daily')renderDaily();if(name==='forge'){renderForgeInv();syncStoryChrome();}if(name==='story')renderLog({y:storyScrollY});if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();syncChrome();
-  if(name==='story')restoreStoryScroll(storyScrollY);
+  const y=tabScrollY[scrollKey(name)]||0;
+  if(name==='system')renderSystem({y:y,restore:false});if(name==='daily')renderDaily();if(name==='forge'){renderForgeInv();syncStoryChrome();}if(name==='story')renderLog({y:y,restore:false});if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();syncChrome();
+  restoreTabScroll(name,y);
 }
 
 if(typeof window!=='undefined'){
   window.SoloRP=window.SoloRP||{};
-  Object.assign(window.SoloRP,{renderLog,showTab,afterChange,updateStreaming,startStreamScroll,jumpToTop,jumpToLatest,rememberStoryScroll,restoreStoryScroll,getStoryScrollY:()=>storyScrollY,getState:()=>S});
+  Object.assign(window.SoloRP,{renderLog,showTab,afterChange,updateStreaming,startStreamScroll,jumpToTop,jumpToLatest,rememberStoryScroll,restoreStoryScroll,restoreTabScroll,rememberTabScroll,renderSystem,getStoryScrollY:()=>tabScrollY.story||storyScrollY||0,getTabScrollY:(n)=>tabScrollY[scrollKey(n)]||0,getState:()=>S,activeTabName,scrollKey,setHeldScrollY});
 }
 function init(){
   S=load();setTimeout(saveNow,0); // persist migrations right away
   document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   {const nav=$('#tabs'),wrap=$('#tabwrap');const upd=()=>{if(wrap)wrap.classList.toggle('atend',nav.scrollLeft+nav.clientWidth>=nav.scrollWidth-4);};nav.addEventListener('scroll',upd,{passive:true});window.addEventListener('resize',upd);upd();
-   nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{b.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});}catch(e){}}));}
+   nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{const r=b.getBoundingClientRect(),nr=nav.getBoundingClientRect();const left=nav.scrollLeft+(r.left+r.right)/2-(nr.left+nr.right)/2;nav.scrollLeft=Math.max(0,left);}catch(e){}}));}
   window.addEventListener('scroll',onWinScroll,{passive:true});window.addEventListener('resize',syncChrome);
+  ['wheel','touchstart','touchmove','pointerdown'].forEach(ev=>document.addEventListener(ev,markUserScrollIntent,{passive:true,capture:true}));
+  ['touchend','pointerup','keyup'].forEach(ev=>document.addEventListener(ev,endUserScrollIntent,{passive:true,capture:true}));
+  document.addEventListener('wheel',()=>{clearTimeout(endUserScrollIntent.t);endUserScrollIntent.t=setTimeout(endUserScrollIntent,160);},{passive:true,capture:true});
+  window.addEventListener('pageshow',()=>restoreTabScroll(activeTabName()));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreTabScroll(activeTabName());});
   const jump=$('#jumpLatest');if(jump)jump.addEventListener('click',jumpToLatest);
   const jumpTop=$('#jumpTop');if(jumpTop)jumpTop.addEventListener('click',jumpToTop);
   if(window.visualViewport){visualViewport.addEventListener('resize',syncChrome);visualViewport.addEventListener('scroll',syncChrome);}
