@@ -226,12 +226,13 @@ nav.tabs::-webkit-scrollbar{display:none}
       <div class="muted">Who (or what) made or grants your System. The narrator uses this to flavor System messages, quests and hidden lore.</div>
       <div class="row">
         <div><label>Type</label><select id="patronType" data-bind="character.patronType"></select></div>
-        <div><label>Name</label><input type="text" data-bind="character.patronName" placeholder="e.g. The Architect, Odin, Ashborn, a custom Ruler…"></div>
+        <div><label>Name</label><input type="text" data-bind="character.patronName" placeholder="e.g. Sól, Odin, the Architect, a custom Ruler…"></div>
       </div>
       <label>Description (nature, goals, how it relates to you)</label><textarea data-bind="character.patronDesc" placeholder="e.g. The All-Father, who seeks a champion before Ragnarök…"></textarea>
     </div>
     <div class="card"><h2>World &amp; Memory</h2>
       <label>World notes / canon timeline position / NPCs you've met (always sent to the narrator)</label><textarea data-bind="world.notes" style="min-height:120px"></textarea>
+      <label>Opening scenario (used by "Begin opening scene" on an empty story)</label><textarea data-bind="world.opening" style="min-height:140px"></textarea>
       <label>Narration style</label><input type="text" data-bind="world.style">
       <label>Rolling summary of older story (auto-updated; you can edit)</label><textarea data-bind="world.summary" style="min-height:140px"></textarea>
       <div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn" id="summarizeBtn">Summarize older posts now</button></div><div class="muted" id="sumStatus" style="align-self:center"></div></div>
@@ -331,7 +332,7 @@ const DEFAULT_SYSTEM_PROMPT=`You are the NARRATOR and GAME MASTER of a mature, i
 - INNATE ABILITIES (listed in her Skills): Regeneration (passive natural healing) and Enhancement (active self-buff that also shares a percentage of the buff with her allies and summons). They were weak at E-rank and scale with her level, skill level, and stats (VIT for Regeneration; INT/MP for Enhancement). Portray their strength proportionately.
 - COMPANIONS / SUMMONS: her bound companions are listed in CURRENT STATUS with species, rank, level, stats, skills, bond, and evolution stage. Voice them consistently with their species, personality, and bond; they act on her commands and their own nature but never make her decisions. Companions gain EXP and kill counts in fights and can evolve when their conditions are met (the user triggers evolution in the app; example chain: Goblin → Goblina (female hobgoblin) → Goblin Knight → Goblin Queen). Binding a new companion only happens when she chooses to and has the means.
 - STAT RANKS: each of her stats has its own rank (E, D, C, B, A, S, National, Deity) independent of her Hunter Rank, shown in CURRENT STATUS (e.g. she can be an E-rank hunter with B-rank Vitality). Narrate her physical capability per stat accordingly. Mana readers, Association measuring equipment, and other hunters' senses only ever detect her HUNTER RANK (from her level, given in CURRENT STATUS) — never her stat ranks. Her Hunter Rank changes only as her level crosses the thresholds in the LEVEL → RANK CHART.
-- THE SYSTEM'S CREATOR / PATRON: the entity behind her System is given under PLAYER CHARACTER. Let its nature subtly flavor System messages, quests, and hidden lore, but never have it override canon mechanics or explain itself unprompted.
+- THE SYSTEM'S CREATOR / PATRON: the entity behind her System is given under PLAYER CHARACTER (by default the Norse sun goddess Sól, who revived her as she died in a double dungeon and made her a Player). Sól is a RARE presence — she appears only at major thresholds (near-death, rebirth-level moments, dreams) and never speaks or decides for the Player. Otherwise let its nature subtly flavor System messages, quests, and hidden lore, but never have it override canon mechanics or explain itself unprompted.
 - TIME: the story runs on an in-game day counter (given in CURRENT STATUS). The Daily Quest is per in-game day. Do not advance days yourself; the user presses "Next Day".
 - LOOT & REWARD BOXES: monsters and bosses can drop loot like canon — magic stones (mana crystals), Magic Beast cores, monster materials, equipment, Rune Stones / skill books, Instance Dungeon Keys, potions, gold, and reward boxes. Drops should be proportionate to the monster's rank and somewhat rare; bosses drop more and better. Quests may reward boxes. Grant boxes with "boxes_add" (the Player opens them herself from her Inventory; the app rolls the contents, weighted by box tier and her Luck — never describe a box's contents before she opens it). Her LUK stat should subtly favor her in drops and chance events.
 - Keep power scaling consistent with canon: an E-rank is weak, growth is earned, and monsters, gate ranks, and dangers are proportionate.
@@ -411,8 +412,8 @@ function defaultDaily(){return {date:today(),items:[
 function defaultState(){return {version:1,
   settings:{model:'grok-4.7',customModel:'',temperature:0.9,maxTokens:2000,stream:true,contextMessages:40,autoSummarize:true,
     pointsPerLevel:5,statsPerLevel:1,boxFlavor:true,expGrowth:1.25,autoLevel:true,levelRestore:true,systemPrompt:DEFAULT_SYSTEM_PROMPT,craftPrompt:DEFAULT_CRAFT_PROMPT,extraModels:[]},
-  character:{name:'',age:'',gender:'Female (she/her)',city:'',appearance:'',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'The Architect',patronName:'',patronDesc:''},
-  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',style:'Third-person, past tense. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0},
+  character:{name:'',age:'',gender:'Female (she/her)',city:'',appearance:'',background:'An E-rank hunter in Norway, widely considered one of the weakest awakened. She has just become a Player of the System.',extra:'',build:'Brawler — unarmed martial arts / taijutsu-style close combat. Not the Shadow Monarch; no shadow abilities.',className:'',classPlan:'Part 1: Brawler → Part 2: (to be unlocked) → Part 3: Tamer/Binder Summoner',patronType:'A Norse god',patronName:'Sól (Sol), Goddess of the Sun',patronDesc:"Sól, the Norse goddess of the Sun, who drives the sun's chariot across the sky ahead of the wolf Sköll. Radiant and regal: skin that glows like dawn on snow, hair of molten gold streaming like solar flares, eyes of white-gold fire, a crown of light, robes like woven sunrise. Her presence is warm rather than blinding — the heat of a hearth after a long winter — yet carries the weight of a queen of the heavens. She found the Player dying in the double dungeon, chose her, revived her, and created her System. She is sparing with words, ancient, kind but not soft, and has her own reasons for choosing a champion. She appears only rarely afterward (dreams, moments near death, major thresholds); her influence colors the System (sunlight-gold accents in windows, solar/rebirth themes in hidden quests and titles).",},
+  world:{notes:'Canon Solo Leveling world. Sung Jinwoo is following his canon story in Korea at the same time. The story takes place in Norway.',opening:"OPENING SCENE (narrate this as the first post; never write the Player's dialogue, actions, thoughts, or choices — describe only the world, NPCs, and what happens to her):\nNorway. The Player, an E-rank hunter, joins a low-rank raid party on what was measured as a D-rank gate. Inside, the party discovers a hidden second dungeon — a DOUBLE DUNGEON: a vast ancient temple with towering statues and commandments carved in stone, mirroring the canon Cartenon Temple horror but with a Norse aesthetic (runes, carved wolves and sun-wheels, a great statue holding a stone sun). The statues awaken; hunters die following and breaking the temple's rules. At the climax she is mortally wounded and left behind as the survivors escape. As she lies dying, the temple goes silent and a warm golden light breaks through the stone: the goddess SÓL appears, radiant, warm, and regal, and speaks to her. Sól chooses her, and her light floods into her as she is reborn. End the scene with the canon System window:\n<system>[Notification]\nYou have acquired the qualifications to be a Player.\nWill you accept?</system>\nPace it across the post; give the Player openings to act or speak during the dungeon if natural, but you may carry the scene to Sól's arrival since she is dying. Stop after the notification.",style:'Third-person, past tense. Vivid, grounded, varied prose. 3–6 paragraphs unless a short beat fits better.',summary:'',summarizedCount:0},
   player:defaultPlayer(),rankChart:DEFAULT_RANKS.map(r=>({...r})),statRanks:DEFAULT_STAT_RANKS.map(r=>({...r})),game:{day:1,startDate:''},daily:defaultDaily(),shop:DEFAULT_SHOP.map(s=>({...s})),messages:[]};}
 
 /* ================= UTILS ================= */
@@ -602,7 +603,7 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
   s.player=deepMerge(defaultPlayer(),(d&&d.player)||{});
   ['inventory','skills','quests','titles','companions'].forEach(k=>{if(!Array.isArray(s.player[k]))s.player[k]=[];});
   s.player.companions=s.player.companions.map(normCompanion);
-  if(!s.flags)s.flags={};if(!s.flags.innate){innateSkills().forEach(sk=>{if(!s.player.skills.some(x=>keyOf(x)===keyOf(sk)))s.player.skills.push(sk);});s.flags.innate=true;}
+  if(!s.flags)s.flags={};if(!s.flags.sol){if(s.character.patronType==='The Architect'&&!s.character.patronName){Object.assign(s.character,{patronType:base.character.patronType,patronName:base.character.patronName,patronDesc:base.character.patronDesc});}s.flags.sol=true;}if(!s.flags.innate){innateSkills().forEach(sk=>{if(!s.player.skills.some(x=>keyOf(x)===keyOf(sk)))s.player.skills.push(sk);});s.flags.innate=true;}
   s.messages=Array.isArray(d&&d.messages)?d.messages:[];
   s.messages.forEach(m=>{if(m.role==='narrator'){m.alts=(m.alts||[]).filter(a=>a&&typeof a.text==='string');m.alts.forEach(a=>a.streaming=false);m.sel=Math.min(m.sel||0,Math.max(0,m.alts.length-1));}});
   s.messages=s.messages.filter(m=>m.role!=='narrator'||m.alts.length);
@@ -644,7 +645,7 @@ let busy=false,abortCtl=null,editing=null;
 function curAlt(m){return m.alts[m.sel];}
 function renderLog(){
   const log=$('#log');const atBottom=window.innerHeight+window.scrollY>=document.body.scrollHeight-80;
-  if(!S.messages.length){log.innerHTML='<div class="syswin"><span class="title">Notification</span>You have acquired the qualifications to be a Player.<br>Will you accept?<br><br><span class="muted">Set up the Character &amp; World tab, paste your xAI API key in Settings, then write your opening post below.</span></div>';}
+  if(!S.messages.length){log.innerHTML='<div class="syswin"><span class="title">Notification</span>You have acquired the qualifications to be a Player.<br>Will you accept?<br><br><span class="muted">Set up the Character &amp; World tab and paste your xAI API key in Settings. Then either press <b>Begin opening scene</b> (the double dungeon → Sól → rebirth, editable in Character &amp; World) or write your own first post below.</span><br><br><button class="btn primary" id="beginOpening">Begin opening scene</button></div>';}
   else log.innerHTML=S.messages.map((m,i)=>renderMsg(m,i)).join('');
   renderHud();
   if(atBottom)window.scrollTo(0,document.body.scrollHeight);
@@ -669,6 +670,7 @@ function applyAlt(a){if(!a||a.applied)return;const r=applyTextToPlayer(S.player,
 function unapplyAlt(a){if(a&&a.applied){revertPatch(S.player,a.patch);a.applied=false;}}
 
 function onLogClick(e){
+  if(e.target.closest('#beginOpening')){beginOpening();return;}
   const b=e.target.closest('[data-act]');if(!b)return;const el=b.closest('.msg');if(!el)return;const i=+el.dataset.i;const m=S.messages[i];if(!m)return;const act=b.dataset.act;
   if(busy&&!['edit','cancelEdit'].includes(act)){toast('Wait for the narrator to finish (or press Stop).');return;}
   if(act==='prev'||act==='next'){unapplyAlt(curAlt(m));m.sel=(m.sel+(act==='next'?1:-1)+m.alts.length)%m.alts.length;applyAlt(curAlt(m));afterChange();}
@@ -691,6 +693,8 @@ async function sendUser(){
   S.messages.push({id:uid(),role:'narrator',alts:[],sel:0});save();renderLog();
   await regenerate(S.messages.length-1);
 }
+async function beginOpening(){if(busy)return;if(!apiKey()){toast('Paste your xAI API key in Settings first.');return;}
+  S.messages.push({id:uid(),role:'syslog',text:S.world.opening||'Begin the story.'});S.messages.push({id:uid(),role:'narrator',alts:[],sel:0});save();renderLog();await regenerate(S.messages.length-1);}
 async function continueScene(){if(busy)return;if(!apiKey()){toast('Paste your xAI API key in Settings first.');return;}
   S.messages.push({id:uid(),role:'narrator',alts:[],sel:0,continuation:true});renderLog();await regenerate(S.messages.length-1);}
 
@@ -735,6 +739,7 @@ function buildContext(uptoIndex,continuation){
   const out=[{role:'system',content:sys}];
   for(const m of recent){
     if(m.role==='user')out.push({role:'user',content:m.text});
+    else if(m.role==='syslog'&&/^OPENING SCENE/.test(m.text))out.push({role:'user',content:'((OOC instruction from the player)) '+m.text});
     else if(m.role==='syslog')out.push({role:'user',content:'[SYSTEM LOG — an out-of-story record of what the System/app did, not an action by her]: '+m.text});
     else{const a=curAlt(m);if(!a||a.streaming)continue;out.push({role:'assistant',content:parseSystemUpdates(a.text).clean+(a.notes&&a.notes.length?'\n[Applied System changes: '+a.notes.join('; ')+']':'')});}
   }
