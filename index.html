@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 arise-scroll-v3 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 arise-scroll-v3 arise-scroll-v4 arise-usd-v1 arise-gear-v1 arise-gates-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -195,8 +195,6 @@ pre{white-space:pre-wrap;word-break:break-word}
   html,body{font-size:16px;background-attachment:scroll}
   header{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(5,8,16,.98)}
   body::before{display:none;animation:none;filter:none}
-  #log>.msg{content-visibility:auto;contain-intrinsic-size:auto 720px}
-  #log>.msg:nth-last-child(-n+6){content-visibility:visible;contain-intrinsic-size:auto}
   input[type=text],input[type=number],input[type=password],select,textarea{font-size:16px;min-height:44px;padding:8px 10px}
   textarea{min-height:88px}
   .btn{min-height:44px;padding:8px 14px;font-size:16px}
@@ -463,7 +461,7 @@ pre{white-space:pre-wrap;word-break:break-word}
       <div class="row" style="margin-top:8px"><div style="flex:0 0 auto"><button class="btn" id="testBtn">Test connection / load models</button></div><div class="muted" id="testStatus" style="align-self:center"></div></div>
     </div>
     <div class="card"><h2>Level → Hunter Rank Chart</h2>
-      <div class="muted">Your Hunter Rank comes from your level (highest row whose min level you've reached). This is the rank mana readers detect. Defaults: E 1–19, D 20–39, C 40–69, B 70–109, A 110–159, S 160–229, National 230–299, Deity 300+.</div>
+      <div class="muted">This chart is used only if she is officially reassessed in-story. Her Association license rank stays what is on Status (starts E) and does not rise with System level. Defaults: E 1–19, D 20–39, C 40–69, B 70–109, A 110–159, S 160–229, National 230–299, Deity 300+.</div>
       <table id="rankTable"></table>
       <div class="row" style="margin-top:6px"><div style="flex:0 0 auto"><button class="btn small" id="addRank">+ Add row</button> <button class="btn small" id="resetRanks">Restore defaults</button></div></div>
     </div>
@@ -519,35 +517,36 @@ RULES (highest priority)
 2. End each reply where she can act. No "What do you do?", no option lists unless the System canonically offers a choice. Don't skip time unless she asks.
 3. SECOND PERSON always: narrate as "you" only for what she sees, hears, or what the world does to her — never for choosing what she does. She writes in third person ("She steps forward…"); treat that as already done. NPCs may say her name.
 4. No repetition: never reuse phrases, descriptions, openings, or recaps from earlier replies.
-5. NPCs are not suspicious by default: they mind their own business, accept ordinary explanations, and do not interrogate her unless she invites it. Never derail her plans.
-6. 18+ fiction between adults only (never sexualize minors). Violence, gore, profanity, dark themes, romance and explicit sex are allowed when she steers there. No moralizing. Intimate scenes: explicit, sensory, literary detail of bodies, touch, and the partner's reactions; never fade to black. Never narrate her actions, words, feelings, or sensations she did not write.
+5. NPCs are not suspicious by default and do not interrogate her unless she invites it. Never derail her plans.
+6. 18+ fiction between adults only (never sexualize minors). Violence, gore, profanity, dark themes, romance and explicit sex are allowed when she steers there. No moralizing. Intimate scenes: explicit sensory detail of the partner; never fade to black. Never narrate her actions, words, feelings, or sensations she did not write.
 7. Orientation: respect hers (PLAYER CHARACTER). Romantic interest from NPCs comes from women by default; never force romance or decide her feelings.
 8. Answer ((OOC)) notes briefly in ((double parentheses)).
 9. Knowledge is private: NPCs know only what they saw or were told.
-10. Pacing: one beat, then stop. No new NPC entrances, interruptions, or drama unless the scene demands it or she invites it. Let quiet moments breathe after System messages. No filler (birds, sunlight) every reply. Don't end with an NPC barging in or questioning her unless it follows from her action.
+10. Pacing: one beat, then stop. No new NPC entrances or drama unless the scene demands it or she invites it. No filler (birds, sunlight) every reply. Don't end with an NPC barging in unless it follows from her action.
 
 CANON (follow precisely)
 - Exact Solo Leveling world in NORWAY; Sung Jinwoo's canon story continues in Korea in parallel.
 - Gates rank E–S by mana reading; a boss kill closes them; uncleared gates break; red gates trap raiders; double dungeons exist.
-- System instance dungeons (dungeon keys / System quests) are private: invisible and undetectable — no mana readings, Association/guild detection or alerts, no gate others can see. Bystanders see nothing (at most she vanishes/reappears). NPCs never know she entered unless she tells them.
+- Her Association LICENSE RANK is her public hunter rank (starts E; changes only if officially reassessed). System level is secret; mana readers treat her as that license rank.
+- Association/guild gates: her license rank, or one above only in a party (E-rank may join D-rank raids with a party). C-rank and higher: hired porter/help only; otherwise guards refuse. System instance dungeons (keys/quests) are exempt — private and undetectable unless she tells them.
 - Hunters are ranked E–S at awakening (national level above S); re-awakening is rare. Ordinary hunters grow by training and gear. Only the Player grows via the System.
 - E-ranks are extremely rare in Norway; she is one of a handful. Notable or pitiable, not suspicious.
-- Her System: blue windows only she sees (Level, EXP, HP, MP, Fatigue, stats, points, titles, job, skills, gold, shop, keys, quests, penalties). Max HP = VIT×Level×10; Max MP = INT×Level (app computes these).
-- Daily Quest: 100 push-ups/sit-ups/squats + 10 km run/day; fail = Penalty Zone. App applies (don't add): level-up +5 pts and +1 all stats; Daily = recovery, +3 pts, a box.
-- Stat ranks are independent of hunter rank; mana readers show only her HUNTER RANK.
-- Build: BRAWLER (unarmed). NOT the Shadow Monarch. 3-part class path, third = Tamer/Binder; never pick parts for her. Innate Regeneration (passive) and Enhancement (self-buff) start weak and scale with level.
+- Her System: blue windows only she sees (Level, EXP, HP, MP, Fatigue, stats, points, titles, job, skills, System gold, shop, keys, quests, penalties). Max HP = VIT×Level×10; Max MP = INT×Level (app computes these). Real-world pay and sales use USD ($) only, never NOK/kroner, in a wallet separate from System gold.
+- Daily Quest: 100 push-ups/sit-ups/squats + 10 km run/day; fail = Penalty Zone. The app applies rewards; do not invent them.
+- Stat ranks are independent of her license rank.
+- Build: BRAWLER (unarmed). NOT the Shadow Monarch. 3-part class path, third = Tamer/Binder; never pick parts for her. Innate Regeneration and Enhancement start weak and scale with level.
 - Patron (default Sól, Norse sun goddess; she revived her in the double dungeon): rare; major thresholds only.
-- Companions follow her commands and act by species, personality, and bond; evolution is in the app.
+- Companions follow her commands; evolution is in the app.
 - Loot scales with monster rank; bosses drop more. Grant boxes via boxes_add; never reveal contents.
 - Use WORLD roster NPCs by name; invent minor extras; they can grow stronger.
 
 FORMAT
 - Hidden until the System awakens (patron, default Sól, end of the double dungeon): no <system>, <system_update>, or <system_event>, and do not treat the System as visible to her.
 - After awakening, tag creatures [[mob:Name|Lv.N]] (never humans). The app colors the tag.
-- The APP owns all System mechanics (EXP, drops, gold, level-ups, daily rewards, boxes, shop). Do not invent stats, EXP, gold, or loot, and do not write kill/loot/Level Up windows — the app draws them. Sometimes (sparingly) you may add one brief line in the creator's voice (see Patron).
+- The APP owns all System mechanics (EXP, drops, System gold, level-ups, daily rewards, boxes, shop). Do not invent stats, EXP, gold, or loot, and do not write kill/loot/Level Up windows — the app draws them. Sometimes (sparingly) you may add one brief line in the creator's voice (see Patron).
 - When something mechanical happened, end with ONE event block (omit if nothing mechanical happened):
   <system_event>{"kills":[{"name":"Wolf","level":8,"rank":"E","boss":false,"count":20}]}</system_event>
-  Keys (all optional): kills[{name,level,rank,boss,count}], dungeon_clear{name,rank,boss,solo}, quest_offer[{name,description,type,reward}], quest_progress[{name,progress,complete}], item_use[{name}], npcDeaths[{name,cause}], npcKnowledge[{name,fact}], hp, mp, companions_add, companions_update, companions_remove, skills_add, skills_update, title_earned[{name,description,effects}], system_awakened.
+  Keys (all optional): kills[{name,level,rank,boss,count}], dungeon_clear{name,rank,boss,solo}, quest_offer[{name,description,type,reward}], quest_progress[{name,progress,complete}], item_use[{name}], npcDeaths[{name,cause}], npcKnowledge[{name,fact}], hp, mp, money{delta,reason}, companions_add, companions_update, companions_remove, skills_add, skills_update, title_earned[{name,description,effects}], system_awakened.
   Valid JSON only. Never include exp_gain, gold, items_add, or level_up — the app awards those from events and kills.`;
 
 const DEFAULT_CRAFT_PROMPT=`You are the Solo Leveling SYSTEM's item-creation module. The Player has described an item she wants to create. Design ONE item in Solo Leveling canon item style (like "Knight Killer", "Kasaka's Venom Fang", "Baruka's Dagger"): balanced against its materials and rank, flavorful, and honoring her intended effects as closely as the materials and rank reasonably allow (add fair drawbacks or requirements if the request is too strong for the materials). Acquisition Difficulty uses E, D, C, B, A, S (S+ only for legendary materials).
@@ -566,14 +565,16 @@ system_update must be justified only by events this same reply actually narrates
 When a named NPC dies on-screen (including the opening raid), include npcDeaths:[{name,cause}] in that same system_update. This is world tracking, not a System window — do not write it as a status box or <system> notice. Do not reuse deceased people as living characters; memories and mentions are fine.
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
 System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
+Her Association license rank (on the STATUS block) is her public hunter rank and stays E unless she is officially reassessed in-story. System level is secret. Association/guild gates: she may enter a gate of that license rank, or one rank above only in a party (E-rank: D-rank raids with a party; C-rank and higher only as a hired porter/help). Otherwise Association or gate guards refuse entry. System instance dungeons are exempt from this rule.
+Real-world prices, pay, and sales (Association, buyers, raid pay, porter pay) are in USD ($), never NOK or kroner. Those go to her USD wallet, which is separate from System gold (the System store). When she is paid or a real-world sale settles, emit <system_event>{"money":{"delta":150,"reason":"raid pay"}}</system_event> (negative delta if she spends USD). Do not invent System gold.
 After the System is awake, when a monster or creature appears, emit [[mob:Name|Lv.N]] once for that creature (level if known). Never for humans, hunters, NPCs, or companions. Do not pick the color — the app colors the tag (green weaker, orange even, red dangerous). Do not also write a separate nameplate.
-When showing her a status window, emit exactly one <system>[[STATUS]]</system> and do not write the stats yourself. The app fills one real tracker block. Never invent HP, MP, free points, stats, gold, or other sheet values.
+When showing her a status window, emit exactly one <system>[[STATUS]]</system> and do not write the stats yourself. The app fills one real tracker block. Never invent HP, MP, free points, stats, gold, USD, or other sheet values.
 Intimate/sexual scenes: be vividly descriptive of bodies, physical sensation, touch, and partners' reactions in explicit, sensory, literary detail; do not fade to black or summarize. Still never narrate her actions, words, feelings, or sensations she did not write — describe the partner's body, actions, and responses, and what the world does to her, then leave room for her. All participants must be adults.
 Pacing: one beat per reply, then stop and give her space to react. Do not inject new NPC entrances, interruptions, or dramatic events unless the scene logically demands it or she invites it. Let quiet moments breathe, especially after System messages. No filler flourishes (a bird on the sill, sunlight) in every reply. Do not end a reply by having an NPC barge in or ask her a question unless it follows directly from her action.
 Combat: when a COMBAT GUIDE is in the system context, follow it strictly. Do not one-shot a higher-level, orange, or red monster (a rare LUK/SEN weak-point crit may drop an orange if the fiction supports it; never a red). Mobs fight back; emit received damage as hp in <system_event> using the guide's numbers. Only resolve the outcome of actions she wrote — never decide her moves.
 Regeneration is innate and app-applied: do not award HP or write a regen window for it. If she is wounded, you may briefly describe minor wounds closing; the app updates HP.
 Titles are app-run. For a story feat with no app rule, emit title_earned[{name,description,effects}]. Do not invent titles, title windows, or title effects otherwise — the app awards them and draws '[You have acquired the title: X]'.
-If she skips or moves forward time (in story or OOC) and says she did her dailies, emit <system_event>{"time_skip":{"days":N,"dailies_done":true}}</system_event> in that reply (dailies_done may be a number of days if only some were completed). The app advances the day, awards Daily Quest rewards, and draws the notice — do not invent points, boxes, or HP/MP. If she asks (in story or OOC) to sell, mix, craft, combine, fuse, merge, or meld items, emit a system_event in that reply: {"sell":[{"name":"Wolf Pelt","qty":10}]} or {"craft":[{"inputs":[{"name":"...","qty":N}],"output":{"name":"...","qty":1,"category":"...","description":"...","effects":[]}}]}. For bulk requests such as "fuse everything" or "fuse everything I'm not wearing", emit one or more craft entries with exact inventory names, real quantities, and concrete named outputs — never "new entries", and never invent a crafting tab or section. Leave keys, boxes, equipped gear, and quest items untouched unless she names them. The app performs the sale or craft and draws the notice; apply valid parts and skip items she does not have. Do not invent gold or items, and do not set max HP or max MP on crafted output.
+If she skips or moves forward time (in story or OOC) and says she did her dailies, emit <system_event>{"time_skip":{"days":N,"dailies_done":true}}</system_event> in that reply (dailies_done may be a number of days if only some were completed). The app advances the day, awards Daily Quest rewards, and draws the notice — do not invent points, boxes, or HP/MP. If she asks (in story or OOC) to sell, mix, craft, combine, fuse, merge, or meld items, emit a system_event in that reply: {"sell":[{"name":"Wolf Pelt","qty":10}]} (real-world/Association sales pay USD) or {"craft":[{"inputs":[{"name":"...","qty":N}],"output":{"name":"...","qty":1,"category":"...","description":"...","effects":[]}}]}. For bulk requests such as "fuse everything" or "fuse everything I'm not wearing", emit one or more craft entries with exact inventory names, real quantities, and concrete named outputs — never "new entries", and never invent a crafting tab or section. Leave keys, boxes, equipped gear, and quest items untouched unless she names them. The app performs the sale or craft and draws the notice; apply valid parts and skip items she does not have. Do not invent gold or items, and do not set max HP or max MP on crafted output.
 If the context lists "Since last reply, she did (app actions)", those already happened out-of-story. Acknowledge them naturally (NPCs or the world can notice a new item or outfit). Do not narrate her performing those actions or invent her feelings about them. She is already wearing any equipped gear and title listed under Currently equipped.
 Do not acknowledge this OOC note in the story.))`;
 function normText(s){return String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
@@ -612,7 +613,7 @@ const DEFAULT_SHOP=[
   {name:'Steel Dagger',price:3000,category:'Dagger',description:'A plain steel dagger. Attack +5.',stats:{atk:5}}
 ];
 function defaultPlayer(){return {level:1,exp:0,expNext:100,job:'None',title:'None',officialRank:'E',hp:100,maxHp:100,mp:10,maxMp:10,fatigue:0,
-  stats:{str:10,agi:10,sen:10,vit:10,int:10,luk:10},points:0,gold:0,skills:innateSkills(),inventory:[],quests:[],titles:[],titleDefs:{},killCounts:{total:0,red:0,bosses:0,bySpecies:{}},companions:[]};}
+  stats:{str:10,agi:10,sen:10,vit:10,int:10,luk:10},points:0,gold:0,usd:0,skills:innateSkills(),inventory:[],quests:[],titles:[],titleDefs:{},killCounts:{total:0,red:0,bosses:0,bySpecies:{}},companions:[]};}
 function innateSkills(){return [
   {name:'Regeneration',type:'Passive',level:1,mp_cost:'—',cooldown:'—',exp:0,expNext:20,description:'Innate. Passive. Recovers 1% of max HP per turn (min 1 HP; currently about +1 HP/turn at typical starting max HP). +1% from skill Lv. 1, plus a small VIT bonus. Caps at 15% per turn. Rest, sleep, or a new day recover about 8 turns at once. Gains skill EXP when it heals wounds; significant injuries grant more. Tiny at first; grows as the skill levels up.'},
   {name:'Enhancement',type:'Active',level:1,mp_cost:'10 + 1/min',cooldown:'none',description:'Innate. Self-buff that raises physical stats while active; shares a percentage of the buff with allies and summons nearby. At E-rank: small boost (~10% physical), 20% of it shared. Scales with level, skill level and INT/MP.'}];}
@@ -702,7 +703,7 @@ function narratedPlayerInjury(text){
 function isMechanicalNote(n){
   n=String(n||'').trim();
   if(!n||/^Fatigue\b/i.test(n)||/^Max (HP|MP)\b/i.test(n))return false;
-  return /^(HP|MP|Gold|EXP|LEVEL UP!?|Ability Points|Item |Box |Skill |New quest|Quest |Title |Companion |STR|AGI|SEN|VIT|INT|LUK|level |job |title |official|Assoc)/i.test(n);
+  return /^(HP|MP|Gold|USD|EXP|LEVEL UP!?|Ability Points|Item |Box |Skill |New quest|Quest |Title |Companion |STR|AGI|SEN|VIT|INT|LUK|level |job |title |official|Assoc)/i.test(n);
 }
 function visibleNotes(notes){return (notes||[]).map(String).filter(isMechanicalNote);}
 function preAwakenUpdates(updates,cleanText){
@@ -792,7 +793,7 @@ function normItem(it){
   return {id:uid(),name:String(it.name||'Unknown Item'),qty:Math.max(1,num(it.qty!=null?it.qty:it.quantity,1)),category:it.category||it.type||'',
     acquisition_difficulty:it.acquisition_difficulty||it.rank||'',stats:(it.stats&&typeof it.stats==='object')?it.stats:{},
     effects:Array.isArray(it.effects)?it.effects.map(x=>typeof x==='object'&&x?((x.name||'')+(x.description?': '+x.description:'')):String(x)):(it.effects?[String(it.effects)]:[]),
-    durability:it.durability||'',requirements:it.requirements||'',description:it.description||'',equipped:!!it.equipped,...(it.tier||String(it.category).toLowerCase()==='box'?{tier:it.tier||it.acquisition_difficulty||'E',kind:it.kind||'random'}:{})};
+    durability:it.durability||'',requirements:it.requirements||'',description:it.description||'',equipped:!!it.equipped,...(it.equipSlot?{equipSlot:String(it.equipSlot)}:{}),...(it.twoHanded||it.two_handed||it.hands===2?{twoHanded:true}:{}),...(it.tier||String(it.category).toLowerCase()==='box'?{tier:it.tier||it.acquisition_difficulty||'E',kind:it.kind||'random'}:{})};
 }
 function normSkill(s){if(typeof s==='string')s={name:s};
   const out={name:String(s.name||'Skill'),type:s.type||'Active',level:num(s.level,1),mp_cost:s.mp_cost!=null?s.mp_cost:(s.mpCost||''),cooldown:s.cooldown||'',description:s.description||''};
@@ -843,7 +844,7 @@ function levelUp(p,cfg,notes){
 function applyUpdate(p,u,cfg){
   const notes=[];if(!u||typeof u!=='object')return notes;
   const setMap={level:'level',exp:'exp',exp_next:'expNext',expNext:'expNext',job:'job',title:'title',official_rank:'officialRank',rank:'officialRank',
-    hp:'hp',mp:'mp',fatigue:'fatigue',gold:'gold',stat_points:'points',points:'points'};
+    hp:'hp',mp:'mp',fatigue:'fatigue',gold:'gold',usd:'usd',money:'usd',cash:'usd',wallet:'usd',stat_points:'points',points:'points'};
   const pendingHP=Object.create(null); // current-pool sets applied after formula max
   if(u.set&&typeof u.set==='object'){
     for(const k in u.set){
@@ -911,10 +912,10 @@ function deriveMax(p,cfg){if(!p||(cfg&&cfg.deriveHpMp===false))return;const mh=f
   p.maxHp=mh;p.maxMp=mm;}
 function clampPlayer(p){if(!p)return;p.maxHp=formulaMaxHp(p);p.maxMp=formulaMaxMp(p);
   p.hp=Math.min(Math.max(0,num(p.hp,0)),p.maxHp);p.mp=Math.min(Math.max(0,num(p.mp,0)),p.maxMp);
-  p.fatigue=Math.max(0,num(p.fatigue,0));p.points=Math.max(0,num(p.points,0));p.level=Math.max(1,num(p.level,1));p.exp=Math.max(0,num(p.exp,0));}
+  p.fatigue=Math.max(0,num(p.fatigue,0));p.points=Math.max(0,num(p.points,0));p.usd=Math.max(0,num(p.usd,0));p.gold=Math.max(0,num(p.gold,0));p.level=Math.max(1,num(p.level,1));p.exp=Math.max(0,num(p.exp,0));}
 
 /* ---- generic diff/revert so redo/delete undoes exactly one post's effects ---- */
-const SCALARS=['level','exp','expNext','hp','maxHp','mp','maxMp','fatigue','gold','points','job','title','officialRank'];
+const SCALARS=['level','exp','expNext','hp','maxHp','mp','maxMp','fatigue','gold','usd','points','job','title','officialRank'];
 const LISTS=['inventory','skills','quests','companions'];
 const RECORDS=['killCounts','titleDefs'];
 function diffPlayer(a,b){
@@ -1399,7 +1400,7 @@ function equippedBonuses(p){
 }
 function itemSlot(it){
   const c=String((it&&(it.slot||it.category||it.type||it.name))||'').toLowerCase();
-  if(/dagger|sword|greatsword|spear|axe|bow|staff|gauntlet|knuckle|weapon|fist/.test(c))return 'weapon';
+  if(/dagger|sword|greatsword|spear|axe|bow|staff|gauntlet|knuckle|weapon|fist|blade|knife|mace|hammer|shield|wand|katana|rapier/.test(c))return 'weapon';
   if(/helmet|helm|hat/.test(c))return 'helmet';
   if(/boot/.test(c))return 'boots';
   if(/glove/.test(c))return 'gloves';
@@ -1409,6 +1410,135 @@ function itemSlot(it){
   if(/necklace|earring|bracelet|amulet|accessory/.test(c))return 'accessory';
   return '';
 }
+function itemSlotFamily(it){return itemSlot(it);}
+function isTwoHanded(it){
+  if(!it)return false;
+  if(it.twoHanded===true||it.two_handed===true||it.hands===2)return true;
+  if(it.twoHanded===false||it.two_handed===false||it.hands===1)return false;
+  const c=String((it.slot||'')+' '+(it.category||'')+' '+(it.type||'')+' '+(it.name||'')+' '+(it.description||'')+' '+(it.requirements||'')).toLowerCase();
+  if(/\b(one[-\s]?hand(?:ed)?|1[-\s]?h(?:and)?|single[-\s]?hand|off[-\s]?hand|buckler|parrying dagger|shortsword|short sword)\b/.test(c)&&!/\b(two[-\s]?hand|2[-\s]?h|greatsword|great axe)\b/.test(c))return false;
+  return /\b(two[-\s]?hand(?:ed)?|2[-\s]?h(?:and)?|greatsword|great sword|greataxe|great axe|longbow|long bow|warhammer|war hammer|polearm|halberd|glaive|nodachi|claymore|odachi|naginata|pike|lance)\b/.test(c)||/\bstaff\b/.test(c);
+}
+function itemEquipSlot(it){
+  if(!it)return '';
+  const fam=itemSlot(it);
+  if(fam==='weapon'){
+    const s=String(it.equipSlot||it.slot||'').toLowerCase().replace(/[_\s]/g,'');
+    if(s==='main'||s==='mainhand'||s==='primary')return 'main';
+    if(s==='off'||s==='offhand'||s==='secondaryhand')return 'off';
+    if(s==='backup'||s==='secondary'||s==='spare')return 'backup';
+    return it.equipped?'main':'';
+  }
+  return fam;
+}
+function unequipItem(it){if(!it)return;it.equipped=false;if(it.equipSlot)it.equipSlot='';}
+function equippedBySlot(p){
+  const by={};
+  for(const it of (p&&p.inventory)||[]){
+    if(!it||!it.equipped)continue;
+    const sl=itemEquipSlot(it)||itemSlot(it);
+    if(!sl)continue;
+    by[sl]=it;
+    if(itemSlot(it)==='weapon'&&isTwoHanded(it)&&sl==='main')by.off=by.off||it;
+  }
+  return by;
+}
+function equipGear(p,it,wantSlot){
+  if(!p||!it)return {ok:false};
+  const fam=itemSlot(it);
+  if(!fam)return {ok:false,reason:'slot'};
+  if(it.equipped&&(!wantSlot||itemEquipSlot(it)===wantSlot||(fam!=='weapon'))){
+    unequipItem(it);return {ok:true,equipped:false};
+  }
+  if(fam==='weapon'){
+    let slot=String(wantSlot||'main').toLowerCase();
+    if(slot==='off'&&isTwoHanded(it))slot='main';
+    if(slot!=='main'&&slot!=='off'&&slot!=='backup')slot='main';
+    for(const x of p.inventory||[]){
+      if(x===it||!x.equipped||itemSlot(x)!=='weapon')continue;
+      const xs=itemEquipSlot(x)||'main';
+      if(slot==='backup'){if(xs==='backup')unequipItem(x);}
+      else{
+        if(xs===slot)unequipItem(x);
+        if(slot==='main'&&isTwoHanded(it)&&(xs==='off'||isTwoHanded(x)))unequipItem(x);
+        if(slot==='off'&&isTwoHanded(x))unequipItem(x);
+      }
+    }
+    it.equipped=true;it.equipSlot=slot;return {ok:true,equipped:true,slot};
+  }
+  for(const x of p.inventory||[]){if(x!==it&&x.equipped&&itemSlot(x)===fam)unequipItem(x);}
+  it.equipped=true;it.equipSlot=fam;return {ok:true,equipped:true,slot:fam};
+}
+function fmtUsd(n){
+  const v=Math.round(num(n,0));
+  const sign=v<0?'-':'';
+  return sign+'$'+Math.abs(v).toLocaleString('en-US');
+}
+function moneyDeltaOf(x){
+  if(x==null||x==='')return 0;
+  if(typeof x==='number')return num(x,0);
+  if(typeof x==='string'){
+    const m=String(x).replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);
+    return m?num(m[0],0):0;
+  }
+  if(typeof x==='object')return num(x.delta!=null?x.delta:(x.amount!=null?x.amount:(x.usd!=null?x.usd:(x.value!=null?x.value:(x.cash!=null?x.cash:x.qty)))),0);
+  return 0;
+}
+function moneyReasonOf(x){return (x&&typeof x==='object')?String(x.reason||x.source||x.note||x.for||'').trim():'';}
+function collectMoneyEvents(events,updates){
+  let delta=0;const reasons=[];
+  const take=(obj)=>{
+    if(!obj||typeof obj!=='object')return;
+    const keys=['money','usd','cash','wallet','pay','payment','raid_pay','porter_pay','usd_delta'];
+    for(const k of keys){
+      if(obj[k]==null)continue;
+      const v=obj[k];
+      if(k==='pay'||k==='payment'){
+        if(typeof v==='object'&&(v.currency&&!/usd|dollar|\$/i.test(String(v.currency))))continue;
+      }
+      const d=moneyDeltaOf(v);
+      if(!d)continue;
+      delta+=d;
+      const r=moneyReasonOf(v)||(k==='raid_pay'?'raid pay':k==='porter_pay'?'porter pay':'');
+      if(r)reasons.push(r);
+    }
+  };
+  (events||[]).forEach(take);(updates||[]).forEach(take);
+  return {delta,reason:reasons.filter(Boolean).join(', ')};
+}
+function detectMoneyFromText(text){
+  const s=String(text||'');
+  if(!s)return {delta:0,reason:''};
+  const payRe=/(?:paid|pays|paying|payment|earned|earns|received|receives|rewarded|deposited|handed|settled|compensation|raid pay|porter pay|wages?|salary|stipend|bounty|sold .{0,48}for|buyers? paid|association paid|guild paid|wallet|got paid)/i;
+  const spendRe=/(?:lost|spent|pay(?:s|ing)? (?:the |a |an )?(?:fee|fine|bill|cost)|cost her|costs you|fined)/i;
+  const paidHer=/(?:paid (?:her|you|me)|handed (?:her|you|me)|received|earned|raid pay|porter pay)/i;
+  const re=/\$\s*(-?[0-9]{1,3}(?:,[0-9]{3})+|-?[0-9]+)(?:\.(\d{1,2}))?|\b(-?[0-9]{1,3}(?:,[0-9]{3})+|-?[0-9]+)\s*(?:USD|U\.S\.?\s*dollars?|dollars?)\b|\b(?:USD|US\$)\s*(-?[0-9]{1,3}(?:,[0-9]{3})+|-?[0-9]+)\b/gi;
+  let delta=0,m,reasons=[];
+  while((m=re.exec(s))){
+    const raw=(m[1]||m[3]||m[4]||'').replace(/,/g,'');
+    let amt=num(raw,0);
+    if(m[2])amt=num(raw+'.'+m[2],amt);
+    if(!amt)continue;
+    const win=s.slice(Math.max(0,m.index-72),m.index+m[0].length+48);
+    if(!payRe.test(win)&&!/\bwallet\b/i.test(win))continue;
+    const sign=(spendRe.test(win)&&!paidHer.test(win))?-1:1;
+    delta+=sign*Math.abs(amt);
+    if(/raid pay/i.test(win))reasons.push('raid pay');
+    else if(/porter/i.test(win))reasons.push('porter pay');
+    else if(/association|buyer/i.test(win))reasons.push('sale');
+  }
+  return {delta,reason:reasons[0]||''};
+}
+function applyUsdDelta(p,delta,reason,notes,notices){
+  const d=num(delta,0);if(!d||!p)return 0;
+  p.usd=Math.max(0,num(p.usd,0)+d);
+  const line='USD '+(d>0?'+':'')+fmtUsd(d)+(reason?(' ('+reason+')'):'');
+  if(notes)notes.push(line);
+  if(notices)notices.push({title:'Notification',body:(d>0?'Received ':'Spent ')+fmtUsd(Math.abs(d))+(reason?(' — '+reason):'')+'. Wallet: '+fmtUsd(p.usd)+'.'});
+  return d;
+}
+function officialHunterRank(p){return String((p&&p.officialRank)||'E').trim()||'E';}
+
 function itemSellPrice(it){
   if(!it)return 0;
   if(it.price!=null&&num(it.price)>0)return Math.max(1,Math.round(num(it.price)*0.5));
@@ -1714,21 +1844,25 @@ function sellNamedItems(p,list,opts){
     const have=Math.max(0,num(it.qty,1));
     const qty=wantAll?have:Math.max(1,Math.floor(num(req.qty,1)));
     if(have<qty||!have){rejected.push({name:it.name,qty,have,reason:'qty'});continue;}
-    const r=sellInventoryItems(p,i,qty);
+    const currency=/usd|dollar|money|cash|wallet/i.test(String(opts.currency||req.currency||req.pay||'gold'))?'usd':'gold';
+    const unit=req.price!=null||req.usd!=null||req.gold!=null?num(req.price!=null?req.price:(req.usd!=null?req.usd:req.gold),itemSellPrice(it)):itemSellPrice(it);
+    const r=sellInventoryItems(p,i,qty,{currency,unit});
     if(r&&r.ok)sold.push(r);else rejected.push({name:it.name,qty,reason:r&&r.reason||'missing'});
   }
   const gold=sold.reduce((s,x)=>s+num(x.gold,0),0);
+  const usd=sold.reduce((s,x)=>s+num(x.usd,0),0);
   const notices=[];
   if(sold.length){
-    const lines=sold.map(s=>'Sold '+s.name+' ×'+s.qty+' for '+s.gold+' G.');
-    if(sold.length>1)lines.push('Gold +'+gold+'.');
+    const lines=sold.map(s=>s.currency==='usd'?('Sold '+s.name+' ×'+s.qty+' for '+fmtUsd(s.usd)+'.'):('Sold '+s.name+' ×'+s.qty+' for '+s.gold+' G.'));
+    if(sold.length>1&&usd)lines.push('USD +'+fmtUsd(usd)+'.');
+    if(sold.length>1&&gold)lines.push('Gold +'+gold+'.');
     notices.push({title:'Notification',body:lines.join('\n')});
   }
   for(const r of rejected){
     const msg=r.reason==='protected'?'Left '+r.name+' untouched (equipped, box, key, or quest item).':r.reason==='qty'?'You do not have '+r.qty+' × '+r.name+' (have '+(r.have||0)+').':'You do not have '+r.name+'.';
     notices.push({title:'Notification',body:msg});
   }
-  return {ok:!!sold.length,sold,rejected,gold,notices};
+  return {ok:!!sold.length,sold,rejected,gold,usd,notices};
 }
 function scrubCraftedItem(it){
   const n=normItem(it||{});
@@ -2171,9 +2305,17 @@ function runSystemEngine(p,text,cfg,opts){
     const sellList=collectNamedList(events,updates,['sell','sells','items_sell']);
     if(!sellList.length&&userText)sellList.push.apply(sellList,detectUserSells(userText));
     if(sellList.length){
-      const sr=sellNamedItems(p,sellList,{userText});
+      const wantGold=/system store|system shop|for gold|in gold|\bG\b/.test(String(userText||''));
+      const sr=sellNamedItems(p,sellList,{userText,currency:wantGold?'gold':'usd'});
       for(const n of (sr.notices||[]))notices.push(n);
     }
+    const evMoney=collectMoneyEvents(events,updates);
+    let money=evMoney;
+    if(!money.delta){
+      const prose=detectMoneyFromText((userText||'')+'\n'+(text||''));
+      if(prose.delta)money=prose;
+    }
+    if(money.delta)applyUsdDelta(p,money.delta,money.reason,notes,notices);
     const craftList=collectCraftList(events,updates);
     if(!craftList.length&&userText)craftList.push.apply(craftList,detectUserCrafts(userText));
     let cr={ok:false,crafted:[],notices:[],rejected:[]};
@@ -2786,17 +2928,19 @@ function addItemToInventory(p,it){
   if(ex){ex.qty=num(ex.qty,1)+num(n.qty,1);return ex;}
   p.inventory.push(n);return n;
 }
-function sellInventoryItems(p,idx,qty){
+function sellInventoryItems(p,idx,qty,opts){
   if(!p||!p.inventory)return {ok:false,reason:'missing'};
+  opts=opts||{};
   const it=p.inventory[idx];if(!it)return {ok:false,reason:'missing'};
   const have=Math.max(1,num(it.qty,1));
   const n=Math.max(1,Math.min(have,Math.floor(num(qty,1))));
-  const unit=itemSellPrice(it);
-  const gold=unit*n;
-  p.gold=num(p.gold,0)+gold;
+  const unit=num(opts.unit,itemSellPrice(it));
+  const amount=unit*n;
+  const currency=/usd|dollar|money|cash|wallet/i.test(String(opts.currency||'gold'))?'usd':'gold';
+  if(currency==='usd')p.usd=num(p.usd,0)+amount;else p.gold=num(p.gold,0)+amount;
   it.qty=have-n;
-  if(it.qty<=0){if(it.equipped)it.equipped=false;p.inventory.splice(idx,1);}
-  return {ok:true,name:it.name,qty:n,gold,unit,remaining:Math.max(0,it.qty)};
+  if(it.qty<=0){unequipItem(it);p.inventory.splice(idx,1);}
+  return {ok:true,name:it.name,qty:n,gold:currency==='gold'?amount:0,usd:currency==='usd'?amount:0,unit,currency,remaining:Math.max(0,it.qty)};
 }
 function maxBuyQty(player,shopItem){
   const price=num(shopItem&&shopItem.price,0);
@@ -2850,17 +2994,13 @@ function formatActionLog(actions){
 }
 function cutText(t,n){t=String(t||'');return t.length>n?t.slice(0,n-1)+'…':t;}
 function equippedContextBlock(player){
-  const slots=[['weapon','Weapon'],['armor','Armor'],['helmet','Helmet'],['gloves','Gloves'],['boots','Boots'],['cloak','Cloak'],['ring','Ring'],['accessory','Accessory']];
-  const by={};
-  for(const it of (player&&player.inventory)||[]){
-    if(!it||!it.equipped)continue;
-    const sl=typeof itemSlot==='function'?itemSlot(it):'';
-    if(sl)by[sl]=it;
-  }
+  const slots=[['main','Main hand'],['off','Off hand'],['backup','Backup weapon'],['armor','Armor'],['helmet','Helmet'],['gloves','Gloves'],['boots','Boots'],['cloak','Cloak'],['ring','Ring'],['accessory','Accessory']];
+  const by=typeof equippedBySlot==='function'?equippedBySlot(player):{};
   const worn=slots.map(([k,l])=>{
     const it=by[k];if(!it)return '';
+    const two=k==='off'&&itemEquipSlot(it)==='main'&&isTwoHanded(it);
     const d=it.description?': '+cutText(it.description,80):'';
-    return l+': '+it.name+d;
+    return l+': '+it.name+(two?' (two-handed)':'')+d;
   }).filter(Boolean);
   const gear=worn.length?worn.join('; '):'none';
   const raw=player&&player.title&&player.title!=='None'?player.title:'None';
@@ -2879,7 +3019,7 @@ function commitActionLog(state,msgIndex,alt,used){
   let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
   if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList,itemNameParts,findInventoryMatches,inventoryQtyByName,isCraftishObject,normalizeCraftRecord,collectCraftList,autoFuseDuplicates,formatFuseNotice,NOTHING_FUSED_NOTICE,materialUpgradeName,fuseRatioFor,isAutoFusableItem};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList,itemNameParts,findInventoryMatches,inventoryQtyByName,isCraftishObject,normalizeCraftRecord,collectCraftList,autoFuseDuplicates,formatFuseNotice,NOTHING_FUSED_NOTICE,materialUpgradeName,fuseRatioFor,isAutoFusableItem,fmtUsd,moneyDeltaOf,moneyReasonOf,collectMoneyEvents,detectMoneyFromText,applyUsdDelta,officialHunterRank,isTwoHanded,itemEquipSlot,equipGear,unequipItem,equippedBySlot,itemSlotFamily};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -2969,13 +3109,25 @@ function migrate(d){const base=defaultState();const s=deepMerge(base,d||{});
     DEFAULT_SHOP.forEach(it=>{if(!have.has(keyOf(it)))s.shop.push(Object.assign({},it));});
     s.flags.systemEngine1=true;
   }
+  if(!s.flags.canonWallet1){
+    const sp=s.settings.systemPrompt||'';
+    if(/^You are the NARRATOR\/GM of a mature Solo Leveling roleplay/.test(sp)&&/Hidden until the System awakens/.test(sp))s.settings.systemPrompt=DEFAULT_SYSTEM_PROMPT;
+    s.flags.canonWallet1=true;
+  }
   if(!Array.isArray(s.pendingActions))s.pendingActions=[];
   if(s.player){
+    if(s.player.usd==null||s.player.usd==='')s.player.usd=0;
+    s.player.usd=Math.max(0,num(s.player.usd,0));
+    if(!s.player.officialRank)s.player.officialRank='E';
     if(!s.player.killCounts||typeof s.player.killCounts!=='object')s.player.killCounts={total:0,red:0,bosses:0,bySpecies:{}};
     if(!s.player.titleDefs||typeof s.player.titleDefs!=='object')s.player.titleDefs={};
     if(!Array.isArray(s.player.titles))s.player.titles=[];
     if(s.player.title&&s.player.title!=='None'&&!hasTitle(s.player,s.player.title))s.player.titles.push(s.player.title);
     const rsk=findRegenSkill(s.player);if(rsk){if(rsk.exp==null)rsk.exp=0;if(!rsk.expNext)rsk.expNext=regenSkillExpNext(rsk.level||1);syncRegenDescription(s.player,rsk);}
+    for(const it of (s.player.inventory||[])){
+      if(!it||!it.equipped)continue;
+      if(itemSlot(it)==='weapon'&&!it.equipSlot)it.equipSlot='main';
+    }
   }
   return s;}
 let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,200);}
@@ -3114,11 +3266,11 @@ function playerStatusText(p,opt){
   opt=opt||{};p=p||{};const stats=p.stats||{};const ranks=opt.statRanks||DEFAULT_STAT_RANKS;const chart=opt.rankChart||DEFAULT_RANKS;
   const lines=[];if(opt.name)lines.push('Name: '+opt.name);
   lines.push('Level: '+num(p.level,1));lines.push('Job: '+(p.job||'None'));lines.push('Title: '+(p.title||'None'));
-  lines.push('Hunter rank: '+rankForLevel(chart,p.level||1)+' (mana readers)');
+  lines.push('Hunter rank: '+officialHunterRank(p)+' (Association license)');
   lines.push('HP: '+num(p.hp)+'/'+num(p.maxHp));lines.push('MP: '+num(p.mp)+'/'+num(p.maxMp));
   if(opt.showFatigue!==false)lines.push('Fatigue: '+num(p.fatigue,0)); // real tracked stat
   lines.push(STAT_KEYS.map(k=>k.toUpperCase()+' '+num(stats[k],0)+' ('+statRank(ranks,stats[k])+')').join('  '));
-  lines.push('Free points: '+num(p.points,0));lines.push('Gold: '+num(p.gold,0));
+  lines.push('Free points: '+num(p.points,0));lines.push('USD: '+fmtUsd(p.usd));lines.push('Gold: '+num(p.gold,0)+' (System)');
   const skills=(p.skills||[]).map(s=>s&&s.name?s.name+' Lv'+s.level:String(s||'')).filter(Boolean);
   lines.push('Skills: '+(skills.join(', ')||'none'));
   const inv=(p.inventory||[]).map(x=>x.name+(x.qty>1?' ×'+x.qty:'')+(x.equipped?' [equipped]':''));
@@ -3169,8 +3321,18 @@ function currentScrollY(){
   return (se&&se.scrollTop)||window.pageYOffset||window.scrollY||document.documentElement.scrollTop||(document.body&&document.body.scrollTop)||0;
 }
 function currentScrollYSafe(){return (scrollLock||(streamScroll&&streamScroll.programmatic))? (tabScrollY[scrollKey()]||0):currentScrollY();}
-function applyScrollY(y){
+let allowProgScroll=false;
+function logProgScroll(why,top){
+  try{
+    if(typeof window==='undefined')return;
+    if(!window.__scrollProgrammatic)window.__scrollProgrammatic=[];
+    window.__scrollProgrammatic.push({y:top,why:String(why||''),at:(performance&&performance.now)?performance.now():Date.now(),live:!!(typeof userScrollIsLive==='function'&&userScrollIsLive())});
+  }catch(e){}
+}
+function applyScrollY(y,why){
   const top=Math.max(0,num(y,0));
+  if(!allowProgScroll && typeof userScrollIsLive==='function' && userScrollIsLive())return;
+  logProgScroll(why||'apply',top);
   const se=document.scrollingElement||document.documentElement;
   try{if(se)se.scrollTop=top;}catch(e){}
   try{if(document.documentElement)document.documentElement.scrollTop=top;}catch(e){}
@@ -3186,7 +3348,13 @@ function rememberTabScroll(name){
   return y;
 }
 function rememberStoryScroll(){return rememberTabScroll('story');}
-function markUserScrollIntent(){lastUserInputAt=Date.now();lastMomentumAt=Date.now();}
+function markUserScrollIntent(e){
+  if(e&&e.target){
+    const el=e.target.nodeType===1?e.target:e.target.parentElement;
+    if(el&&el.closest&&el.closest('header,nav,button,input,select,textarea,label,.btn,#jumpLatest,#jumpTop,.composer'))return;
+  }
+  lastUserInputAt=Date.now();lastMomentumAt=Date.now();
+}
 function userScrollIsLive(){const now=Date.now();return (now-lastUserInputAt<800)||(now-lastMomentumAt<800);}
 function restoreTabScroll(name,y){
   name=name||activeTabName();
@@ -3194,9 +3362,10 @@ function restoreTabScroll(name,y){
   const top=Math.max(0,y==null?(tabScrollY[k]||0):num(y,0));
   tabScrollY[k]=top;
   if(name==='story'||k==='story')storyScrollY=top;
+  if(!allowProgScroll && typeof userScrollIsLive==='function'&&userScrollIsLive())return;
   scrollLock++;
   streamScroll.programmatic=true;
-  const go=()=>applyScrollY(top);
+  const go=()=>applyScrollY(top,'restore');
   go();
   const raf=typeof requestAnimationFrame==='function'?requestAnimationFrame:fn=>setTimeout(fn,16);
   raf(()=>{
@@ -3205,7 +3374,7 @@ function restoreTabScroll(name,y){
       go();
       scrollLock=Math.max(0,scrollLock-1);
       streamScroll.programmatic=false;
-      if(typeof syncChrome==='function')syncChrome();
+      if(typeof syncChrome==='function')syncChrome(false);
       if(typeof updateJumpBtn==='function')updateJumpBtn();
     });
   });
@@ -3215,7 +3384,7 @@ function setHeldScrollY(y,name){
   name=name||activeTabName();
   tabScrollY[scrollKey(name)]=top;
   if(name==='story')storyScrollY=top;
-  applyScrollY(top);
+  applyScrollY(top,allowProgScroll?'jump':'set');
 }
 function restoreStoryScroll(y){if(isStoryTab())restoreTabScroll('story',y);}
 function renderLog(opts){
@@ -3384,24 +3553,13 @@ function scheduleChrome(force){
 function syncChrome(force){
   const t0=(typeof performance!=='undefined'&&performance.now)?performance.now():0;
   const y=window.pageYOffset||window.scrollY||0;
-  const compact=y>16;
   const root=document.documentElement;
-  const was=root.classList.contains('chrome-compact');
-  let measure=!!force;
-  if(was!==compact){
-    root.classList.toggle('chrome-compact',compact);
-    measure=true;
-  }
-  if(measure){
+  // Header height and body padding-top stay constant while scrolling.
+  // Toggling compact mid-swipe used to rewrite --chrome-h and scrollBy, which snapped the page back up.
+  if(force && !(typeof userScrollIsLive==='function'&&userScrollIsLive())){
     const header=document.querySelector('header');
-    const prev=lastChromeH>0?lastChromeH:0;
     const h=header?Math.round(header.getBoundingClientRect().height):0;
-    if(h!==lastChromeH){lastChromeH=h;root.style.setProperty('--chrome-h',h+'px');}
-    if(was!==compact&&prev&&!(streamScroll&&streamScroll.programmatic)&&y>0){
-      const delta=h-prev;
-      if(delta){streamScroll.programmatic=true;window.scrollBy(0,delta);clearTimeout(streamScroll.progTimer);
-        streamScroll.progTimer=setTimeout(()=>{streamScroll.programmatic=false;},50);}
-    }
+    if(h>0&&h!==lastChromeH){lastChromeH=h;root.style.setProperty('--chrome-h',h+'px');}
   }
   const topBtn=$('#jumpTop');if(topBtn){const hide=y<80;if(topBtn.hidden!==hide)topBtn.hidden=hide;}
   updateJumpBtn();
@@ -3422,13 +3580,13 @@ function updateJumpBtn(){
   const below=(document.documentElement.scrollHeight-(window.scrollY+viewH))>80;
   btn.hidden=!below;
 }
-function jumpToLatest(){streamScroll.userMoved=false;streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+function jumpToLatest(){streamScroll.userMoved=false;streamScroll.programmatic=true;allowProgScroll=true;clearTimeout(streamScroll.progTimer);
   const go=()=>{const top=Math.max(0,(document.scrollingElement||document.documentElement).scrollHeight);setHeldScrollY(top,'story');};
   go();
-  streamScroll.progTimer=setTimeout(()=>{go();streamScroll.programmatic=false;syncChrome();updateJumpBtn();},450);}
-function jumpToTop(){streamScroll.programmatic=true;clearTimeout(streamScroll.progTimer);
+  streamScroll.progTimer=setTimeout(()=>{go();streamScroll.programmatic=false;allowProgScroll=false;syncChrome(false);updateJumpBtn();},450);}
+function jumpToTop(){streamScroll.programmatic=true;allowProgScroll=true;clearTimeout(streamScroll.progTimer);
   setHeldScrollY(0,'story');
-  streamScroll.progTimer=setTimeout(()=>{applyScrollY(0);syncChrome();streamScroll.programmatic=false;updateJumpBtn();},450);}
+  streamScroll.progTimer=setTimeout(()=>{applyScrollY(0,'jump');syncChrome(false);streamScroll.programmatic=false;allowProgScroll=false;updateJumpBtn();},450);}
 function updateStreaming(i){
   const go=()=>{
     const y=isStoryTab()?currentScrollYSafe():(tabScrollY.story||0);
@@ -3447,8 +3605,8 @@ function updateStreaming(i){
 }
 
 function statusBlock(){const p=S.player;const st=STAT_KEYS.map(k=>k.toUpperCase()+' '+p.stats[k]+'('+statRank(S.statRanks,p.stats[k])+')').join(', ');
-  const L=[];L.push('Lv '+p.level+' (EXP '+p.exp+'/'+p.expNext+') · Hunter rank '+rankForLevel(S.rankChart,p.level)+' (what mana readers show) · Job '+p.job+' · Title '+p.title+(p.titles.length?' · Titles: '+p.titles.join(', '):''));
-  L.push('HP '+p.hp+'/'+p.maxHp+' · MP '+p.mp+'/'+p.maxMp+' · Fatigue '+p.fatigue+' · Gold '+p.gold+' · Free points '+p.points);
+  const L=[];L.push('Lv '+p.level+' (EXP '+p.exp+'/'+p.expNext+') · License rank '+officialHunterRank(p)+' (public) · Job '+p.job+' · Title '+p.title+(p.titles.length?' · Titles: '+p.titles.join(', '):''));
+  L.push('HP '+p.hp+'/'+p.maxHp+' · MP '+p.mp+'/'+p.maxMp+' · Fatigue '+p.fatigue+' · USD '+fmtUsd(p.usd)+' · Gold '+p.gold+' · Free points '+p.points);
   L.push('Stats (stat rank): '+st);
   L.push('Skills: '+(p.skills.map(s=>s.name+' Lv'+s.level+' ('+s.type+')').join('; ')||'none'));
   L.push('Inventory: '+(p.inventory.map(x=>x.name+(x.qty>1?' ×'+x.qty:'')+(x.equipped?' [equipped]':'')).join('; ')||'empty'));
@@ -3465,7 +3623,7 @@ function buildContext(uptoIndex,continuation,instruction){
     '\n\nWORLD NOTES: '+cut(w.notes,600)+worldContext(uptoIndex)+'\nSTYLE: '+cut(w.style,250)+
     (w.openingActive&&w.opening?'\n\n'+w.opening:'')+
     (w.summary?'\n\nSTORY SO FAR: '+w.summary:'')+
-    '\n\nHunter rank by level: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
+    '\n\nLicense rank: '+officialHunterRank(S.player)+' (public; System level secret). Reassessment chart: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
     (isAwakened()?'\n\nRIGHT NOW: System is awake. Windows only when there is something to tell her; most replies have none. Occasional (sparing) voice of '+(c.patronName||c.patronType||'Sól')+'.':'')+
     '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex)+'\n\n'+equippedContextBlock(S.player)+((isAwakened()&&!(S.world&&S.world.openingActive)&&(userMentionsTrade(prevUserText(S.messages,uptoIndex))||inventoryListIsShort(S.player)))?'\n\n'+tradeContextBlock(S.player,prevUserText(S.messages,uptoIndex)):'')+(((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[])).length?('\n'+formatActionLog((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[]))):'');
   const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
@@ -3543,7 +3701,7 @@ function renderActionChip(){
 function renderHud(){if(S&&S.player)repairDerivedStats(S.player,cfg());const p=S.player;
   if(!isAwakened()){$('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Hunter <b class="rank">'+esc(p.officialRank||'E')+'</b></span><span class="muted">System dormant</span>';return;}
   const flash=currentRegenFlash();
-  $('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b>'+(flash?'<span class="regen-flash">+'+flash+' HP</span>':'')+'</span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Rank <b class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
+  $('#hud').innerHTML='<span>Day <b>'+S.game.day+'</b></span><span>Lv <b>'+p.level+'</b></span><span>HP <b>'+p.hp+'/'+p.maxHp+'</b>'+(flash?'<span class="regen-flash">+'+flash+' HP</span>':'')+'</span><span>MP <b>'+p.mp+'/'+p.maxMp+'</b></span><span>USD <b>'+esc(fmtUsd(p.usd))+'</b></span><span>Gold <b>'+Number(p.gold).toLocaleString()+'</b></span><span>Hunter <b class="rank">'+esc(officialHunterRank(p))+'</b></span>'+(p.points?'<span style="color:var(--gold)">+'+p.points+' pts</span>':'');}
 function syncStoryChrome(){
   const on=isAwakened();
   const nd=$('#nextDayBtn'),sl=$('#sysNoteBtn');
@@ -3567,15 +3725,16 @@ function renderSystem(opts){
       '<div class="kv"><span class="k">Level</span>'+field('level',p.level,'number')+'</div>'+
       '<div class="kv"><span class="k">Job</span>'+field('job',p.job)+'</div>'+
       '<div class="kv"><span class="k">Title</span>'+field('title',p.title)+'</div>'+
-      '<div class="kv"><span class="k">Hunter Rank</span><span class="rank">'+esc(rankForLevel(S.rankChart,p.level))+'</span><span class="muted">(by level · what mana readers show)</span></div>'+
-      '<div class="kv"><span class="k">Assoc. Record</span>'+field('officialRank',p.officialRank)+'</div>'+
+      '<div class="kv"><span class="k">Hunter Rank</span><span class="rank">'+esc(officialHunterRank(p))+'</span><span class="muted">(Association license · stays E unless reassessed)</span></div>'+
+      '<div class="kv"><span class="k">License</span>'+field('officialRank',p.officialRank)+'</div>'+
       '<div class="kv"><span class="k">Day</span><span>'+esc(gameDateStr())+'</span></div>'+
       '</div><h3>Condition</h3><div class="status-grid">'+
       '<div><div class="kv"><span class="k">HP</span>'+field('hp',p.hp,'number')+'/<span title="VIT × Level × 10">'+p.maxHp+'</span></div><div class="bar hp"><i style="width:'+pct(p.hp,p.maxHp)+'%"></i></div></div>'+
       '<div><div class="kv"><span class="k">MP</span>'+field('mp',p.mp,'number')+'/<span title="INT × Level">'+p.maxMp+'</span></div><div class="bar mp"><i style="width:'+pct(p.mp,p.maxMp)+'%"></i></div></div>'+
       '<div><div class="kv"><span class="k">Fatigue</span>'+field('fatigue',p.fatigue,'number')+'</div><div class="bar fat"><i style="width:'+pct(p.fatigue,100)+'%"></i></div></div>'+
       '<div><div class="kv"><span class="k">EXP</span>'+field('exp',p.exp,'number')+'/'+field('expNext',p.expNext,'number')+'</div><div class="bar"><i style="width:'+pct(p.exp,p.expNext)+'%"></i></div></div>'+
-      '<div class="kv"><span class="k">Gold</span>'+field('gold',p.gold,'number')+'</div>'+
+      '<div class="kv"><span class="k">System Gold</span>'+field('gold',p.gold,'number')+'</div>'+
+      '<div class="kv"><span class="k">USD wallet</span><b>'+esc(fmtUsd(p.usd))+'</b><button class="btn small" id="usdAdjBtn" style="min-height:44px;margin-left:8px">Adjust USD</button></div>'+
       '</div><h3>Stats</h3><div class="status-grid stats-list">';
     for(const s of STAT_KEYS)h+='<div class="stat"><span class="k" title="'+STAT_NAMES[s]+'">'+s.toUpperCase()+'</span>'+field('stats.'+s,p.stats[s],'number')+'<span class="srank" title="'+STAT_NAMES[s]+' rank">'+esc(statRank(S.statRanks,p.stats[s]))+'</span><button class="btn small" data-plus="'+s+'" '+(p.points>0?'':'disabled')+' title="Spend 1 ability point">+</button></div>';
     h+='<div class="stat points"><span class="k" style="width:auto">Available Points</span>'+field('points',p.points,'number')+'</div></div>';
@@ -3593,6 +3752,7 @@ function renderSystem(opts){
       '<label>Description</label><textarea data-list="skills" data-i="'+i+'" data-k="description">'+esc(s.description)+'</textarea>'+(s.expNext?'<div class="muted">Skill EXP '+num(s.exp,0)+'/'+num(s.expNext,0)+'</div>':'')+'</div>').join('')+
       '<button class="btn small" data-addlist="skills">+ Add skill</button></div>';
   }else if(sysTab==='inventory'){
+    h+='<div class="syswin"><span class="title">USD wallet</span><div class="kv"><span class="k">Real-world money</span><b>'+esc(fmtUsd(p.usd))+'</b><button class="btn small" id="usdAdjBtn" style="min-height:44px;margin-left:8px">Adjust USD</button></div><div class="muted" style="margin-top:6px">Raid pay, porter pay, and sales to the Association or real buyers go here. The System store still uses gold.</div></div>';
     h+=(lastBoxResult?'<div class="syswin"><span class="title">'+esc(lastBoxResult.title)+'</span><ul style="margin:0;padding-left:18px">'+lastBoxResult.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul><button class="btn small" data-closebox="1">OK</button></div>':'')+'<div class="syswin"><span class="title">Equipment</span>'+equipmentPanel(p)+'</div><div class="syswin"><span class="title">Inventory</span>'+(p.inventory.length?'':'<div class="muted">Empty.</div>')+p.inventory.map((it,i)=>itemEditor(it,i)).join('')+'<div class="add-item-row"><input type="text" id="addItemName" placeholder="Item name"><input type="text" id="addItemCat" placeholder="Type (e.g. Material)" style="max-width:140px"><input type="text" id="addItemRank" placeholder="Rank" style="max-width:80px"><button class="btn small" id="addItemQuick" style="min-height:44px">Add item</button></div></div>';
   }else if(sysTab==='quests'){
     h+='<div class="syswin"><span class="title">Quest Log</span>'+(p.quests.length?'':'<div class="muted">No quests.</div>')+p.quests.map((q,i)=>
@@ -3603,7 +3763,7 @@ function renderSystem(opts){
   }else if(sysTab==='titles'){
     h+=renderTitlesPanel(p);
   }else if(sysTab==='shop'){
-    h+='<div class="syswin"><span class="title">Store</span><div class="muted">Gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+'</b>. Buy potions and basic supplies. Sell from Inventory. Purchases are logged for the narrator.</div><div class="shop-list">'+S.shop.map((s,i)=>{const maxB=maxBuyQty(p,s);return '<div class="shop-card"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.category?esc(s.category)+' · ':'')+esc(s.description||'')+'</div><div class="price">'+Number(s.price||0).toLocaleString()+' G each</div></div><div class="shop-buy">'+qtyPickerHtml('buy',i,maxB,s.price)+'<button class="btn small primary" data-buy="'+i+'" '+(maxB>=1?'':'disabled')+' style="min-height:44px;margin-top:6px">Buy</button></div></div>';}).join('')+'</div></div>';
+    h+='<div class="syswin"><span class="title">Store</span><div class="muted">System gold: <b style="color:var(--gold)">'+Number(p.gold).toLocaleString()+' G</b>. Real-world cash is the USD wallet on Status / Inventory. Buy potions and basic supplies here. Sell from Inventory for System gold.</div><div class="shop-list">'+S.shop.map((s,i)=>{const maxB=maxBuyQty(p,s);return '<div class="shop-card"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.category?esc(s.category)+' · ':'')+esc(s.description||'')+'</div><div class="price">'+Number(s.price||0).toLocaleString()+' G each</div></div><div class="shop-buy">'+qtyPickerHtml('buy',i,maxB,s.price)+'<button class="btn small primary" data-buy="'+i+'" '+(maxB>=1?'':'disabled')+' style="min-height:44px;margin-top:6px">Buy</button></div></div>';}).join('')+'</div></div>';
   }
   body.innerHTML=h;
   bindClaimKillsPanel();
@@ -3636,13 +3796,17 @@ function bindClaimKillsPanel(){
   cn.addEventListener('input',fill);cn.addEventListener('blur',fill);fill();
 }
 function equipmentPanel(p){
-  const slots=[['weapon','Weapon'],['armor','Armor'],['helmet','Helmet'],['gloves','Gloves'],['boots','Boots'],['cloak','Cloak'],['ring','Ring'],['accessory','Accessory']];
-  const by={};
-  for(const it of (p.inventory||[])){if(it&&it.equipped){const s=itemSlot(it);if(s&&!by[s])by[s]=it;}}
+  const slots=[['main','Main hand'],['off','Off hand'],['backup','Backup'],['armor','Armor'],['helmet','Helmet'],['gloves','Gloves'],['boots','Boots'],['cloak','Cloak'],['ring','Ring'],['accessory','Accessory']];
+  const by=equippedBySlot(p);
   const b=equippedBonuses(p);
   const bonusBits=STAT_KEYS.filter(k=>b.stats[k]).map(k=>k.toUpperCase()+' +'+b.stats[k]);
   if(b.maxHp)bonusBits.push('Max HP +'+b.maxHp);if(b.maxMp)bonusBits.push('Max MP +'+b.maxMp);if(b.atk)bonusBits.push('ATK +'+b.atk);if(b.regenPct)bonusBits.push('+'+b.regenPct+'% regen');if(b.resist)bonusBits.push('+'+(Math.round(b.resist*1000)/10)+'% resist');
-  return '<div class="equip-panel">'+slots.map(([k,l])=>'<div class="equip-slot"><span class="k">'+l+'</span> '+(by[k]?'<b>'+esc(by[k].name)+'</b>':'<span class="muted">—</span>')+'</div>').join('')+(bonusBits.length?'<div class="muted" style="margin-top:6px">Equipped bonuses (gear + title): '+esc(bonusBits.join(' · '))+'</div>':'')+'</div>';
+  const label=k=>{
+    const it=by[k];if(!it)return '<span class="muted">—</span>';
+    const two=k==='off'&&itemEquipSlot(it)==='main'&&isTwoHanded(it);
+    return '<b>'+esc(it.name)+'</b>'+(two?' <span class="muted">(two-handed)</span>':'');
+  };
+  return '<div class="equip-panel">'+slots.map(([k,l])=>'<div class="equip-slot"><span class="k">'+l+'</span> '+label(k)+'</div>').join('')+(bonusBits.length?'<div class="muted" style="margin-top:6px">Equipped bonuses (gear + title): '+esc(bonusBits.join(' · '))+'</div>':'')+'</div>';
 }
 function renderTitlesPanel(p){
   const owned=(p.titles||[]).slice();
@@ -3696,10 +3860,10 @@ function itemEditor(it,i){
   const statsTxt=Object.entries(it.stats||{}).map(([k,v])=>k+': '+v).join('\n');
   const slot=itemSlot(it);const sell=itemSellPrice(it);
   const fx=(it.effects||[]).join(' · ');
-  return '<div class="list-item item-card'+(it.equipped?' equipped':'')+'"><div class="head"><div style="flex:1 1 140px"><b>'+esc(it.name)+'</b>'+(it.qty>1?' <span class="muted">×'+esc(it.qty)+'</span>':'')+'<div class="muted" style="font-size:12px">'+(it.category?esc(it.category):'Item')+(it.acquisition_difficulty||it.rarity?' · '+esc(it.acquisition_difficulty||it.rarity):'')+(it.equipped?' · Equipped':'')+'</div></div>'+
+  return '<div class="list-item item-card'+(it.equipped?' equipped':'')+'"><div class="head"><div style="flex:1 1 140px"><b>'+esc(it.name)+'</b>'+(it.qty>1?' <span class="muted">×'+esc(it.qty)+'</span>':'')+'<div class="muted" style="font-size:12px">'+(it.category?esc(it.category):'Item')+(it.acquisition_difficulty||it.rarity?' · '+esc(it.acquisition_difficulty||it.rarity):'')+(it.equipped?' · Equipped'+(itemSlot(it)==='weapon'&&itemEquipSlot(it)?' ('+({main:'main hand',off:'off hand',backup:'backup'}[itemEquipSlot(it)]||itemEquipSlot(it))+')'+(isTwoHanded(it)?' 2H':''):''):'')+'</div></div>'+
     (isBox(it)?'<button class="btn small primary" data-open="'+i+'" style="min-height:44px">Open</button>':'')+
     ((potionEffect(it,S.player)||/^(consumable|potion|key|rune stone)$/i.test(it.category||''))?'<button class="btn small" data-use="'+i+'" style="min-height:44px">Use</button>':'')+
-    (slot?'<button class="btn small" data-equip="'+i+'" style="min-height:44px">'+(it.equipped?'Unequip':'Equip')+'</button>':'')+
+    (slot==='weapon'?(it.equipped?'<button class="btn small" data-equip="'+i+'" style="min-height:44px">Unequip</button>':'<span style="display:flex;flex-wrap:wrap;gap:4px">'+[['main','Main'],['off','Off'],['backup','Backup']].map(([sl,lb])=>'<button class="btn small" data-equip="'+i+'" data-wslot="'+sl+'" style="min-height:44px"'+(isTwoHanded(it)&&sl==='off'?' disabled title="Two-handed"':'')+'>'+lb+'</button>').join('')+'</span>'):(slot?'<button class="btn small" data-equip="'+i+'" style="min-height:44px">'+(it.equipped?'Unequip':'Equip')+'</button>':''))+
     '</div>'+qtyPickerHtml('sell',i,it.qty,sell)+'<div class="row" style="margin-top:6px"><button class="btn small" data-sell="'+i+'" style="min-height:44px">Sell</button>'+
     '<button class="icon" data-dellist="inventory" data-i="'+i+'" title="Delete">🗑</button></div>'+
     (it.description?'<div class="item-desc">'+esc(it.description)+'</div>':'')+
@@ -3739,6 +3903,16 @@ function onSysClick(e){
   if(t.dataset.deltitleName){const k=titleKey(t.dataset.deltitleName);p.titles=(p.titles||[]).filter(n=>titleKey(n)!==k);if(p.title&&titleKey(p.title)===k)p.title='None';repairDerivedStats(p,cfg());save();renderSystem();renderHud();return;}
   if(t.dataset.deltitle!==undefined){const rem=(p.titles||[])[+t.dataset.deltitle];p.titles.splice(+t.dataset.deltitle,1);if(rem&&p.title&&titleKey(p.title)===titleKey(rem))p.title='None';save();renderSystem();return;}
   if(t.id==='addTitle'){const n=prompt('Title name');if(n){if(!hasTitle(p,n))p.titles.push(n.trim());save();renderSystem();}return;}
+  if(t.id==='usdAdjBtn'){
+    const cur=num(p.usd,0);
+    const raw=prompt('Set USD wallet (real-world money, not System gold). Current: '+fmtUsd(cur),String(cur));
+    if(raw==null)return;
+    const next=Math.max(0,Math.round(num(String(raw).replace(/[$,]/g,''),cur)));
+    if(next===cur)return;
+    const d=next-cur;
+    if(!confirm('Set USD wallet to '+fmtUsd(next)+' ('+(d>0?'+':'')+fmtUsd(d)+')? Current: '+fmtUsd(cur)+'.'))return;
+    p.usd=next;logAppAction('adjusted USD wallet to '+fmtUsd(next));save();renderSystem();renderHud();toast('USD wallet '+fmtUsd(next));return;
+  }
   if(t.id==='grantExpBtn'){
     const el=$('#grantExpAmt');const n=Math.floor(num(el&&el.value,0));
     if(!(n>0)){toast('Enter an EXP amount greater than 0.');return;}
@@ -3796,9 +3970,12 @@ function onSysClick(e){
     toast(r.notes.join(' · ')||('Used '+r.name));renderSystem();renderHud();return;}
   if(t.dataset.equip!==undefined){const idx=+t.dataset.equip;const it=p.inventory[idx];if(!it)return;
     const slot=itemSlot(it);if(!slot){toast('That cannot be equipped.');return;}
-    if(!it.equipped){for(const x of p.inventory){if(x!==it&&x.equipped&&itemSlot(x)===slot)x.equipped=false;}it.equipped=true;}
-    else it.equipped=false;
-    repairDerivedStats(p,cfg());logAppAction((it.equipped?'equipped ':'unequipped ')+it.name);save();renderSystem();renderHud();toast(it.equipped?('Equipped '+it.name):('Unequipped '+it.name));return;}
+    const r=equipGear(p,it,t.dataset.wslot||'');
+    if(!r.ok){toast('That cannot be equipped.');return;}
+    repairDerivedStats(p,cfg());
+    const where=r.equipped?(r.slot==='main'?' in the main hand':r.slot==='off'?' in the off hand':r.slot==='backup'?' as a backup weapon':''):'';
+    logAppAction((r.equipped?'equipped ':'unequipped ')+it.name+where);
+    save();renderSystem();renderHud();toast(r.equipped?('Equipped '+it.name+(isTwoHanded(it)?' (two-handed)':'')+where):('Unequipped '+it.name));return;}
   if(t.dataset.sell!==undefined){const idx=+t.dataset.sell;const it=p.inventory[idx];if(!it)return;
     const q=readQty('sell',idx);const unit=itemSellPrice(it);const total=unit*q;
     if(!confirm('Sell '+q+' × '+it.name+' for '+total.toLocaleString()+' G?'))return;
@@ -4353,13 +4530,15 @@ function showTab(name){
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
   const y=tabScrollY[scrollKey(name)]||0;
-  if(name==='system')renderSystem({y:y,restore:false});if(name==='daily')renderDaily();if(name==='forge'){renderForgeInv();syncStoryChrome();}if(name==='story')renderLog({y:y,restore:false});if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();syncChrome();
+  allowProgScroll=true;
+  if(name==='system')renderSystem({y:y,restore:false});if(name==='daily')renderDaily();if(name==='forge'){renderForgeInv();syncStoryChrome();}if(name==='story')renderLog({y:y,restore:false});if(name==='summons')renderCompanions();if(name==='world')renderWorld();if(name==='settings'||name==='character')bindAll();syncChrome(false);
   restoreTabScroll(name,y);
+  allowProgScroll=false;
 }
 
 if(typeof window!=='undefined'){
   window.SoloRP=window.SoloRP||{};
-  Object.assign(window.SoloRP,{renderLog,showTab,afterChange,updateStreaming,startStreamScroll,jumpToTop,jumpToLatest,rememberStoryScroll,restoreStoryScroll,restoreTabScroll,rememberTabScroll,renderSystem,getStoryScrollY:()=>tabScrollY.story||storyScrollY||0,getTabScrollY:(n)=>tabScrollY[scrollKey(n)]||0,getState:()=>S,activeTabName,scrollKey,setHeldScrollY,syncChrome,scheduleChrome,getScrollPerf:()=>({ms:scrollWorkMs,n:scrollWorkN,avg:scrollWorkN?scrollWorkMs/scrollWorkN:0})});
+  Object.assign(window.SoloRP,{renderLog,showTab,afterChange,updateStreaming,startStreamScroll,jumpToTop,jumpToLatest,rememberStoryScroll,restoreStoryScroll,restoreTabScroll,rememberTabScroll,renderSystem,getStoryScrollY:()=>tabScrollY.story||storyScrollY||0,getTabScrollY:(n)=>tabScrollY[scrollKey(n)]||0,getState:()=>S,activeTabName,scrollKey,setHeldScrollY,syncChrome,scheduleChrome,getScrollPerf:()=>({ms:scrollWorkMs,n:scrollWorkN,avg:scrollWorkN?scrollWorkMs/scrollWorkN:0}),getScrollLog:()=>(window.__scrollProgrammatic||[]).slice()});
 }
 function init(){
   S=load();setTimeout(saveNow,0); // persist migrations right away
@@ -4370,7 +4549,7 @@ function init(){
   ['wheel','touchstart','pointerdown'].forEach(ev=>document.addEventListener(ev,markUserScrollIntent,{passive:true,capture:true}));
   const jump=$('#jumpLatest');if(jump)jump.addEventListener('click',jumpToLatest);
   const jumpTop=$('#jumpTop');if(jumpTop)jumpTop.addEventListener('click',jumpToTop);
-  if(window.visualViewport){visualViewport.addEventListener('resize',()=>scheduleChrome(true),{passive:true});}
+  if(window.visualViewport){visualViewport.addEventListener('resize',()=>scheduleChrome(false),{passive:true});}
   syncChrome(true);
   $('#log').addEventListener('click',onLogClick);
   $('#sendBtn').addEventListener('click',sendUser);$('#continueBtn').addEventListener('click',continueScene);
