@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 arise-scroll-v3 arise-scroll-v4 arise-usd-v1 arise-gear-v1 arise-gates-v1 arise-gate-xp-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 arise-scroll-v3 arise-scroll-v4 arise-usd-v1 arise-gear-v1 arise-gates-v1 arise-gate-xp-v1 arise-kill-fallback-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -566,7 +566,7 @@ When a named NPC dies on-screen (including the opening raid), include npcDeaths:
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
 System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
 Her Association license rank (on the STATUS block) is her public hunter rank and stays E unless she is officially reassessed in-story. System level is secret. Association/guild gates: she may enter a gate of that license rank, or one rank above only in a party (E-rank: D-rank raids with a party; C-rank and higher only as a hired porter/help). Otherwise Association or gate guards refuse entry. System instance dungeons are exempt from this rule.
-Monster levels inside a gate follow the GATE rank, never her Association license. Bands: E Lv 1–10, D 10–25, C 25–45, B 45–65, A 65–85, S 85+; the boss is stronger than the trash. Her System level (on STATUS) is secret from NPCs and is only for how hard the fight is for her. In a D-rank raid or a C-rank+ porter job, mobs should be orange or red to her, not green, and not E-rank fodder. When the GATE RULES or COMBAT GUIDE block is in context, follow its level band and tag/emit those levels. Always emit a kills event (or [[mob]] tags plus a clear kill) in the same reply so the app can award EXP — do not skip the event.
+Monster levels inside a gate follow the GATE rank, never her Association license. Bands: E Lv 1–10, D 10–25, C 25–45, B 45–65, A 65–85, S 85+; the boss is stronger than the trash. Her System level (on STATUS) is secret from NPCs and is only for how hard the fight is for her. In a D-rank raid or a C-rank+ porter job, mobs should be orange or red to her, not green, and not E-rank fodder. When the GATE RULES or COMBAT GUIDE block is in context, follow its level band and tag/emit those levels. Always emit a kills event (or [[mob]] tags plus a clear kill) in the same reply so the app can award EXP — do not skip the event. This is mandatory whenever any creature dies in the reply, including a pack, the last of a pack, a horde or swarm, an Alpha or boss, or a body dissolving into mist. The app draws the EXP notice; never bury or omit the event.
 Real-world prices, pay, and sales (Association, buyers, raid pay, porter pay) are in USD ($), never NOK or kroner. Those go to her USD wallet, which is separate from System gold (the System store). When she is paid or a real-world sale settles, emit <system_event>{"money":{"delta":150,"reason":"raid pay"}}</system_event> (negative delta if she spends USD). Do not invent System gold.
 After the System is awake, when a monster or creature appears, emit [[mob:Name|Lv.N]] once for that creature (level if known). Never for humans, hunters, NPCs, or companions. Do not pick the color — the app colors the tag (green weaker, orange even, red dangerous). Do not also write a separate nameplate.
 When showing her a status window, emit exactly one <system>[[STATUS]]</system> and do not write the stats yourself. The app fills one real tracker block. Never invent HP, MP, free points, stats, gold, USD, or other sheet values.
@@ -1055,7 +1055,7 @@ function hasExpDelta(updates){
 function escapeRe(s){return String(s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 const WORD_NUMBERS={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50};
 const CLAIM_KILL_MAX=99;
-const KILL_RE=/\b(?:killed|slain|slays|slew|slaughters?|finishes? off|has fallen|lies? dead|is dead|are dead|died|dies|collapses?(?:,? (?:dead|lifeless|still))?|crumples?(?:,? (?:dead|lifeless|still))?|goes? still|stopped moving|lifeless|corpses?|carcass(?:es)?|you have (?:killed|slain)|fatal(?:ly)?|killing blow|finishing blow|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses)|drops? dead|fell dead|cut down|brought down|goes? down|went down|gutted|bleeds out|succumbs|dispatched|no longer moving)\b/i;
+const KILL_RE=/\b(?:killed|slain|slays|slew|slaughters?|finishes? off|has fallen|lies? dead|is dead|are dead|died|dies|collapses?(?:,? (?:dead|lifeless|still))?|crumples?(?:,? (?:dead|lifeless|still))?|goes? still|stopped moving|lifeless|corpses?|carcass(?:es)?|you have (?:killed|slain)|fatal(?:ly)?|killing blow|finishing blow|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses)|drops? dead|fell dead|cut down|brought down|goes? down|went down|gutted|bleeds out|succumbs|dispatched|no longer moving|dissolv(?:e|es|ed|ing) into (?:the )?(?:black |dark |shadow )?(?:mist|smoke|ash|particles|mana)|falls? still|fell still|body dissolving|skull shattered)\b/i;
 const GROUP_DEAD_RE=/\b(?:the (?:[\w-]+ )?(?:wolves|goblins|orcs|spiders|bears|slimes|skeletons|ants|beasts|monsters|creatures|pack) (?:are|is|lie|lies|lay|have been|has been) (?:dead|slain|killed|down)|(?:last|rest|remainder) of the (?:pack|[\w-]+s?)\b.{0,40}(?:falls?|fell|dies|died|crumples?|collapses?|is (?:dead|slain)|are (?:dead|slain))|the pack (?:is|are|lies|has been) (?:dead|slain|killed|down)|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses))\b/i;
 function parseCountToken(s){
   s=String(s||'').trim().toLowerCase();
@@ -1079,7 +1079,7 @@ function killCountOf(k){
   return Math.max(1,Math.min(CLAIM_KILL_MAX,n>0?n:1));
 }
 function stripSystemBlocks(text){
-  return String(text||'').replace(/<system_update>[\s\S]*?(<\/system_update>|$)/gi,' ').replace(/<system_event>[\s\S]*?(<\/system_event>|$)/gi,' ');
+  return String(text||'').replace(/<system_update>[\s\S]*?(<\/system_update>|$)/gi,' ').replace(/<system_event>[\s\S]*?(<\/system_event>|$)/gi,' ').replace(/<system>[\s\S]*?(<\/system>|$)/gi,' ');
 }
 function collectSceneMobs(messages,uptoIndex,extraText){
   const map=new Map();
@@ -1128,6 +1128,210 @@ function extractKillCounts(prose){
   }
   return out;
 }
+const DEFAULT_PACK_COUNT=5;
+const PACK_LEVEL_DELTA=-2;
+const DEATH_EXTRA_RE=/\b(?:dissolv(?:e|es|ed|ing) into (?:the )?(?:black |dark |shadow )?(?:mist|smoke|ash|particles|mana)|falls? still|fell still|body dissolving|skull shattered)\b/i;
+const GROUP_KIND_RE=/\b(?:packs?|hordes?|swarms?|troops?|bands?|the rest|the remaining|the remainder|the last of (?:the )?(?:pack|horde|swarm|them|group|troop|band)|last of the)\b/i;
+const MOB_SPECIES_WORD_RE=/\b((?:frost)?fangs?|wolves|wolf|goblins?|orcs?|high orcs?|spiders?|bears?|ice bears?|slimes?|skeletons?|ants?|beasts?|monsters?|creatures?|undead|wraiths?|ghouls?|drakes?|dragons?|lycans?|wargs?|fenrir)\b/gi;
+const BOSS_TITLE_RE=/\b(alpha|boss|leader|king|queen|chief|lord|champion|general|captain|warlord|matriarch|patriarch|overlord|commander|prime)\b/i;
+const NAME_STOP_RE=/^(the|a|an|and|but|or|so|then|this|that|these|those|there|here|beyond|no|yes|blue|heavy|forest|leaving|silence|its|her|his|their|your|you|she|he|they|we|i|it|from|with|after|before|when|while|as|at|in|on|of|for|to|into|over|under|upon|across|along|among|around|behind|beside|between|during|against|toward|towards|another|other|such|each|every|few|many|much|more|most|some|any|both|half|later|earlier|next|last|first|second|third|final|small|faint|glowing|condensed|ancient|norse|carved|looks|what|ahead|stillness|pile|motes?|mana|moss|doorway|door|runes?|stones?|path|wind|cold|day|night|morning|snow|air|light|glow|shadow|dark|ground|blood|skull|body|corpses?|carcass(?:es)?|pines?)$/i;
+const NAME_ADJ_RE=/^(massive|huge|great|giant|greater|lesser|ancient|young|old|elite|fallen|wounded|last|enormous|colossal|towering|fearsome|rabid|dire|frost|ice|fire|dark|shadow|cursed|magic|magical|terrible|savage|feral|wild|enraged|lone|remaining|final)$/i;
+function isBossName(name){return BOSS_TITLE_RE.test(String(name||''));}
+function familyNameFrom(name){
+  const cleaned=String(name||'').replace(new RegExp('\\s+'+BOSS_TITLE_RE.source,'ig'),'').replace(BOSS_TITLE_RE,'').trim();
+  return cleaned||String(name||'').trim();
+}
+function isSceneryName(name){
+  const n=String(name||'').trim();
+  if(!n)return true;
+  if(NAME_STOP_RE.test(n))return true;
+  const parts=n.split(/\s+/);
+  if(parts.every(w=>NAME_STOP_RE.test(w)||NAME_ADJ_RE.test(w)))return true;
+  if(/^(pine|pines|forest|path|wind|moss|stone|stones|rune|runes|door|doorway|mist|silence|stillness|glow|mote|motes|mana|snow|air|light|shadow|dark|ground|blood|skull|body|corpse|carcass|pile|rest|remainder)$/i.test(n))return true;
+  if(/^(?:[EDCBAS]|S\+|National)[\s-]*rank$/i.test(n))return true;
+  if(/^(gate|dungeon|raid|instance|system|association|hunter|hunters|status|notification|license)$/i.test(n))return true;
+  return false;
+}
+function splitProseSentences(s){return String(s||'').split(/(?<=[.!?])\s+|\n+/).map(x=>x.trim()).filter(Boolean);}
+function sentenceHasDeath(s){return KILL_RE.test(s)||GROUP_DEAD_RE.test(s)||DEATH_EXTRA_RE.test(s);}
+function proseHasCreatureDeath(text){
+  const raw=typeof stripSystemBlocks==='function'?stripSystemBlocks(text):String(text||'');
+  const prose=raw.replace(/\[\[mob:([^\]]+)\]\]/gi,(_,inner)=>' '+(typeof parseMobTag==='function'?parseMobTag(inner).name:inner)+' ');
+  if(!sentenceHasDeath(prose))return false;
+  if(GROUP_KIND_RE.test(prose)||GROUP_DEAD_RE.test(prose)||DEATH_EXTRA_RE.test(prose))return true;
+  MOB_SPECIES_WORD_RE.lastIndex=0;
+  if(MOB_SPECIES_WORD_RE.test(prose)){MOB_SPECIES_WORD_RE.lastIndex=0;return true;}
+  MOB_SPECIES_WORD_RE.lastIndex=0;
+  if(extractProperMobNames(prose).length)return true;
+  if(/\bat your feet\b|\bskull shattered\b|\bblack mist\b|\bmagic beast/i.test(prose)&&sentenceHasDeath(prose))return true;
+  return splitProseSentences(prose).some(s=>sentenceHasDeath(s)&&(extractProperMobNames(s).length||GROUP_KIND_RE.test(s)||MOB_SPECIES_WORD_RE.test(s)));
+}
+function extractProperMobNames(sentence){
+  const out=[];
+  const seen=new Set();
+  const push=(name,idx)=>{
+    name=String(name||'').replace(/^(?:the|a|an|this|that)\s+/i,'').replace(/\s+/g,' ').trim();
+    if(!name||isSceneryName(name)||NAME_STOP_RE.test(name.split(/\s+/)[0]))return;
+    const key=name.toLowerCase();
+    if(seen.has(key))return;seen.add(key);
+    out.push({name,boss:isBossName(name),index:idx||0});
+  };
+  const reArt=/\b(?:the|a|an|this|that)\s+((?:(?:massive|huge|great|giant|greater|lesser|ancient|young|old|elite|fallen|wounded|last|enormous|colossal|towering|fearsome|rabid|dire|frost|ice|fire|dark|shadow|cursed|magic|magical|terrible|savage|feral|wild|enraged|lone|remaining|final)\s+)*)([A-Z][a-zA-Z'-]+(?:[\s-][A-Z][a-zA-Z'-]+)*)/g;
+  let m;
+  while((m=reArt.exec(sentence)))push(m[2],m.index);
+  const reCap=/\b([A-Z][a-zA-Z'-]+(?:[\s-][A-Z][a-zA-Z'-]+)+)\b/g;
+  while((m=reCap.exec(sentence)))push(m[1],m.index);
+  return out;
+}
+function extractSpeciesIn(sentence){
+  const out=[];let m;
+  const re=new RegExp(MOB_SPECIES_WORD_RE.source,'gi');
+  while((m=re.exec(sentence))){
+    const name=singularMobName(m[1]);
+    if(name)out.push({name,index:m.index});
+  }
+  return out;
+}
+function parsePackCountFromText(s){
+  const t=String(s||'');
+  const pats=[
+    /\b(?:a |the )?(?:pack|horde|swarm|troop|band) of (?:about |around |some )?(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty)\b/i,
+    /\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty)[\s-]+(?:strong )?(?:pack|horde|swarm)\b/i,
+    /\b(?:all\s+|the last of the\s+|the rest of the\s+|the remaining\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty)\s+([A-Za-z][A-Za-z-]+)\b/i
+  ];
+  let best=0;
+  for(const src of pats){
+    const re=new RegExp(src.source, src.flags.indexOf('g')>=0?src.flags:src.flags+'g');
+    let m;
+    while((m=re.exec(t))){
+      if(!m[0]){re.lastIndex+=1;continue;}
+      const n=parseCountToken(m[1]);
+      if(n>best)best=n;
+    }
+  }
+  return best||0;
+}
+function countAwardedInFight(messages,uptoIndex,name){
+  let n=0;
+  const msgs=(messages||[]).slice(0,uptoIndex==null?undefined:uptoIndex).slice(-16);
+  const names=[String(name||'').trim()].filter(Boolean);
+  if(name){const fam=familyNameFrom(name);if(fam&&fam.toLowerCase()!==String(name).toLowerCase())names.push(fam);}
+  const species=name&&typeof inferMobSpecies==='function'?inferMobSpecies(name):'';
+  for(const msg of msgs){
+    const alts=msg&&msg.alts?msg.alts:(msg?[msg]:[]);
+    for(const a of alts){
+      const texts=[].concat(a.killNotices||[],(a.sysNotices||[]).map(x=>(x&&x.body)||x||''),a.notes||[]);
+      for(const raw of texts){
+        const t=String(raw||'');
+        let hit=false;
+        for(const nm of names){
+          const re=new RegExp('You have killed\\s+'+escapeRe(nm)+'(?:\\s*[×x]\\s*(\\d+))?','i');
+          const mm=t.match(re);
+          if(mm){n+=mm[1]?Math.max(1,parseInt(mm[1],10)):1;hit=true;}
+        }
+        if(!hit&&species&&species!=='beast'){
+          const re2=new RegExp('You have killed\\s+([A-Za-z][A-Za-z\\s\'-]+?)(?:\\s*[×x]\\s*(\\d+))?\\.','i');
+          const mm2=t.match(re2);
+          if(mm2&&inferMobSpecies(mm2[1])===species&&!isBossName(mm2[1]))n+=mm2[2]?Math.max(1,parseInt(mm2[2],10)):1;
+        }
+      }
+    }
+  }
+  return n;
+}
+function inferPackNameFromText(s){
+  const t=String(s||'');
+  const named=t.match(/\b([A-Z][a-zA-Z'-]+(?:[\\s-][A-Z][a-zA-Z'-]+)*)\s+(?:wolves|wolf|goblins?|orcs?|spiders?|bears?|slimes?|skeletons?|ants?|beasts?|monsters?|creatures?|fangs?)\b/);
+  if(named&&!isSceneryName(named[1]))return familyNameFrom(named[1]);
+  const sp=extractSpeciesIn(t)[0];
+  return (sp&&sp.name)||'';
+}
+function inferFightPackCount(messages,uptoIndex,extraText,name){
+  const chunks=[];
+  if(extraText)chunks.push(String(extraText));
+  const msgs=(messages||[]).slice(0,uptoIndex==null?undefined:uptoIndex).slice(-16);
+  for(let i=0;i<msgs.length;i++){
+    const m=msgs[i];
+    if(typeof messageTexts==='function'){for(const tx of messageTexts(m))if(tx)chunks.push(String(tx));}
+    else if(m&&m.text)chunks.push(String(m.text));
+    if(m&&m.alts)for(const a of m.alts)if(a&&a.text)chunks.push(String(a.text));
+  }
+  let known=0;
+  for(const c of chunks)known=Math.max(known,parsePackCountFromText(c));
+  const awarded=countAwardedInFight(messages,uptoIndex,name);
+  if(known>0)return Math.max(1,known-awarded);
+  if(awarded>0)return 1;
+  return DEFAULT_PACK_COUNT;
+}
+function inferKillLevel(level,player,gateRank,isBoss,opts){
+  opts=opts||{};
+  if(gateRank&&typeof clampMobLevelToGate==='function')return clampMobLevelToGate(level,gateRank,player,!!isBoss);
+  const n=Number(level);
+  const P=Math.max(0,num(player&&player.level,0));
+  if(Number.isFinite(n)&&n>0){
+    if(opts.bumpGreen&&P&&n<=P-MOB_GREEN_BELOW)return isBoss?P+MOB_RED_ABOVE:Math.max(1,P+PACK_LEVEL_DELTA);
+    return n;
+  }
+  if(!P)return null;
+  return isBoss?P+MOB_RED_ABOVE:Math.max(1,P+PACK_LEVEL_DELTA);
+}
+function needsKillJsonFollowup(text,opts){
+  opts=opts||{};
+  if(!proseHasCreatureDeath(text))return false;
+  const parsed=(opts.parsed)||(typeof parseSystemUpdates==='function'?parseSystemUpdates(text):{events:[],updates:[]});
+  const kills=typeof collectEngineKills==='function'?collectEngineKills(parsed.events,parsed.updates,text,opts):detectTaggedMobKills(text,opts);
+  return !(kills&&kills.length);
+}
+function parseKillFollowupResponse(raw){
+  const s=String(raw||'').trim();
+  if(!s)return null;
+  let obj=null;
+  const ev=s.match(/<system_event>([\s\S]*?)<\/system_event>/i);
+  const body=ev?ev[1]:s;
+  try{obj=JSON.parse(body.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim());}catch(e){
+    const rec=typeof recoverEventFromRaw==='function'?recoverEventFromRaw(body):null;
+    obj=rec;
+    if(!obj){
+      const i=body.indexOf('{'),j=body.lastIndexOf('}');
+      if(i>=0&&j>i){try{obj=JSON.parse(body.slice(i,j+1).replace(/,\s*([}\]])/g,'$1'));}catch(e2){obj=null;}}
+    }
+  }
+  if(!obj||typeof obj!=='object')return null;
+  let list=obj.kills||obj.kill||obj.monsters_killed||obj.mob_kills||null;
+  if(!list&&obj.name&&(obj.level!=null||obj.count!=null))list=[obj];
+  if(!list)return null;
+  list=Array.isArray(list)?list:[list];
+  const kills=list.map(k=>{
+    if(!k)return null;
+    if(typeof k==='string')return {name:k,count:1};
+    const name=String(k.name||k.mob||k.monster||k.species||'').trim();
+    if(!name)return null;
+    return {name,level:k.level!=null?k.level:(k.lv!=null?k.lv:k.lvl),rank:k.rank||'',count:killCountOf(k),boss:!!(k.boss||k.type==='boss'||isBossName(name))};
+  }).filter(Boolean);
+  return kills.length?{kills}:null;
+}
+function buildKillFollowupMessages(replyText,opts){
+  opts=opts||{};
+  const player=opts.player||{};
+  const P=Math.max(1,num(player.level,1));
+  const gate=opts.gate||(typeof detectCurrentGate==='function'?detectCurrentGate(opts.messages,opts.uptoIndex,replyText,opts.state):null);
+  const rec=gate&&gate.rank&&typeof recommendedGateLevels==='function'?recommendedGateLevels(gate.rank,player,false):null;
+  const recB=gate&&gate.rank&&typeof recommendedGateLevels==='function'?recommendedGateLevels(gate.rank,player,true):null;
+  const lines=[];
+  lines.push('((OOC: Silent kill audit. The narrator reply below describes one or more creature deaths but has no kills event. Return ONLY JSON, no prose, no markdown, no System windows: {"kills":[{"name":"...","level":N,"rank":"E|D|C|B|A|S","count":N,"boss":false}]}. List every creature that died in THIS reply only. Pack/horde/swarm: use the stated count, else the count from earlier in the fight, else '+DEFAULT_PACK_COUNT+'. An Alpha, boss, or leader is a separate entry with boss true, stronger than the pack. Her System level is '+P+'. Default field-mob levels: pack around '+(P+PACK_LEVEL_DELTA)+', boss around '+(P+MOB_RED_ABOVE)+'. Do not invent deaths that did not happen, and do not include living creatures.))');
+  if(rec)lines.push('Current gate: '+(gate.rank)+'-rank. Mob band Lv '+rec.min+'–'+rec.max+'; boss Lv '+recB.min+'–'+recB.max+'.');
+  else lines.push('No gate band is active; use field levels relative to her, not green fodder.');
+  lines.push('REPLY:\n'+String(replyText||'').slice(0,4000));
+  return [{role:'system',content:lines.join('\n')},{role:'user',content:'Return only the kills JSON for that reply.'}];
+}
+function sceneBind(prior,name,wantBoss){
+  const scene=typeof findSceneMob==='function'?findSceneMob(prior,name):null;
+  if(!scene)return {name:name,level:null,rank:'',colorHint:'',boss:!!wantBoss};
+  const sceneBoss=typeof isBossName==='function'&&isBossName(scene.name);
+  if(wantBoss&&!sceneBoss)return {name:name,level:null,rank:scene.rank||'',colorHint:scene.colorHint||'',boss:true};
+  if(!wantBoss&&sceneBoss)return {name:name,level:scene.level!=null?scene.level:null,rank:scene.rank||'',colorHint:scene.colorHint||'',boss:false};
+  return {name:scene.name||name,level:scene.level!=null?scene.level:null,rank:scene.rank||'',colorHint:scene.colorHint||'',boss:!!(wantBoss||sceneBoss)};
+}
 function detectTaggedMobKills(text,opts){
   opts=opts||{};
   const raw=stripSystemBlocks(text);
@@ -1135,11 +1339,11 @@ function detectTaggedMobKills(text,opts){
   while((m=re.exec(raw)))tags.push(parseMobTag(m[1]));
   const prior=opts.sceneMobs||((opts.messages&&opts.messages.length)?collectSceneMobs(opts.messages,opts.uptoIndex):[]);
   const prose=raw.replace(/\[\[mob:([^\]]+)\]\]/gi,(_,inner)=>' '+parseMobTag(inner).name+' ');
-  if(!KILL_RE.test(prose)&&!GROUP_DEAD_RE.test(prose))return [];
+  if(!sentenceHasDeath(prose)&&!GROUP_DEAD_RE.test(prose))return [];
   function vetoed(name){
     const n=escapeRe(name);
     if(!n)return false;
-    return new RegExp('(?:almost|nearly|tried to|would have|failed to|did not|didn\'t).{0,36}'+n+'|'+n+'.{0,36}(?:almost|nearly|survives|still alive|isn\'t dead|is not dead|still up|is still up)','i').test(prose);
+    return new RegExp('(?:almost|nearly|tried to|would have|failed to|did not|didn\'t).{0,36}'+n+'|'+n+'.{0,48}(?:almost|nearly|survives|still alive|still very much alive|isn\'t dead|is not dead|still up|is still up|very much alive)','i').test(prose);
   }
   function namedInKill(tag){
     const name=tag.name||'';
@@ -1148,7 +1352,15 @@ function detectTaggedMobKills(text,opts){
     const lastRe=new RegExp('\\b'+escapeRe(last)+'\\b','i');
     const sp=inferMobSpecies(name);
     const pluralRe=sp==='wolf'?/\bwolves\b/i:new RegExp('\\b'+escapeRe(last)+'s\\b','i');
-    return prose.split(/(?<=[.!?])\s+|\n+/).some(s=>(KILL_RE.test(s)||GROUP_DEAD_RE.test(s))&&(nameRe.test(s)||lastRe.test(s)||pluralRe.test(s)));
+    return splitProseSentences(prose).some(s=>sentenceHasDeath(s)&&(nameRe.test(s)||lastRe.test(s)||pluralRe.test(s)));
+  }
+  function sameMob(a,b){
+    const na=String(a||'').toLowerCase(),nb=String(b||'').toLowerCase();
+    if(na===nb)return true;
+    if(isBossName(a)!==isBossName(b))return false;
+    if(isBossName(a)&&isBossName(b))return na===nb;
+    const sa=inferMobSpecies(a),sb=inferMobSpecies(b);
+    return !!(sa&&sb&&sa===sb&&sa!=='beast');
   }
   // Never auto-award the only current tag just because a kill word exists (a living boss tag must not steal a pack wipe).
   let out=tags.filter(tag=>tag&&tag.name&&!vetoed(tag.name)&&namedInKill(tag)).map(tag=>Object.assign({},tag));
@@ -1158,41 +1370,91 @@ function detectTaggedMobKills(text,opts){
     if(!String(tag.name||'').toLowerCase()||seen.has(k))return false;seen.add(k);return true;
   });
   const counts=extractKillCounts(prose);
-  function sameMob(a,b){
-    const na=String(a||'').toLowerCase(),nb=String(b||'').toLowerCase();
-    if(na===nb)return true;
-    const sa=inferMobSpecies(a),sb=inferMobSpecies(b);
-    return !!(sa&&sb&&sa===sb&&sa!=='beast');
-  }
   for(const k of out){
     const c=counts.find(x=>sameMob(x.name,k.name));
     if(c)k.count=c.count;
   }
-  const have=out.map(k=>String(k.name||'').toLowerCase());
   for(const c of counts){
     if(out.some(k=>sameMob(k.name,c.name)))continue;
-    const scene=findSceneMob(prior,c.name);
-    if(vetoed(c.name)||(scene&&vetoed(scene.name)))continue;
-    const kill={name:(scene&&scene.name)||c.name,level:scene&&scene.level!=null?scene.level:null,rank:(scene&&scene.rank)||'',count:c.count,colorHint:(scene&&scene.colorHint)||''};
+    const scene=sceneBind(prior,c.name,!!(c.boss||isBossName(c.name)));
+    if(vetoed(c.name)||vetoed(scene.name))continue;
+    const kill={name:scene.name,level:scene.level,rank:scene.rank,count:c.count,colorHint:scene.colorHint,boss:!!scene.boss};
     out.push(kill);
   }
-  if(!out.length&&GROUP_DEAD_RE.test(prose)){
-    let hint='';
-    if(/\b(wolves|wolf)\b/i.test(prose))hint='Wolf';
-    else{
-      const pm=prose.match(/\bthe ([a-z]+s)\b/i);
-      if(pm)hint=singularMobName(pm[1]);
+  const sentences=splitProseSentences(prose);
+  let groupHint='';
+  for(const s of sentences){
+    if(!sentenceHasDeath(s))continue;
+    for(const pn of extractProperMobNames(s)){
+      if(vetoed(pn.name)||out.some(k=>sameMob(k.name,pn.name)||String(k.name).toLowerCase()===pn.name.toLowerCase()))continue;
+      const scene=sceneBind(prior,pn.name,!!(pn.boss||isBossName(pn.name)));
+      if(vetoed(scene.name))continue;
+      out.push({name:scene.name,level:scene.level,rank:scene.rank,count:1,colorHint:scene.colorHint,boss:!!scene.boss});
     }
-    let scene=hint?findSceneMob(prior,hint):null;
-    if(!scene&&prior.length){
-      const wolves=prior.filter(m=>inferMobSpecies(m.name)==='wolf');
-      if(wolves.length)scene=wolves[0];
-      else if(new Set(prior.map(m=>String(m.name||'').toLowerCase())).size===1)scene=prior[0];
+    const group=GROUP_KIND_RE.test(s)||GROUP_DEAD_RE.test(s);
+    if(group){
+      const species=extractSpeciesIn(s)[0];
+      const fromName=extractProperMobNames(s).find(p=>!p.boss);
+      groupHint=(fromName&&familyNameFrom(fromName.name))||(species&&species.name)||groupHint;
+    }else{
+      for(const sp of extractSpeciesIn(s)){
+        if(out.some(k=>sameMob(k.name,sp.name)||familyNameFrom(k.name).toLowerCase()===String(sp.name||'').toLowerCase()))continue;
+        if(vetoed(sp.name))continue;
+        const scene=sceneBind(prior,sp.name,isBossName(sp.name));
+        out.push({name:scene.name,level:scene.level,rank:scene.rank,count:1,colorHint:scene.colorHint,boss:!!scene.boss});
+      }
     }
-    if(scene&&!vetoed(scene.name))out.push({name:scene.name,level:scene.level!=null?scene.level:null,rank:scene.rank||'',count:1,colorHint:scene.colorHint||''});
-    else if(hint&&!vetoed(hint))out.push({name:hint,level:null,count:1});
   }
-  return out;
+  const hasGroup=sentences.some(s=>sentenceHasDeath(s)&&(GROUP_KIND_RE.test(s)||GROUP_DEAD_RE.test(s)));
+  if(hasGroup&&!out.some(k=>!k.boss&&(killCountOf(k)>1||GROUP_KIND_RE.test(k.name)||!isBossName(k.name)))){
+    // fall through to add a pack if we only have a boss or nothing but group language
+  }
+  if(hasGroup){
+    let pack=out.find(k=>!k.boss&&!isBossName(k.name));
+    const livingOrBoss=out.filter(k=>k.boss||isBossName(k.name));
+    if(!pack){
+      let hint=groupHint;
+      if(!hint&&/\b(wolves|wolf)\b/i.test(prose))hint='Wolf';
+      let scene=hint?findSceneMob(prior,hint):null;
+      if(!scene&&prior.length){
+        const wolves=prior.filter(x=>inferMobSpecies(x.name)==='wolf'&&!isBossName(x.name));
+        if(wolves.length)scene=wolves[0];
+        else{
+          const generic=prior.filter(x=>!isBossName(x.name));
+          if(new Set(generic.map(x=>String(x.name||'').toLowerCase())).size===1)scene=generic[0];
+        }
+      }
+      const bossFam=livingOrBoss[0]?familyNameFrom(livingOrBoss[0].name):'';
+      let fromPrior='';
+      const priorMsgs=opts.messages||[];
+      const priorSlice=priorMsgs.slice(0,opts.uptoIndex==null?undefined:opts.uptoIndex).slice(-16);
+      for(const msg of priorSlice){
+        const texts=typeof messageTexts==='function'?messageTexts(msg):(msg&&msg.text?[msg.text]:[]);
+        for(const tx of texts){if(!fromPrior)fromPrior=inferPackNameFromText(tx);}
+      }
+      if(!fromPrior)fromPrior=inferPackNameFromText(prose);
+      const name=(scene&&scene.name)||hint||bossFam||fromPrior||'Magic Beast';
+      if(name&&!isSceneryName(name)&&!vetoed(name)){
+        pack={name,level:scene&&scene.level!=null?scene.level:null,rank:(scene&&scene.rank)||'',count:0,colorHint:(scene&&scene.colorHint)||'',boss:false};
+        out.unshift(pack);
+      }
+    }
+    if(pack){
+      if(!pack.count||pack.count<2){
+        const explicit=extractKillCounts(prose).find(x=>sameMob(x.name,pack.name));
+        pack.count=explicit&&explicit.count>=2?explicit.count:inferFightPackCount(opts.messages,opts.uptoIndex,prose,pack.name);
+      }
+    }
+  }
+  const player=opts.player;
+  const gate=opts.gate||((opts.messages||opts.state)&&typeof detectCurrentGate==='function'?detectCurrentGate(opts.messages,opts.uptoIndex,text,opts.state):null);
+  const gateRank=(gate&&gate.rank)||'';
+  for(const k of out){
+    k.boss=!!(k.boss||isBossName(k.name));
+    k.level=inferKillLevel(k.level,player,gateRank,k.boss,{bumpGreen:true});
+    if(!k.count)k.count=1;
+  }
+  return out.filter(k=>k&&k.name&&!isSceneryName(k.name));
 }
 function killExpFallback(text,updates,player,cfg,opts){
   if(hasExpDelta(updates))return {exp:0,notices:[],notes:[]};
@@ -1231,7 +1493,7 @@ function backfillKillExp(s){
       if(!a||a.killExpAwarded)continue;
       const parsed=parseSystemUpdates(a.text||'');
       if(hasExpDelta(parsed.updates)||(a.patch&&a.patch.nums&&num(a.patch.nums.exp))){a.killExpAwarded=true;continue;}
-      const fb=killExpFallback(a.text,parsed.updates,s.player,cfg,{messages:msgs,uptoIndex:i});
+      const fb=killExpFallback(a.text,parsed.updates,s.player,cfg,{messages:msgs,uptoIndex:i,player:s.player,state:s});
       if(!fb.exp)continue;
       const before=clone(s.player);
       const notes=applyUpdate(s.player,{exp_gain:fb.exp},cfg);
@@ -1249,7 +1511,7 @@ function rngFromSeed(seed){let s=(num(seed,1)|0)||1;return function(){s=Math.imu
 function mobRankFromLevel(level){const m=num(level,1);if(m<=10)return 'E';if(m<=20)return 'D';if(m<=35)return 'C';if(m<=55)return 'B';if(m<=80)return 'A';return 'S';}
 function inferMobSpecies(name){
   const n=String(name||'').toLowerCase();
-  if(/wolf|lycan|warg|fenrir/.test(n))return 'wolf';
+  if(/wolf|lycan|warg|fenrir|frostfang|direwolf/.test(n))return 'wolf';
   if(/goblin/.test(n))return 'goblin';
   if(/orc/.test(n))return 'orc';
   if(/spider/.test(n))return 'spider';
@@ -1439,7 +1701,7 @@ function clampMobLevelToGate(level,rank,player,isBoss){
     return (Number.isFinite(n)&&n>0)?n:null;
   }
   const n=Number(level);
-  if(!Number.isFinite(n)||n<=0)return rec.min;
+  if(!Number.isFinite(n)||n<=0)return isBoss?Math.max(rec.min,rec.boss||rec.max):rec.min;
   if(n<rec.min)return rec.min;
   return n;
 }
@@ -1478,8 +1740,7 @@ function collectEngineKills(events,updates,text,opts){
     const rawLv=k.level!=null?k.level:(k.lv!=null?k.lv:(k.lvl!=null?k.lvl:k.mob_level));
     let level=rawLv!=null&&rawLv!==''?num(rawLv,null):null;
     const boss=!!(k.boss||k.type==='boss'||k.isBoss);
-    if(gateRank)level=clampMobLevelToGate(level,gateRank,player,boss);
-    else if(!(Number.isFinite(Number(level))&&Number(level)>0))level=null;
+    level=typeof inferKillLevel==='function'?inferKillLevel(level,player,gateRank,boss):((gateRank&&typeof clampMobLevelToGate==='function')?clampMobLevelToGate(level,gateRank,player,boss):((Number.isFinite(Number(level))&&Number(level)>0)?Number(level):null));
     let rank=String(k.rank||k.acquisition_difficulty||'').replace(/-?rank/i,'').trim().toUpperCase();
     if(gateRank){
       const gi=GATE_RANKS.indexOf(gateRank);
@@ -3201,7 +3462,7 @@ function commitActionLog(state,msgIndex,alt,used){
   let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
   if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList,itemNameParts,findInventoryMatches,inventoryQtyByName,isCraftishObject,normalizeCraftRecord,collectCraftList,autoFuseDuplicates,formatFuseNotice,NOTHING_FUSED_NOTICE,materialUpgradeName,fuseRatioFor,isAutoFusableItem,fmtUsd,moneyDeltaOf,moneyReasonOf,collectMoneyEvents,detectMoneyFromText,applyUsdDelta,officialHunterRank,isTwoHanded,itemEquipSlot,equipGear,unequipItem,equippedBySlot,itemSlotFamily,GATE_LEVEL_BANDS,detectCurrentGate,detectCurrentGateFromText,gateBand,recommendedGateLevels,clampMobLevelToGate,gateRulesContext,isSystemEventObject,recoverEventFromRaw,syncGateState};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList,itemNameParts,findInventoryMatches,inventoryQtyByName,isCraftishObject,normalizeCraftRecord,collectCraftList,autoFuseDuplicates,formatFuseNotice,NOTHING_FUSED_NOTICE,materialUpgradeName,fuseRatioFor,isAutoFusableItem,fmtUsd,moneyDeltaOf,moneyReasonOf,collectMoneyEvents,detectMoneyFromText,applyUsdDelta,officialHunterRank,isTwoHanded,itemEquipSlot,equipGear,unequipItem,equippedBySlot,itemSlotFamily,GATE_LEVEL_BANDS,detectCurrentGate,detectCurrentGateFromText,gateBand,recommendedGateLevels,clampMobLevelToGate,gateRulesContext,isSystemEventObject,recoverEventFromRaw,syncGateState,DEFAULT_PACK_COUNT,PACK_LEVEL_DELTA,proseHasCreatureDeath,inferKillLevel,inferFightPackCount,needsKillJsonFollowup,parseKillFollowupResponse,buildKillFollowupMessages,isBossName,familyNameFrom,extractProperMobNames};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -3616,7 +3877,7 @@ function renderMsg(m,i){
   const swipe=m.alts.length>1?'<span class="swipe"><button class="icon" data-act="prev" title="Previous version">◀</button>'+(m.sel+1)+'/'+m.alts.length+'<button class="icon" data-act="next" title="Next version">▶</button></span>':'';
   return '<div class="msg narrator" data-i="'+i+'"><div class="who">Narrator '+swipe+'<span class="tools">'+
     '<button class="icon" data-act="regen" title="Redo (new alternative)">↻ redo</button><button class="icon" data-act="edit" title="Edit">✎</button><button class="icon" data-act="del" title="Delete">🗑</button>'+
-    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+(a.streaming||!(allow||(a.sysNotices||[]).some(n=>/Fused |Nothing was fused/i.test((n&&n.body)||'')))?'':sysNoticeStack(a)+changesWindow(filterCoveredNotes(a.notes,a.sysNotices),a.errors)))+'</div></div>';
+    '</span></div><div class="body'+(a.streaming?' typing':'')+'">'+(isEdit?editBox(a.text):(function(){const showN=!(a.streaming||!(allow||(a.sysNotices||[]).some(n=>/Fused |Nothing was fused/i.test((n&&n.body)||''))));const stack=showN?sysNoticeStack(a):'';const chg=showN?changesWindow(filterCoveredNotes(a.notes,a.sysNotices),a.errors):'';return stack+renderProse(parsed.clean,allow)+(a.streaming?'':worldDeathNote(a.npcPatch))+chg;})())+'</div></div>';
 }
 function applyAlt(a){if(!a||a.applied)return;
   const parsed=parseSystemUpdates(a.text);
@@ -3717,7 +3978,20 @@ async function regenerate(i){
   a.streaming=false;
   if(!a.text.trim()){m.alts.pop();m.sel=Math.max(0,m.alts.length-1);}
   if(!m.alts.length){S.messages.splice(i,1);if(failMsg)S.messages.splice(i,0,{id:uid(),role:'error',text:failMsg,retry:{continuation:!!m.continuation,instruction:m.instruction||''}});}
-  else{applyAlt(curAlt(m));if(a.text&&a.text.trim())commitActionLog(S,i,curAlt(m)||a,usedLog);if(typeof renderActionChip==='function')renderActionChip();}
+  else{
+    if(isAwakened()&&a.text&&a.text.trim()&&typeof needsKillJsonFollowup==='function'&&needsKillJsonFollowup(a.text,{messages:S.messages,uptoIndex:i,player:S.player,state:S})){
+      $('#statusLine').textContent='confirming kills…';
+      try{
+        const follow=await chat(buildKillFollowupMessages(a.text,{player:S.player,messages:S.messages,uptoIndex:i,state:S}),{stream:false,temperature:0,maxTokens:350});
+        const ev=typeof parseKillFollowupResponse==='function'?parseKillFollowupResponse(follow):null;
+        if(ev&&ev.kills&&ev.kills.length){a.text=String(a.text).replace(/\s*$/,'\n')+'<system_event>'+JSON.stringify(ev)+'</system_event>';a.killFollowup=true;}
+      }catch(e3){}
+    }
+    applyAlt(curAlt(m));
+    if(isAwakened()&&a.text&&typeof proseHasCreatureDeath==='function'&&proseHasCreatureDeath(a.text)&&!(curAlt(m)&&(curAlt(m).killNotices||[]).length||(curAlt(m)&&(curAlt(m).sysNotices||[]).some(n=>/You have killed/.test((n&&n.body)||n||''))))){
+      toast('A death was described but EXP was not awarded. Use System → Claim missed kills.',6000);
+    }
+    if(a.text&&a.text.trim())commitActionLog(S,i,curAlt(m)||a,usedLog);if(typeof renderActionChip==='function')renderActionChip();}
   S._replyActionLog=null;
   if(failMsg&&!a.text)toast('The narrator request failed — see the error in the story.',5000);
   setBusy(false);save();renderLog();renderSystem();renderCompanions();
