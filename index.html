@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARISE — Solo Leveling RP (Norway)</title>
-<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 arise-scroll-v3 arise-scroll-v4 arise-usd-v1 arise-gear-v1 arise-gates-v1 -->
+<!-- arise-sys-awaken-v1 arise-status-fix-v1 arise-npc-deaths-v1 arise-status-sheet-v1 arise-formula-hp-v1 arise-sticky-chrome-v1 arise-intimate-status-dedupe-v1 arise-mob-tags-v1 arise-kill-exp-v1 arise-system-engine-v1 arise-exp-combat-v1 arise-regen-titles-qty-v1 arise-multikill-v1 arise-timeskip-v1 arise-fuse-v1 arise-scroll-v2 arise-fuse-v2 arise-scroll-v3 arise-scroll-v4 arise-usd-v1 arise-gear-v1 arise-gates-v1 arise-gate-xp-v1 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Pirata+One&family=Noto+Sans+Runic&display=swap" rel="stylesheet">
 <style>
@@ -566,6 +566,7 @@ When a named NPC dies on-screen (including the opening raid), include npcDeaths:
 Knowledge is private. If she tells something only to NPC A, only A knows it. Other NPCs must not know, reference, or act on it unless it is passed on in-story (overheard, A tells them on-screen, or it is announced publicly). The same for things she does when no one is watching: NPCs who were not present do not know. To record a fact an NPC learned, you may include npcKnowledge:[{name,fact}].
 System instance dungeons (from dungeon keys or System quests) are private to her and undetectable: no mana readings, no Association or guild detection or alerts, no gate appearing to others. Bystanders see nothing (at most she vanishes or reappears if watched). NPCs never know she entered unless she tells them.
 Her Association license rank (on the STATUS block) is her public hunter rank and stays E unless she is officially reassessed in-story. System level is secret. Association/guild gates: she may enter a gate of that license rank, or one rank above only in a party (E-rank: D-rank raids with a party; C-rank and higher only as a hired porter/help). Otherwise Association or gate guards refuse entry. System instance dungeons are exempt from this rule.
+Monster levels inside a gate follow the GATE rank, never her Association license. Bands: E Lv 1–10, D 10–25, C 25–45, B 45–65, A 65–85, S 85+; the boss is stronger than the trash. Her System level (on STATUS) is secret from NPCs and is only for how hard the fight is for her. In a D-rank raid or a C-rank+ porter job, mobs should be orange or red to her, not green, and not E-rank fodder. When the GATE RULES or COMBAT GUIDE block is in context, follow its level band and tag/emit those levels. Always emit a kills event (or [[mob]] tags plus a clear kill) in the same reply so the app can award EXP — do not skip the event.
 Real-world prices, pay, and sales (Association, buyers, raid pay, porter pay) are in USD ($), never NOK or kroner. Those go to her USD wallet, which is separate from System gold (the System store). When she is paid or a real-world sale settles, emit <system_event>{"money":{"delta":150,"reason":"raid pay"}}</system_event> (negative delta if she spends USD). Do not invent System gold.
 After the System is awake, when a monster or creature appears, emit [[mob:Name|Lv.N]] once for that creature (level if known). Never for humans, hunters, NPCs, or companions. Do not pick the color — the app colors the tag (green weaker, orange even, red dangerous). Do not also write a separate nameplate.
 When showing her a status window, emit exactly one <system>[[STATUS]]</system> and do not write the stats yourself. The app fills one real tracker block. Never invent HP, MP, free points, stats, gold, USD, or other sheet values.
@@ -769,21 +770,30 @@ function parseSystemUpdates(text){
   const updates=[],events=[],errors=[];
   const pull=(src,tag,bucket)=>{
     const re=new RegExp('<'+tag+'>'+'([\\s\\S]*?)'+'</'+tag+'>','gi');let m;
-    while((m=re.exec(src||''))){const obj=parseJsonBlock(m[1],errors,tag);if(obj&&typeof obj==='object')bucket.push(obj);}
+    while((m=re.exec(src||''))){
+      const obj=parseJsonBlock(m[1],errors,tag);
+      if(obj&&typeof obj==='object')bucket.push(obj);
+      else{const rec=typeof recoverEventFromRaw==='function'?recoverEventFromRaw(m[1]):null;if(rec)bucket.push(rec);}
+    }
     return re;
   };
   const reUp=pull(text||'','system_update',updates);
   const reEv=pull(text||'','system_event',events);
   let clean=(text||'').replace(reUp,'').replace(reEv,'');
+  const takeEventish=(obj,raw)=>{
+    if(obj&&typeof obj==='object'&&typeof isSystemEventObject==='function'&&isSystemEventObject(obj))return obj;
+    if(obj&&typeof obj==='object'&&typeof isCraftishObject==='function'&&isCraftishObject(obj))return obj;
+    return (typeof recoverEventFromRaw==='function'?recoverEventFromRaw(raw):null);
+  };
   const reSys=/<system>([\s\S]*?)<\/system>/gi;let sm;
   while((sm=reSys.exec(text||''))){
-    const obj=parseJsonBlock(sm[1],[],'system');
-    if(obj&&typeof obj==='object'&&typeof isCraftishObject==='function'&&isCraftishObject(obj)){events.push(obj);clean=clean.replace(sm[0],'');}
+    const obj=takeEventish(parseJsonBlock(sm[1],[],'system'),sm[1]);
+    if(obj){events.push(obj);clean=clean.replace(sm[0],'');}
   }
   const reFence=/```(?:json)?\s*([\s\S]*?)```/gi;let fm;
   while((fm=reFence.exec(text||''))){
-    const obj=parseJsonBlock(fm[1],[],'json');
-    if(obj&&typeof obj==='object'&&typeof isCraftishObject==='function'&&isCraftishObject(obj)){events.push(obj);clean=clean.replace(fm[0],'');}
+    const obj=takeEventish(parseJsonBlock(fm[1],[],'json'),fm[1]);
+    if(obj){events.push(obj);clean=clean.replace(fm[0],'');}
   }
   clean=clean.replace(/<system_update>[\s\S]*$/i,'').replace(/<system_event>[\s\S]*$/i,'');
   return {updates,events,errors,clean:clean.trim()};
@@ -1045,7 +1055,7 @@ function hasExpDelta(updates){
 function escapeRe(s){return String(s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 const WORD_NUMBERS={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50};
 const CLAIM_KILL_MAX=99;
-const KILL_RE=/\b(?:killed|slain|slays|slew|slaughters?|finishes? off|has fallen|lies? dead|is dead|are dead|died|dies|collapses?(?:,? (?:dead|lifeless|still))?|crumples?(?:,? (?:dead|lifeless|still))?|goes? still|stopped moving|lifeless|corpses?|carcass(?:es)?|you have (?:killed|slain)|fatal(?:ly)?|killing blow|finishing blow|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses))\b/i;
+const KILL_RE=/\b(?:killed|slain|slays|slew|slaughters?|finishes? off|has fallen|lies? dead|is dead|are dead|died|dies|collapses?(?:,? (?:dead|lifeless|still))?|crumples?(?:,? (?:dead|lifeless|still))?|goes? still|stopped moving|lifeless|corpses?|carcass(?:es)?|you have (?:killed|slain)|fatal(?:ly)?|killing blow|finishing blow|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses)|drops? dead|fell dead|cut down|brought down|goes? down|went down|gutted|bleeds out|succumbs|dispatched|no longer moving)\b/i;
 const GROUP_DEAD_RE=/\b(?:the (?:[\w-]+ )?(?:wolves|goblins|orcs|spiders|bears|slimes|skeletons|ants|beasts|monsters|creatures|pack) (?:are|is|lie|lies|lay|have been|has been) (?:dead|slain|killed|down)|(?:last|rest|remainder) of the (?:pack|[\w-]+s?)\b.{0,40}(?:falls?|fell|dies|died|crumples?|collapses?|is (?:dead|slain)|are (?:dead|slain))|the pack (?:is|are|lies|has been) (?:dead|slain|killed|down)|bodies litter|pile of (?:broken )?(?:carcasses|bodies|corpses))\b/i;
 function parseCountToken(s){
   s=String(s||'').trim().toLowerCase();
@@ -1313,27 +1323,196 @@ function rollDungeonClear(clear,player,rng){
   if(rng()<Math.min(0.8,0.35*luck))items.push(makeLootItem({name:'Magic Stone ('+rank+'-rank)',qty:2,category:'Material',description:'Mana crystals gathered after the dungeon was cleared.'},rank));
   return {items,gold,rank};
 }
+const GATE_RANKS=['E','D','C','B','A','S'];
+const GATE_LEVEL_BANDS={
+  E:{min:1,max:10,boss:12},
+  D:{min:10,max:25,boss:30},
+  C:{min:25,max:45,boss:52},
+  B:{min:45,max:65,boss:72},
+  A:{min:65,max:85,boss:95},
+  S:{min:85,max:130,boss:150}
+};
+const SYSTEM_EVENT_KEYS=['kills','kill','dungeon_clear','dungeonClear','quest_offer','quest_offers','quest_progress','item_use','npcDeaths','npc_deaths','npcKnowledge','hp','mp','money','usd','cash','wallet','companions_add','skills_add','title_earned','system_awakened','time_skip','sell','craft','raid_pay','porter_pay'];
+function isSystemEventObject(o){
+  if(!o||typeof o!=='object'||Array.isArray(o))return false;
+  if(typeof isCraftishObject==='function'&&isCraftishObject(o))return true;
+  return SYSTEM_EVENT_KEYS.some(k=>o[k]!=null);
+}
+function recoverEventFromRaw(raw){
+  const s=String(raw||'');if(!s.trim())return null;
+  const rec={};
+  const tryParse=txt=>{try{return JSON.parse(txt);}catch(e){return null;}};
+  const soften=txt=>String(txt||'').replace(/(['"])?([A-Za-z_]\w*)\1\s*:/g,'"$2":').replace(/,\s*([}\]])/g,'$1');
+  const takeArr=(key,re)=>{
+    const m=s.match(re);if(!m)return;
+    const body=m[1];
+    const parsed=tryParse(body)||tryParse(soften(body));
+    if(parsed){rec[key]=parsed;return;}
+    const items=[];
+    const reObj=/\{[^{}]+\}/g;let om;
+    while((om=reObj.exec(body))){
+      const obj=tryParse(om[0])||tryParse(soften(om[0]));
+      if(obj){items.push(obj);continue;}
+      const name=(om[0].match(/["']?(?:name|mob|monster)["']?\s*:\s*["']([^"']+)["']/)||[])[1];
+      const level=(om[0].match(/["']?(?:level|lv|lvl)["']?\s*:\s*"?(\d+)/)||[])[1];
+      const count=(om[0].match(/["']?(?:count|qty|n)["']?\s*:\s*"?(\d+)/)||[])[1];
+      if(name)items.push({name,level:level?+level:undefined,count:count?+count:undefined});
+    }
+    if(items.length)rec[key]=items;
+  };
+  takeArr('kills',/["']?kills["']?\s*:\s*(\[[\s\S]*?\])/i);
+  if(!rec.kills)takeArr('kills',/["']?kill["']?\s*:\s*(\[[\s\S]*?\])/i);
+  const money=s.match(/"money"\s*:\s*(\{[\s\S]*?\}|-?\d+)/i);
+  if(money){try{rec.money=JSON.parse(money[1]);}catch(e){const n=num(money[1],0);if(n)rec.money=n;}}
+  const hp=s.match(/"hp"\s*:\s*(-?\d+)/i);if(hp)rec.hp=num(hp[1],0);
+  const mp=s.match(/"mp"\s*:\s*(-?\d+)/i);if(mp)rec.mp=num(mp[1],0);
+  return Object.keys(rec).length?rec:null;
+}
+function parseGateRankToken(s){
+  const t=String(s||'').trim().toUpperCase();
+  if(t==='S+'||t==='NATIONAL')return 'S';
+  return GATE_RANKS.indexOf(t)>=0?t:'';
+}
+function detectCurrentGateFromText(text){
+  const s=String(text||'');
+  if(!s)return null;
+  if(/\b(?:left|leave|leaving|exit(?:ed|ing)?|outside)\b[^.]{0,40}\bgate\b|\bthe gate (?:closes?|closed|shattered|vanished|is gone|collapsed)\b|\bgate (?:has |is )?(?:closed|cleared|broken)\b/i.test(s)&&!/\b(?:enter(?:s|ed|ing)?|inside|into)\b[^.]{0,40}\bgate\b/i.test(s)){
+    return {left:true};
+  }
+  const instance=/\b(?:instance dungeon|dungeon key|system (?:instance|dungeon|gate))\b/i.test(s);
+  const re=/\b([EDCBAS]|S\+|National)[\s\-]*(?:rank(?:ed)?|class|grade)?[\s\-]*(?:gate|dungeon|raid|instance)\b|\b(?:gate|dungeon|raid)\b[^.]{0,48}?\b([EDCBAS])[\s\-]*rank\b|\(([EDCBAS])[\s\-]*rank (?:gate|dungeon|raid)\)/gi;
+  let m,rank='',idx=-1;
+  while((m=re.exec(s))){
+    const r=parseGateRankToken(m[1]||m[2]||m[3]);
+    if(r){rank=r;idx=m.index;}
+  }
+  if(!rank)return instance?{rank:'',instance:true}:null;
+  return {rank,instance,index:idx};
+}
+function detectCurrentGate(messages,uptoIndex,extraText,state){
+  const chunks=[];
+  if(extraText)chunks.push(String(extraText));
+  const msgs=(messages||[]).slice(0,uptoIndex==null?undefined:uptoIndex).slice(-20);
+  for(let i=msgs.length-1;i>=0;i--){
+    for(const tx of (typeof messageTexts==='function'?messageTexts(msgs[i]):[msgs[i]&&msgs[i].text])) if(tx)chunks.push(String(tx));
+  }
+  let found=null,left=false;
+  for(const c of chunks){
+    const g=detectCurrentGateFromText(c);
+    if(!g)continue;
+    if(g.left){left=true;break;}
+    if(g.rank||g.instance){found=g;break;}
+  }
+  if(left)return {rank:'',instance:false,left:true};
+  if(found&&found.rank)return found;
+  const st=state&&state.game;
+  if(st&&st.gateRank)return {rank:st.gateRank,instance:!!st.gateInstance,fromState:true};
+  return found;
+}
+function syncGateState(state,text,userText,cleared){
+  if(!state||!state.game)return;
+  if(cleared){state.game.gateRank='';state.game.gateInstance=false;return;}
+  const g=detectCurrentGateFromText((userText||'')+'\n'+(text||''));
+  if(!g)return;
+  if(g.left){state.game.gateRank='';state.game.gateInstance=false;return;}
+  if(g.rank)state.game.gateRank=g.rank;
+  if(g.instance)state.game.gateInstance=true;
+}
+function gateBand(rank){rank=parseGateRankToken(rank);return rank&&GATE_LEVEL_BANDS[rank]?Object.assign({rank},GATE_LEVEL_BANDS[rank]):null;}
+function recommendedGateLevels(rank,player,isBoss){
+  const b=gateBand(rank);if(!b)return null;
+  const P=Math.max(1,num(player&&player.level,1));
+  const orangeFloor=P-(MOB_GREEN_BELOW-1);
+  let lo=b.min,hi=b.max;
+  // D-rank and higher should not be green to her if the canon band can still reach orange.
+  if(b.rank!=='E'&&orangeFloor<=b.max)lo=Math.max(lo,Math.min(orangeFloor,b.max));
+  if(isBoss){
+    lo=Math.max(lo,Math.min(b.boss,Math.max(hi,lo+2)));
+    hi=Math.max(hi,b.boss);
+  }
+  return {min:lo,max:hi,canonMin:b.min,canonMax:b.max,boss:b.boss,rank:b.rank};
+}
+function clampMobLevelToGate(level,rank,player,isBoss){
+  const rec=recommendedGateLevels(rank,player,isBoss);
+  if(!rec){
+    const n=Number(level);
+    return (Number.isFinite(n)&&n>0)?n:null;
+  }
+  const n=Number(level);
+  if(!Number.isFinite(n)||n<=0)return rec.min;
+  if(n<rec.min)return rec.min;
+  return n;
+}
+function gateRulesContext(player,messages,uptoIndex,state){
+  const P=Math.max(1,num(player&&player.level,1));
+  const license=typeof officialHunterRank==='function'?officialHunterRank(player):((player&&player.officialRank)||'E');
+  const gate=detectCurrentGate(messages,uptoIndex,'',state);
+  const lines=[];
+  lines.push('GATE RULES (app; follow this): Monster levels follow the GATE rank, never her Association license ('+license+'). Canon bands: E Lv 1–10, D 10–25, C 25–45, B 45–65, A 65–85, S 85+. Bosses are stronger than the trash, at the top of the band or a little above. Her System level is '+P+' (secret from NPCs) — use it for threat vs her, not to shrink a higher-rank gate. For a D-rank raid or a C-rank+ porter job, mobs should be orange or red to her, not green.');
+  if(gate&&gate.rank){
+    const rec=recommendedGateLevels(gate.rank,player,false);
+    const recB=recommendedGateLevels(gate.rank,player,true);
+    const color=mobThreatColor(rec.min,P)||'orange';
+    const bColor=mobThreatColor(recB.min,P)||'red';
+    lines.push('Current gate: '+gate.rank+'-rank'+(gate.instance?' (System instance; entry rules do not apply)':'')+'. Typical mobs Lv '+rec.min+'–'+rec.max+' ['+color+']; boss Lv '+recB.min+'–'+recB.max+' ['+bColor+']. Tag [[mob:Name|Lv.N]] in that band and emit kills with those levels. The app will raise lowballed levels to the band.');
+  }
+  return '\n\n'+lines.join('\n');
+}
+
 function collectEngineKills(events,updates,text,opts){
+  opts=opts||{};
   const out=[];
+  const gate=opts.gate||detectCurrentGate(opts.messages,opts.uptoIndex,text,opts.state);
+  const gateRank=(gate&&gate.rank)||'';
+  const player=opts.player;
+  const killKeys=['kills','kill','monsters_killed','mob_kills','slain','defeated','killed'];
   const push=k=>{
     if(!k)return;
-    const name=String(k.name||k.mob||k.monster||'').trim();if(!name)return;
-    const level=k.level!=null?num(k.level,null):(k.lv!=null?num(k.lv,null):null);
-    out.push({name,level,rank:k.rank||k.acquisition_difficulty||'',boss:!!(k.boss||k.type==='boss'),type:k.type||'',count:killCountOf(k)});
+    if(typeof k==='string'){
+      const m=String(k).match(/^\s*(\d+)?\s*(.+?)\s*$/);
+      if(!m)return;
+      const name=m[2].replace(/\s*x\s*\d+\s*$/i,'').trim();
+      k={name,count:m[1]?+m[1]:1};
+    }
+    const name=String(k.name||k.mob||k.monster||k.species||'').trim();if(!name)return;
+    const rawLv=k.level!=null?k.level:(k.lv!=null?k.lv:(k.lvl!=null?k.lvl:k.mob_level));
+    let level=rawLv!=null&&rawLv!==''?num(rawLv,null):null;
+    const boss=!!(k.boss||k.type==='boss'||k.isBoss);
+    if(gateRank)level=clampMobLevelToGate(level,gateRank,player,boss);
+    else if(!(Number.isFinite(Number(level))&&Number(level)>0))level=null;
+    let rank=String(k.rank||k.acquisition_difficulty||'').replace(/-?rank/i,'').trim().toUpperCase();
+    if(gateRank){
+      const gi=GATE_RANKS.indexOf(gateRank);
+      const ri=GATE_RANKS.indexOf(rank);
+      if(gi>=0&&(ri<0||ri<gi))rank=gateRank;
+    }
+    if(!rank)rank=gateRank||'';
+    out.push({name,level,rank,boss,type:k.type||'',count:killCountOf(k)});
   };
-  for(const ev of (events||[])){
-    if(!ev||typeof ev!=='object')continue;
-    const list=ev.kills||ev.kill||[];
-    (Array.isArray(list)?list:[list]).forEach(push);
+  const harvest=src=>{
+    for(const ev of (src||[])){
+      if(!ev||typeof ev!=='object')continue;
+      let used=false;
+      for(const key of killKeys){
+        if(ev[key]==null)continue;
+        used=true;
+        const list=ev[key];
+        (Array.isArray(list)?list:[list]).forEach(push);
+      }
+    }
+  };
+  harvest(events);harvest(updates);
+  if(!out.length){
+    for(const k of detectTaggedMobKills(text,opts)){
+      if(gateRank)k.level=clampMobLevelToGate(k.level,gateRank,player,!!k.boss);
+      push(k);
+    }
+  }else if(gateRank){
+    for(const k of out)k.level=clampMobLevelToGate(k.level,gateRank,player,!!k.boss);
   }
-  for(const u of (updates||[])){
-    if(!u||typeof u!=='object')continue;
-    const list=u.kills||u.kill||[];
-    (Array.isArray(list)?list:[list]).forEach(push);
-  }
-  if(!out.length)for(const k of detectTaggedMobKills(text,opts))push(k);
   return out;
 }
+
 function collectDungeonClear(events,updates){
   const src=[].concat(events||[],updates||[]);
   for(const o of src){
@@ -2256,7 +2435,9 @@ function runSystemEngine(p,text,cfg,opts){
   const rebirth=first&&AWAKEN_RE.test(text||'');
   if(first)updates=updates.map(sanitizeFirstAwakeningUpdate);
   if(rebirth)updates=updates.map(u=>{if(!u||typeof u!=='object')return u;const o=Object.assign({},u);delete o.exp_gain;delete o.exp;delete o.level_up;return o;});
-  const kills=rebirth?[]:collectEngineKills(events,updates,text,opts);
+  const gate=rebirth?null:detectCurrentGate(opts.messages,opts.uptoIndex,((opts.userText||'')+'\n'+(text||'')),opts.state);
+  if(!rebirth&&opts.state)syncGateState(opts.state,text,opts.userText,false);
+  const kills=rebirth?[]:collectEngineKills(events,updates,text,Object.assign({},opts,{player:p,gate:gate}));
   const clear=rebirth?null:collectDungeonClear(events,updates);
   const offers=rebirth?[]:collectQuestOffers(events,updates);
   const strip=kills.length||clear;
@@ -2292,6 +2473,7 @@ function runSystemEngine(p,text,cfg,opts){
       }
     }
     if(clear){
+      if(opts.state)syncGateState(opts.state,text,opts.userText,true);
       const rew=rollDungeonClear(clear,p,rng);
       if(rew.gold)notes.push(...applyUpdate(p,{gold:rew.gold},cfg));
       if(rew.items&&rew.items.length)notes.push(...applyUpdate(p,{items_add:rew.items},cfg));
@@ -3019,7 +3201,7 @@ function commitActionLog(state,msgIndex,alt,used){
   let last=-1;for(let i=0;i<msgs.length;i++)if(msgs[i]&&msgs[i].role==='narrator')last=i;
   if(msgIndex==null||last<0||msgIndex===last)state.pendingActions=[];
 }
-const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList,itemNameParts,findInventoryMatches,inventoryQtyByName,isCraftishObject,normalizeCraftRecord,collectCraftList,autoFuseDuplicates,formatFuseNotice,NOTHING_FUSED_NOTICE,materialUpgradeName,fuseRatioFor,isAutoFusableItem,fmtUsd,moneyDeltaOf,moneyReasonOf,collectMoneyEvents,detectMoneyFromText,applyUsdDelta,officialHunterRank,isTwoHanded,itemEquipSlot,equipGear,unequipItem,equippedBySlot,itemSlotFamily};
+const API_EXPORT={deriveMax,normCompanion,companionGainExp,rollBox,makeBox,isBox,statRank,statKey,DEFAULT_STAT_RANKS,DEFAULT_RANKS,parseSystemUpdates,applyUpdate,diffPlayer,revertPatch,applyTextToPlayer,rankForLevel,defaultPlayer,defaultState,DEFAULT_SYSTEM_PROMPT,inferSystemAwakened,wouldAwaken,updatesIndicateAwakening,AWAKEN_RE,playerControlViolation,CONTROL_REMINDER,visibleNotes,isMechanicalNote,narratedPlayerInjury,preAwakenUpdates,repairUnawakenedSave,findNpcFuzzy,nameKey,npcAlive,collectNpcOps,applyNpcDeaths,revertNpcDeaths,applyNpcKnowledge,revertNpcKnowledge,scanStoryDeaths,ensureNpcDefaults,playerStatusText,isStatusWindowTitle,resolveSystemWindow,repairDerivedStats,sanitizeFirstAwakeningUpdate,isPlayerMaxKey,formulaMaxHp,formulaMaxMp,scrubFakeMaxPatch,scrubFakeMaxSave,applyCurrentPoolDelta,collapseStatusInText,isStandaloneStatusInner,renderProse,parseMobTag,mobThreatColor,resolveMobColor,renderMobTag,MOB_GREEN_BELOW,MOB_RED_ABOVE,MOB_EXP_RED_MIN_LEVELS,MOB_EXP_RED_CAP_LEVELS,expNeededForLevels,expForMobKill,collectEventDamage,collectLiveMobs,suggestedMobHit,hitsToKillHint,combatGuideBlock,combatGuideForTurn,findRegenSkill,regenPercent,regenAmount,regenSkillExpNext,regenSkillDescription,applyRegeneration,isRestOrSleepText,TITLE_CATALOG,SLAYER_KILL_COUNT,slayerTitleFor,findTitleDef,titleBonuses,titleEffectSummary,grantTitle,equipTitle,hasTitle,evaluateAppTitles,recordMobKills,ensureKillCounts,dailyStreak,collectTitleEarned,titleAcquireNotice,canStackItems,addItemToInventory,sellInventoryItems,buyShopItems,maxBuyQty,logAppAction,formatActionLog,equippedContextBlock,actionLogForReply,commitActionLog,hasExpDelta,detectTaggedMobKills,killExpFallback,strongAwakeningText,backfillKillExp,mergePlayerPatches,runSystemEngine,rollMobDrops,rollDungeonClear,collectEngineKills,equippedBonuses,itemSlot,itemSellPrice,useInventoryItem,applyBoxOpen,claimDailyReward,advanceGameDay,acceptQuestOffer,mobRankFromLevel,inferMobSpecies,rngFromSeed,parseJsonBlock,collectSceneMobs,findSceneMob,killCountOf,claimMissedKills,parseCountToken,singularMobName,extractKillCounts,CLAIM_KILL_MAX,TIME_SKIP_MAX,parseTimeSkipSpec,collectTimeSkip,detectUserTimeSkip,applyTimeSkip,diffWorld,revertWorldPatch,prevUserText,findInventoryMatch,sellNamedItems,craftRecipes,scrubCraftedItem,detectUserSells,detectUserCrafts,parseItemQtyList,normalizeItemName,TRADE_CRAFT_KEYS,TRADE_CRAFT_VERB,isUnfusibleItem,userMentionsTrade,userAsksBulkTrade,inventoryContextBlock,inventoryListIsShort,tradeGuideBlock,tradeContextBlock,craftRecordIsConcrete,collectTradeEvents,vagueTradeProse,needsTradeEventRetry,shouldProtectTradeItem,collectNamedList,itemNameParts,findInventoryMatches,inventoryQtyByName,isCraftishObject,normalizeCraftRecord,collectCraftList,autoFuseDuplicates,formatFuseNotice,NOTHING_FUSED_NOTICE,materialUpgradeName,fuseRatioFor,isAutoFusableItem,fmtUsd,moneyDeltaOf,moneyReasonOf,collectMoneyEvents,detectMoneyFromText,applyUsdDelta,officialHunterRank,isTwoHanded,itemEquipSlot,equipGear,unequipItem,equippedBySlot,itemSlotFamily,GATE_LEVEL_BANDS,detectCurrentGate,detectCurrentGateFromText,gateBand,recommendedGateLevels,clampMobLevelToGate,gateRulesContext,isSystemEventObject,recoverEventFromRaw,syncGateState};
 if(typeof window!=='undefined')window.SoloRP=API_EXPORT;
 let S;
 if(typeof document==='undefined'){if(typeof module!=='undefined')module.exports=API_EXPORT;return;}
@@ -3625,7 +3807,7 @@ function buildContext(uptoIndex,continuation,instruction){
     (w.summary?'\n\nSTORY SO FAR: '+w.summary:'')+
     '\n\nLicense rank: '+officialHunterRank(S.player)+' (public; System level secret). Reassessment chart: '+S.rankChart.map(r=>r.rank+' '+r.minLevel+'+').join(', ')+'. Stat ranks: '+S.statRanks.map(r=>r.rank+(r.max==null||r.max===''?'+':'≤'+r.max)).join(', ')+'.'+
     (isAwakened()?'\n\nRIGHT NOW: System is awake. Windows only when there is something to tell her; most replies have none. Occasional (sparing) voice of '+(c.patronName||c.patronType||'Sól')+'.':'')+
-    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex)+'\n\n'+equippedContextBlock(S.player)+((isAwakened()&&!(S.world&&S.world.openingActive)&&(userMentionsTrade(prevUserText(S.messages,uptoIndex))||inventoryListIsShort(S.player)))?'\n\n'+tradeContextBlock(S.player,prevUserText(S.messages,uptoIndex)):'')+(((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[])).length?('\n'+formatActionLog((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[]))):'');
+    '\n\nSTATUS (authoritative; do not invent'+(isAwakened()?')':'; hidden)')+':\n'+statusBlock()+'\n'+(isAwakened()?dailyBlock():'Daily Quest hidden.')+combatGuideForTurn(S.player,S.messages,uptoIndex)+(isAwakened()?gateRulesContext(S.player,S.messages,uptoIndex,S):'')+'\n\n'+equippedContextBlock(S.player)+((isAwakened()&&!(S.world&&S.world.openingActive)&&(userMentionsTrade(prevUserText(S.messages,uptoIndex))||inventoryListIsShort(S.player)))?'\n\n'+tradeContextBlock(S.player,prevUserText(S.messages,uptoIndex)):'')+(((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[])).length?('\n'+formatActionLog((S._replyActionLog&&S._replyActionLog.length)?S._replyActionLog:(S.pendingActions||[]))):'');
   const hist=S.messages.slice(0,uptoIndex).filter(m=>m.role!=='error'&&(m.role!=='narrator'||m.alts.length));
   const recent=hist.slice(-Math.max(2,num(S.settings.contextMessages,40)));
   const out=[{role:'system',content:sys}];
